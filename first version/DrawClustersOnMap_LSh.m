@@ -27,11 +27,11 @@ else
 end
 
 if strcmp(clrmap,'jet'),
-    cmap = flipud(jet(numK));
+    temp = flipud(jet(numK));
 else % 'hsv'
-    n = round(numK*1.1);
-    cmap = hsv(max(1,n));
+    temp = hsv(round(numK*1.1));
 end
+cmap = temp(1:numK,:); % extend colormap to include black
 
 anat_YX = anat_yx/4;
 anat_YZ = anat_yz/4;

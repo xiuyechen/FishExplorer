@@ -18,15 +18,6 @@ pos = get(gca,'Position');
 barratio = 0.02;
 numK = double(max(double(numK),double(max(gIX))));
 
-% down-sample
-displaymax = 1000;
-numcell = size(M,1);
-if numcell > displaymax,
-    skip = round(numcell/displaymax);
-    M = M(1:skip:end,:);
-    gIX = gIX(1:skip:end,:);
-end
-
 % sort traces by index
 im = M;
 [nLines,nFrames] = size(im);

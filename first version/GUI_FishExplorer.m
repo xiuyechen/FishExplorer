@@ -21,10 +21,9 @@
 % global VAR;
 % load('VAR_current.mat','VAR');
 % load('CONSTs_current.mat','CONSTs');
-% data_dir = [pwd '\example data'];
-% [hfig,fcns] = GUI_FishExplorer(data_dir,CONSTs,VAR);
+% hfig = GUI_FishExplorer(CONSTs,VAR);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Full datasets are stored as 'CONST_F?_fast.mat' (? = fish number), to load from the GUI
+% Full datasets are stored as 'CONST_F?.mat' (? = fish number), to load from the GUI
 
 %% User Interface:
 % function hfig = GUI_FishExplorer(CONSTs,VAR,CONST,i_fish)
@@ -58,11 +57,7 @@ setappdata(hfig,'arcmatfolder',arcmatfolder);
 %% Pass external variables into appdata (stored with main figure handle)
 setappdata(hfig,'CONSTs',CONSTs);
 setappdata(hfig,'VAR',VAR);
-nFish = length(CONSTs) + 1; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% fish protocol sets (different sets have different parameters)
-M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 3, 3]; % M = Matrix
-setappdata(hfig,'M_fish_set',M_fish_set);
+nFish = length(CONSTs);
 
 % parameters / constants
 setappdata(hfig,'z_res',19.7); % resoltion in z, um per slice
@@ -86,6 +81,9 @@ i_fish = 1;
 QuickUpdateFish(hfig,i_fish,'init');
 
 %% Initialize internal params into appdata
+% fish protocol sets (different sets have different parameters)
+M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 1]; % M = Matrix
+setappdata(hfig,'M_fish_set',M_fish_set);
 
 % thresholds
 thres_merge = 0.9;
@@ -102,8 +100,6 @@ setappdata(hfig,'thres_size',thres_size); % min size for clusters
 setappdata(hfig,'clrmap','hsv');
 setappdata(hfig,'opID',0);
 setappdata(hfig,'rankID',0); 
-setappdata(hfig,'isPlotLines',0); 
-setappdata(hfig,'isPlotFictive',1); 
 setappdata(hfig,'rankscore',[]);
 setappdata(hfig,'isCentroid',0);
 setappdata(hfig,'isWkmeans',1); % in autoclustering, with/without kmeans
@@ -152,7 +148,7 @@ grid = 0:bwidth+0.001:1;
 
 % various UI element handles ('global' easier than passing around..)
 global hback hfwd hclassname hclassmenu hclusgroupmenu hclusmenu hclusname...
-    hdatamenu hopID hdataFR hloadfish hfishnum hstimreg hmotorreg...
+    hdatamenu hopID hcentroid hdataFR hloadfish hfishnum hstimreg hmotorreg...
     hcentroidreg;
 
 %% UI ----- tab one ----- (General)
@@ -181,28 +177,10 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Save Zstack',...
     'Callback',@pushbutton_writeZstack_Callback);
 
 i=i+n;
-n=2; % plots selected cells on anatomy z-stack, tiled display
-uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Tile Zstack',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-    'Callback',@pushbutton_tileZstack_Callback);
-
-i=i+n;
 n=2; % make new figure without the GUI components, can save manually from default menu
 uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Popup plot',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@pushbutton_popupplot_Callback);
-
-i=i+n;
-n=2; % popupplot option: whether to plot cluster mean lines instead of all raw traces
-uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Plot lines',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-    'Callback',@checkbox_isPlotLines_Callback);
-
-i=i+n;
-n=2; % popupplot option: whether to plot fictive behavior bar
-uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Plot fictive','Value',1,...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-    'Callback',@checkbox_isPlotFictive_Callback);
 
 i=i+n;
 n=3; % export main working variables to workspace, can customize!
@@ -255,7 +233,7 @@ hdatamenu = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',CONSTs{i_
 
 i=i+n;
 n=4; % only centroids (~mean) of clusters shown on left-side plot, the rest is unchanged
-uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Display centroids of clusters',...
+hcentroid = uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Display centroids of clusters',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@checkbox_showcentroids_Callback);
 
@@ -435,7 +413,7 @@ uicontrol('Parent',tab{i_tab},'Style','text','String','Motor reg.:',...
 
 i=i+n;
 n=2; % (unlike stim regressors, names hardcoded, not importet from regressor...)
-menu = {'(choose)','left swims','right swims','forward swims','raw left','raw right','raw average'};
+menu = {'(choose)','right swims','left swims','forward swims','raw right','raw left','raw average'};
 hmotorreg = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',menu,'Value',1,...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@popup_getmotorreg_Callback);
@@ -515,19 +493,19 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','iter.reg','Enable',
     'Callback',{@pushbutton_IterCentroidRegression_Callback});
 
 %% UI row 3: (TBD)
-% i_row = 3; % old idea: display correlation values of multiple regressors (instead of fluo. trace)
-% i = 1;n = 0; % and then can cluster that and further manipulate... 
-% 
-% i=i+n;
-% n=4; % did not implement combination of regressors in this version... but display option is coded (dataFR==0)
-% uicontrol('Parent',tab{i_tab},'Style','text','String','regressor combos??(TBD)',... 
-%     'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
-% 
-% i=i+n;
-% n=4; % also data storage is coded, 'M' could be loaded from M_0_fluo or M_0_reg (storing reg corr values)
-% hdataFR = uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Display fluo./regression',...
-%     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-%     'Callback',@checkbox_dataFR_Callback);
+i_row = 3; % old idea: display correlation values of multiple regressors (instead of fluo. trace)
+i = 1;n = 0; % and then can cluster that and further manipulate... 
+
+i=i+n;
+n=4; % did not implement combination of regressors in this version... but display option is coded (dataFR==0)
+uicontrol('Parent',tab{i_tab},'Style','text','String','regressor combos??(TBD)',... 
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+
+i=i+n;
+n=4; % also data storage is coded, 'M' could be loaded from M_0_fluo or M_0_reg (storing reg corr values)
+hdataFR = uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Display fluo./regression',...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+    'Callback',@checkbox_dataFR_Callback);
 
 %% UI ----- tab four ----- (Clustering etc.)
 i_tab = 4;
@@ -999,17 +977,6 @@ end
 close(h)
 end
 
-function pushbutton_tileZstack_Callback(hObject,~)
-hfig = getParentFigure(hObject);
-isfullfish = getappdata(hfig,'isfullfish');
-if isfullfish,
-    disp('Rendering...')
-    DrawTiledPics(hfig);
-else
-    errordlg('Load full fish first!');
-end
-end
-
 function out = makeDisk2(radius, dim)
 center=floor(dim/2)+1;
 out=zeros(dim);
@@ -1030,7 +997,7 @@ hfig = getParentFigure(hObject);
 % figure('Position',[50,100,853,512]); % right plot size: 2048x1706
 % h1 = axes('Position',[0, 0, 0.5, 1]); % left ~subplot
 % h2 = axes('Position',[0.50, 0, 0.5, 1]); % right ~subplot
-figure('Position',[50,100,1700,900],'color',[1 1 1]);
+figure('Position',[50,100,1600,900]);
 h1 = axes('Position',[0.05, 0.03, 0.53, 0.94]); % left ~subplot
 h2 = axes('Position',[0.61, 0.03, 0.35, 0.94]); % right ~subplot
 
@@ -1050,39 +1017,22 @@ isCentroid = getappdata(hfig,'isCentroid');
 clrmap = getappdata(hfig,'clrmap');
 rankscore = getappdata(hfig,'rankscore');
 rankID = getappdata(hfig,'rankID');
-iswrite = (rankID>=2);
-isPlotLines = getappdata(hfig,'isPlotLines');
-isPlotFictive = getappdata(hfig,'isPlotFictive');
 
-isPopout = 1;
+iswrite = (rankID>=2);
 
 % left subplot
 axes(h1);
 if isCentroid,
     [C,~] = FindCentroid(gIX,M);
-    DrawClusters(h1,C,unique(gIX),dataFR,numK,stim,fictive,clrmap,rankscore,...
-        iswrite,isPopout,isPlotLines,isPlotFictive);
-%     DrawClusters(h1,C,unique(gIX),dataFR,numK,stim,fictive,clrmap,rankscore,iswrite,ispopout);
+    DrawClusters(h1,C,unique(gIX),dataFR,numK,stim,fictive,clrmap,rankscore,iswrite);
 else
-    DrawClusters(h1,M,gIX,dataFR,numK,stim,fictive,clrmap,rankscore,...
-        iswrite,isPopout,isPlotLines,isPlotFictive);
-%     DrawClusters(h1,M,gIX,dataFR,numK,stim,fictive,clrmap,rankscore,iswrite,ispopout);
+    DrawClusters(h1,M,gIX,dataFR,numK,stim,fictive,clrmap,rankscore,iswrite);
 end
 
 % right subplot
 axes(h2);
-DrawClustersOnMap_LSh(CInfo,cIX,gIX,numK,anat_yx,anat_yz,anat_zx,clrmap,'full');
+DrawClustersOnMap_LSh(CInfo,cIX,gIX,numK,anat_yx,anat_yz,anat_zx,clrmap);
 
-end
-
-function checkbox_isPlotLines_Callback(hObject,~)
-hfig = getParentFigure(hObject);
-setappdata(hfig,'isPlotLines',get(hObject,'Value'));
-end
-
-function checkbox_isPlotFictive_Callback(hObject,~)
-hfig = getParentFigure(hObject);
-setappdata(hfig,'isPlotFictive',get(hObject,'Value'));
 end
 
 function pushbutton_exporttoworkspace_Callback(hObject,~)
@@ -1119,12 +1069,12 @@ CIX = CONSTs{new_i_fish}.CIX;
 numcell = CONSTs{new_i_fish}.numcell;
 
 temp = CONSTs{new_i_fish}.CRAZ;
-CellRespAvr = zeros(numcell,size(temp,2));
-CellRespAvr(CIX,:) = temp;
+CRAZ = zeros(numcell,size(temp,2));
+CRAZ(CIX,:) = temp;
 
 temp = CONSTs{new_i_fish}.CRZt;
-CellResp = zeros(numcell,size(temp,2));
-CellResp(CIX,:) = temp;
+CRZt = zeros(numcell,size(temp,2));
+CRZt(CIX,:) = temp;
 
 temp = CONSTs{new_i_fish}.CInfo;
 CInfo(numcell).center = '';
@@ -1135,21 +1085,17 @@ CInfo(numcell).y_minmax = '';
 CInfo(numcell).x_minmax = '';
 CInfo(CIX) = temp;
 
-setappdata(hfig,'CellRespAvr',CellRespAvr); 
-setappdata(hfig,'CellResp',CellResp); 
-setappdata(hfig,'CInfo',CInfo); 
+setappdata(hfig,'CRAZ',CRAZ); % Matrix array, misc collection
+setappdata(hfig,'CRZt',CRZt); % Matrix array, misc collection
+setappdata(hfig,'CInfo',CInfo); % Matrix array, misc collection
 
 UpdateFishData(hfig,new_i_fish);
 if ~exist('init','var'),
-    UpdateFishDisplay(hfig);
+    UpdateFishDisplay(hfig,new_i_fish);
 end
 end
 
-function UpdateFishData(hfig,new_i_fish) % loading steps shared by both quick-load and full-load
-M_fish_set = getappdata(hfig,'M_fish_set');
-fishset = M_fish_set(new_i_fish);
-setappdata(hfig,'fishset',fishset);
-
+function UpdateFishData(hfig,new_i_fish)
 UpdateDatamenu_Direct(hfig,1);
 
 % save ClusGroup before updating, if applicable
@@ -1176,12 +1122,12 @@ Cluster = ClusGroup{clusgroupID};% collection of clusters, 'Cluster' structurall
 setappdata(hfig,'Cluster',Cluster);
 end
 
-function UpdateFishDisplay(hfig) % loading steps that are not performed at very first initialization
+function UpdateFishDisplay(hfig,new_i_fish)
 stim = getappdata(hfig,'stim');
-fishset = getappdata(hfig,'fishset');
+M_fish_set = getappdata(hfig,'M_fish_set');
 
+fishset = M_fish_set(new_i_fish);
 [~, names] = GetStimRegressor(stim,fishset);
-
 global hstimreg;
 set(hstimreg,'String',['(choose)',(names)]);
 
@@ -1202,57 +1148,25 @@ global hfishnum;
 set(hfishnum,'Value',new_i_fish);
 end
 
-function LoadFullFish(hfig,new_i_fish)
+function LoadFullFish(hfig,new_i_fish,CONST)
 data_dir=getappdata(hfig,'data_dir');
-disp(['loading fish #' num2str(new_i_fish) '...']);
-
-%%
-tic
-fishdir = fullfile(data_dir,['CONST_F' num2str(new_i_fish) '_fast.mat']);
-load(fishdir,'const');
-load(fishdir,'dimCR');
-CellResp = zeros(dimCR);
-num = 0;
-nParts = round(dimCR(1)*dimCR(2)/42000000);
-for i = 1:nParts,
-    load(fishdir,['CRZt_' num2str(i)']);
-    eval(['len = size(CRZt_' num2str(i) ',1);']);
-    eval(['CellResp(num+1:num+len,:) = CRZt_' num2str(i) ';']);
-    eval(['CellResp(num+1:num+len,:) = CRZt_' num2str(i) ';']);
-    num = num+len;
+if ~exist('CONST','var'),
+    disp(['loading fish #' num2str(new_i_fish) '...']);
+    tic
+    load(fullfile(data_dir,['CONST_F' num2str(new_i_fish) '.mat']),'CONST');
+    toc
 end
-% for i = 1:nParts,
-%     load(fishdir,['CellResp_' num2str(i)']);
-%     eval(['len = size(CellResp_' num2str(i) ',1);']);
-%     eval(['CellResp(num+1:num+len,:) = CellResp_' num2str(i) ';']);
-%     num = num+len;
-% end
-toc
-setappdata(hfig,'CellResp',CellResp);
-
-%% load all fields from CONST, with names preserved
-names = fieldnames(const); % cell of strings
-for i = 1:length(names),
-    
-    
-    
-    % renaming exception!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    if strcmp(names{i},'CRAZ'),
-        setappdata(hfig,'CellRespAvr',const.CRAZ);
-    elseif strcmp(names{i},'photostate'),
-        setappdata(hfig,'stim_full',const.photostate);
-        
-        
-        
-    else
-        setappdata(hfig,names{i},eval(['const.',names{i}]));
-    end
-end
-setappdata(hfig,'numcell',length(const.CInfo));
-
-UpdateFishData(hfig,new_i_fish);
-UpdateFishDisplay(hfig);
 setappdata(hfig,'isfullfish',1);
+
+% load all fields from CONST, with names preserved
+names = fieldnames(CONST); % cell of strings
+for i = 1:length(names),
+    setappdata(hfig,names{i},eval(['CONST.',names{i}]));
+end
+setappdata(hfig,'numcell',length(CONST.CInfo));
+    
+UpdateFishData(hfig,new_i_fish);
+UpdateFishDisplay(hfig,new_i_fish);
 end
 
 function popup_datamenu_Callback(hObject,~)
@@ -1264,49 +1178,29 @@ RefreshFigure(hfig);
 end
 
 function UpdateDatamenu_Direct(hfig,ID)
-CellResp = getappdata(hfig,'CellResp');
+CRAZ = getappdata(hfig,'CRAZ');
+CRZt = getappdata(hfig,'CRZt');
+FcAvr = getappdata(hfig,'FcAvr');
 Fc = getappdata(hfig,'Fc');
 datanames = getappdata(hfig,'datanames');
 tlists = getappdata(hfig,'tlists');
-stim_full = getappdata(hfig,'stim_full');
-periods = getappdata(hfig,'periods');
-shift = getappdata(hfig,'shift');
-numcell = getappdata(hfig,'numcell');
-stimtypelist = 1:length(tlists);% getappdata(hfig,'stimtypelist');
-
-fishset = getappdata(hfig,'fishset');
-
-if fishset == 1,
-    CellRespAvr = getappdata(hfig,'CellRespAvr');
-    FcAvr = getappdata(hfig,'FcAvr');
-else
-    % find averages of different stimuli, and splice together
-    % in future should allow user to chose stimtypelist to compile average
-    % of selected stimuli groups
-    CRavr = [];
-    for i = 1:stimtypelist,
-        M = circshift(CellResp(:,tlists{i}),shift,2);
-        CRavr = horzcat(CRavr,mean(reshape(M,numcell,periods(i),[]),3));
-    end
-    setappdata(hfig,'CellRespAvr',CRavr);
-end
-
+photostate = getappdata(hfig,'photostate');
 
 %% SWITCH LEFT/RIGHT DIRECTION AGAIN
-% % FcAvr = vertcat(FcAvr(2,:),FcAvr(1,:),FcAvr(3:end,:));
+FcAvr = vertcat(FcAvr(2,:),FcAvr(1,:),FcAvr(3:end,:));
 Fc = vertcat(Fc(2,:),Fc(1,:),Fc(3:end,:));
 % now 1=left, 2=right, 3=forward, 4 = raw left, 5 = raw right
 
 %%
 if ID == 1,
-    M_0 = CellRespAvr;
+    M_0 = CRAZ;
     fictive = FcAvr;
 elseif ID == 2,
-    M_0 = CellResp;
+    M_0 = CRZt;
     fictive = Fc;
 else    
     IX = tlists{ID};
-    M_0 = CellResp(:,IX);
+    M_0 = CRZt(:,IX);
     temp = Fc(:,IX);
     % normalize fictive channels, in 2 sets
     for k = 1:3,%size(F,1),
@@ -1317,8 +1211,8 @@ else
     temp(4:5,:) = (m-min(min(m)))/(max(max(m))-min(min(m)));
     fictive = temp;
 end
-% stim from stim_full
-stim = stim_full(tlists{ID}); 
+% stim from photostate
+stim = photostate(tlists{ID}); 
 
 setappdata(hfig,'M_0_fluo',M_0);
 setappdata(hfig,'fictive',fictive);
@@ -1517,12 +1411,11 @@ if ~isempty(str),
 end
 end
 
-function UpdateTRange(hfig,range) % this function is incomplete... delete?
-% what about stimulus???
-
+function UpdateTRange(hfig,range)
 M_0 = GetM_0(hfig);
 cIX = getappdata(hfig,'cIX');
 fictive_0 = getappdata(hfig,'fictive_0');
+% photostate_0 = getappdata(hfig,'photostate_0');
 
 % set M
 M = M_0(cIX,range);
@@ -1530,6 +1423,10 @@ setappdata(hfig,'M',M);
 % set fictive
 fictive = fictive_0(:,range);
 setappdata(hfig,'fictive',fictive);
+%     % set photostate
+%     photostate = photostate_0(:,range);
+%     setappdata(hfig,'photostate',photostate);
+
 end
 
 %% row 2: Operations
@@ -1607,17 +1504,17 @@ periods = getappdata(hfig,'periods');
 if length(periods)==1,
     period = periods{1};
     [C,~] = FindCentroid(gIX,M);
-else %if i_fish==8,
+else % i_fish>=8,
     tlists = getappdata(hfig,'tlists');
-    CellResp = getappdata(hfig,'CellResp');
+    CRZt = getappdata(hfig,'CRZt');
     IX = tlists{6}; % ptomr_circ
-    M_ = CellResp(cIX,IX);
+    M_ = CRZt(cIX,IX);
     [C,~] = FindCentroid(gIX,M_);
     periods = getappdata(hfig,'periods');
     period = periods{1}+periods{2};
-% else ?
-
 end
+% C2 = zscore(C,0,2);
+% C_3D = reshape(C2,size(C2,1),period,[]);
 C_3D_0 = reshape(C,size(C,1),period,[]);
 C_3D = zscore(C_3D_0,0,2);
 
@@ -1917,57 +1814,9 @@ stimbar = GetStimBar(halfbarheight,stim);
 reg = imNormalize99(regressor);
 regbar = repmat(reg,[1,1,3]);
 
-h = subplot(3,1,1);image(stimbar);set(h,'box','on','xtick',[],'ytick',[]); title('stimulus');
-h = subplot(3,1,2);image(regbar); set(h,'box','on','xtick',[],'ytick',[]); title('regressor');
-subplot(3,1,3);
-
-temp = fictive;
-if 1, % plot all 5 lines
-    fc = vertcat(temp(1,:),temp(3,:),temp(2,:),temp(4,:),temp(5,:));
-    
-    imagesc(fc);colormap gray
-    set(gca,'YTick',[],'XTick',[]);
-    set(gcf,'color',[1 1 1]);
-    set(gca, 'box', 'off')
-    hold on;axis ij;
-    
-    % plot division lines
-%     for i = 0:3,
-%         y = i+0.5;
-%         plot([0.5,length(fictive)+0.5],[y,y],'w','Linewidth',0.5);
-%     end
-%     % labels
-%     names = {'Left','Right','Forward','Raw L','Raw R'};
-%     x = -s2*0.05;
-%     for i = 1:5,
-%         y = i;
-%         text(x,y,names{i},'Fontsize',7);
-%     end
-    
-else % only plot top 3 lines
-    fc = vertcat(temp(1,:),temp(3,:),temp(2,:));
-    imagesc(fc);colormap gray
-    set(gca,'YTick',[],'XTick',[]);
-    set(gcf,'color',[1 1 1]);
-    set(gca, 'box', 'off')
-    hold on;axis ij;
-    
-    % plot division lines
-    for i = 0:2,
-        y = i+0.5;
-        plot([0.5,length(fictive)+0.5],[y,y],'w','Linewidth',0.5);
-    end
-    % labels
-    names = {'Left','Forward','Right'};
-    x = -s2*0.07;
-    for i = 1:3,
-        y = i;
-        text(x,y,names{i},'Fontsize',10);
-    end
-    
-end
-
-imagesc(fictive);colormap hot; axis off; title('motor');
+subplot(3,1,1);image(stimbar); axis off; title('stimulus');
+subplot(3,1,2);image(regbar); axis off; title('regressor');
+subplot(3,1,3);imagesc(fictive);colormap hot; axis off; title('motor');
 end
 
 function out=imNormalize99(im)
@@ -2032,7 +1881,9 @@ regchoice = getappdata(hfig,'regchoice');
 stim = getappdata(hfig,'stim');
     
 if regchoice{1}==1, % stim Regressor
-    fishset = getappdata(hfig,'fishset');
+    i_fish = getappdata(hfig,'i_fish');
+    M_fish_set = getappdata(hfig,'M_fish_set');
+    fishset = M_fish_set(i_fish);
     [regressors, names] = GetStimRegressor(stim,fishset);    
     regressor = regressors(regchoice{2}).im;
     
@@ -2077,8 +1928,8 @@ else % regchoice{1}==3, from Centroid
         fliptrans = GetPhotoTrans(flipstim);
         
         % transition e.g.:
-        % stimulus    : 2     3     1     3     3     0     0     1     1     0     3     2     0     2     2     1
-        % transitionID: 6    11    13     7    15    12     0     1     5     4     3    14     8     2    10     9
+        % photostate: 2     3     1     3     3     0     0     1     1     0     3     2     0     2     2     1
+        % phototrans: 6    11    13     7    15    12     0     1     5     4     3    14     8     2    10     9
         
         IX = [];
         targetstates = unique(fliptrans,'stable');
@@ -2278,11 +2129,11 @@ end
 
 %% row 3: (TBD)
 
-% function checkbox_dataFR_Callback(hObject,~) % obsolete !!!
-% hfig = getParentFigure(hObject);
-% SetDataFR(hfig,get(hObject,'Value'));
-% RefreshFigure(hfig);
-% end
+function checkbox_dataFR_Callback(hObject,~)
+hfig = getParentFigure(hObject);
+SetDataFR(hfig,get(hObject,'Value'));
+RefreshFigure(hfig);
+end
 
 %% ----- tab four ----- (Clustering etc.)
 
@@ -2877,7 +2728,6 @@ gIX = getappdata(hfig,'gIX');
 M = getappdata(hfig,'M');
 [C,~] = FindCentroid(gIX,M);
 coeffs = corr(C');%corr(C(1,:)',C(2,:)')
-figure('Position',[1000,200,500,500]);
 CorrPlot(coeffs);
 end
 
@@ -2894,8 +2744,8 @@ maxlim = 1; %max(max(im));
 
 RGB = ImageToRGB(im,cmap,minlim,maxlim); % map image matrix to range of colormap
 
+figure('Position',[1000,200,500,500]);
 image(RGB); axis equal; axis tight;
-set(gca,'XTick',1:length(im),'YTick',1:length(im));
 
 for i = 1:size(im,2), % horizontal.. because of image axis
     for j = 1:size(im,1),
@@ -3183,7 +3033,7 @@ if dataFR,
     M_0_fluo = getappdata(hfig,'M_0_fluo');
     setappdata(hfig,'M',M_0_fluo(cIX,:));
 else % Unchecked
-    M_0_reg = getappdata(hfig,'M_0_reg'); % obsolete !!!
+    M_0_reg = getappdata(hfig,'M_0_reg');
     setappdata(hfig,'M',M_0_reg(cIX,:));
 end
 global hdataFR;
@@ -3351,19 +3201,17 @@ if numU>1,
             figure('Position',[100 400 1300 400]);
             subplot(1,3,1);
             CORR = corr(C');
-            CorrPlot(CORR);
+            imagesc(CORR);axis equal;axis tight
             
             subplot(1,3,2);
             dendrogram(tree,numU,'orientation','right','reorder',leafOrder);
             set(gca,'YDir','reverse');
-            set(gca,'XTick',[]);
-%             colormap(jet);
+            colormap(jet);
 
             subplot(1,3,3);
             C2 = C(leafOrder,:);
             CORR2 = corr(C2');
-            CorrPlot(CORR2);
-%             imagesc(CORR2);axis equal;axis tight
+            imagesc(CORR2);axis equal;axis tight
     end
     % sort for uniform colorscale
     temp = zeros(size(gIX));
@@ -3483,7 +3331,7 @@ if length(cIX)*size(M_0,2)<5*10^8,
     setappdata(hfig,'cIX',cIX);
     setappdata(hfig,'gIX',gIX);
     if exist('numK','var'),
-        setappdata(hfig,'numK',double(numK));
+        setappdata(hfig,'numK',numK);
     end
 else
     errordlg('dataset too large!')
@@ -3520,11 +3368,8 @@ isCentroid = getappdata(hfig,'isCentroid');
 clrmap = getappdata(hfig,'clrmap');
 rankscore = getappdata(hfig,'rankscore');
 rankID = getappdata(hfig,'rankID');
-iswrite = (rankID>=2);
-isPlotLines = 0; %getappdata(hfig,'isPlotLines');
-isPlotFictive = 1; %getappdata(hfig,'isPlotFictive');
 
-isPopout = 0;
+iswrite = (rankID>=2);
 
 if isempty(cIX),
     errordlg('empty set! go back!');
@@ -3539,21 +3384,11 @@ end
 figure(hfig);
 % left subplot
 h1 = axes('Position',[0.05, 0.04, 0.55, 0.83]);
-% if isCentroid,
-%     [C,~] = FindCentroid(gIX,M);
-%     DrawClusters(h1,C,unique(gIX),dataFR,numK,stim,fictive,clrmap,rankscore,iswrite);
-% else
-%     DrawClusters(h1,M,gIX,dataFR,numK,stim,fictive,clrmap,rankscore,iswrite);
-% end
 if isCentroid,
     [C,~] = FindCentroid(gIX,M);
-    DrawClusters(h1,C,unique(gIX),dataFR,numK,stim,fictive,clrmap,rankscore,...
-        iswrite,isPopout,isPlotLines,isPlotFictive);
-%     DrawClusters(h1,C,unique(gIX),dataFR,numK,stim,fictive,clrmap,rankscore,iswrite,ispopout);
+    DrawClusters(h1,C,unique(gIX),dataFR,numK,stim,fictive,clrmap,rankscore,iswrite);
 else
-    DrawClusters(h1,M,gIX,dataFR,numK,stim,fictive,clrmap,rankscore,...
-        iswrite,isPopout,isPlotLines,isPlotFictive);
-%     DrawClusters(h1,M,gIX,dataFR,numK,stim,fictive,clrmap,rankscore,iswrite,ispopout);
+    DrawClusters(h1,M,gIX,dataFR,numK,stim,fictive,clrmap,rankscore,iswrite);
 end
 
 % right subplot
