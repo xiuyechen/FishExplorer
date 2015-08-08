@@ -1030,7 +1030,7 @@ hfig = getParentFigure(hObject);
 % figure('Position',[50,100,853,512]); % right plot size: 2048x1706
 % h1 = axes('Position',[0, 0, 0.5, 1]); % left ~subplot
 % h2 = axes('Position',[0.50, 0, 0.5, 1]); % right ~subplot
-figure('Position',[50,100,1700,900],'color',[1 1 1]);
+figure('Position',[50,100,1600,800],'color',[1 1 1]);
 h1 = axes('Position',[0.05, 0.03, 0.53, 0.94]); % left ~subplot
 h2 = axes('Position',[0.61, 0.03, 0.35, 0.94]); % right ~subplot
 
