@@ -4,12 +4,12 @@
 
 clear all;close all;clc
 
+data_dir = 'C:\Janelia2014'; %[pwd '\example data']; % 'F:\Janelia2014';%
+
 global VAR;
-load('VAR_current.mat','VAR');
+load(fullfile(data_dir,'VAR_current.mat'),'VAR');
 
-load('CONSTs_current.mat','CONSTs');
-
-data_dir = [pwd '\example data']; % 'F:\Janelia2014';%
+load(fullfile(data_dir,'CONSTs_current.mat'),'CONSTs');
 
 %% Start GUI
 
