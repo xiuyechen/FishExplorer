@@ -1105,6 +1105,10 @@ QuickUpdateFish(hfig,new_i_fish);
 end
 
 function QuickUpdateFish(hfig,new_i_fish,init) %#ok<INUSD>
+M_fish_set = getappdata(hfig,'M_fish_set');
+fishset = M_fish_set(new_i_fish);
+setappdata(hfig,'fishset',fishset);
+
 CONSTs = getappdata(hfig,'CONSTs');
 setappdata(hfig,'isfullfish',0);
 
@@ -1146,10 +1150,6 @@ end
 end
 
 function UpdateFishData(hfig,new_i_fish) % loading steps shared by both quick-load and full-load
-M_fish_set = getappdata(hfig,'M_fish_set');
-fishset = M_fish_set(new_i_fish);
-setappdata(hfig,'fishset',fishset);
-
 UpdateDatamenu_Direct(hfig,1);
 
 % save ClusGroup before updating, if applicable
@@ -1206,37 +1206,54 @@ function LoadFullFish(hfig,new_i_fish)
 data_dir=getappdata(hfig,'data_dir');
 disp(['loading fish #' num2str(new_i_fish) '...']);
 
-%%
-tic
-fishdir = fullfile(data_dir,['CONST_F' num2str(new_i_fish) '_fast.mat']);
-load(fishdir,'const');
-load(fishdir,'dimCR');
-CellResp = zeros(dimCR);
-num = 0;
-nParts = round(dimCR(1)*dimCR(2)/42000000);
-for i = 1:nParts,
-    load(fishdir,['CRZt_' num2str(i)']);
-    eval(['len = size(CRZt_' num2str(i) ',1);']);
-    eval(['CellResp(num+1:num+len,:) = CRZt_' num2str(i) ';']);
-    eval(['CellResp(num+1:num+len,:) = CRZt_' num2str(i) ';']);
-    num = num+len;
-end
-% for i = 1:nParts,
-%     load(fishdir,['CellResp_' num2str(i)']);
-%     eval(['len = size(CellResp_' num2str(i) ',1);']);
-%     eval(['CellResp(num+1:num+len,:) = CellResp_' num2str(i) ';']);
-%     num = num+len;
-% end
-toc
-setappdata(hfig,'CellResp',CellResp);
+M_fish_set = getappdata(hfig,'M_fish_set');
+fishset = M_fish_set(new_i_fish);
+setappdata(hfig,'fishset',fishset);
 
+%%
+if fishset == 1 || fishset == 2,
+    tic
+    load(fullfile(data_dir,['CONST_F' num2str(new_i_fish) '.mat']),'CONST');
+    toc
+    setappdata(hfig,'CellResp',CONST.CRZt);
+    const = CONST;
+    
+else % load from parts
+    tic
+    fishdir = fullfile(data_dir,['CONST_F' num2str(new_i_fish) '_fast.mat']);
+    load(fishdir,'const');
+    load(fishdir,'dimCR');
+    CellResp = zeros(dimCR);
+    num = 0;
+    nParts = round(dimCR(1)*dimCR(2)/(10^8));
+    disp(['in ' num2str(nParts) ' parts']);
+    for i = 1:nParts,
+        disp(num2str(i));
+        load(fishdir,['CellResp_' num2str(i)]);
+        eval(['len = size(CellResp_' num2str(i) ',1);']);
+        eval(['CellResp(num+1:num+len,:) = CellResp_' num2str(i) ';']);
+        eval(['CellResp(num+1:num+len,:) = CellResp_' num2str(i) ';']);
+        num = num+len;
+    end
+    % for i = 1:nParts,
+    %     load(fishdir,['CellResp_' num2str(i)']);
+    %     eval(['len = size(CellResp_' num2str(i) ',1);']);
+    %     eval(['CellResp(num+1:num+len,:) = CellResp_' num2str(i) ';']);
+    %     num = num+len;
+    % end
+    toc
+    setappdata(hfig,'CellResp',CellResp);
+end
+
+    
 %% load all fields from CONST, with names preserved
+% names = fieldnames(const); % cell of strings
 names = fieldnames(const); % cell of strings
 for i = 1:length(names),
     
     
     
-    % renaming exception!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    % renaming exception!!!!!!!!!!!!should be obsolete!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if strcmp(names{i},'CRAZ'),
         setappdata(hfig,'CellRespAvr',const.CRAZ);
     elseif strcmp(names{i},'photostate'),
@@ -1272,28 +1289,32 @@ stim_full = getappdata(hfig,'stim_full');
 periods = getappdata(hfig,'periods');
 shift = getappdata(hfig,'shift');
 numcell = getappdata(hfig,'numcell');
-stimtypelist = 1:length(tlists);% getappdata(hfig,'stimtypelist');
 
 fishset = getappdata(hfig,'fishset');
 
+FcAvr = getappdata(hfig,'FcAvr');
+
 if fishset == 1,
-    CellRespAvr = getappdata(hfig,'CellRespAvr');
-    FcAvr = getappdata(hfig,'FcAvr');
+    CellRespAvr = getappdata(hfig,'CellRespAvr');    
 else
     % find averages of different stimuli, and splice together
     % in future should allow user to chose stimtypelist to compile average
     % of selected stimuli groups
-    CRavr = [];
-    for i = 1:stimtypelist,
+    CellRespAvr = [];   
+    stimAvr = [];
+    for i = 1:length(tlists)-1,
         M = circshift(CellResp(:,tlists{i}),shift,2);
-        CRavr = horzcat(CRavr,mean(reshape(M,numcell,periods(i),[]),3));
+        CellRespAvr = horzcat(CellRespAvr,mean(reshape(M,numcell,periods(i),[]),3));
+        % stim from stim_full
+        m = stim_full(tlists{i});
+        stimAvr = horzcat(stimAvr,m(1:periods(i)));
     end
-    setappdata(hfig,'CellRespAvr',CRavr);
+    setappdata(hfig,'CellRespAvr',CellRespAvr);
 end
 
 
 %% SWITCH LEFT/RIGHT DIRECTION AGAIN
-% % FcAvr = vertcat(FcAvr(2,:),FcAvr(1,:),FcAvr(3:end,:));
+FcAvr = vertcat(FcAvr(2,:),FcAvr(1,:),FcAvr(3:end,:));
 Fc = vertcat(Fc(2,:),Fc(1,:),Fc(3:end,:));
 % now 1=left, 2=right, 3=forward, 4 = raw left, 5 = raw right
 
@@ -1305,7 +1326,11 @@ elseif ID == 2,
     M_0 = CellResp;
     fictive = Fc;
 else    
-    IX = tlists{ID};
+    if fishset == 1,
+        IX = tlists{ID};
+    else
+        IX = tlists{ID-2};
+    end
     M_0 = CellResp(:,IX);
     temp = Fc(:,IX);
     % normalize fictive channels, in 2 sets
@@ -1317,8 +1342,20 @@ else
     temp(4:5,:) = (m-min(min(m)))/(max(max(m))-min(min(m)));
     fictive = temp;
 end
-% stim from stim_full
-stim = stim_full(tlists{ID}); 
+
+% set stim
+if fishset == 1,
+    stim = stim_full(tlists{ID});
+else
+    if ID == 1,
+        stim = stimAvr;
+    elseif ID == 2,
+        stim = stim_full;
+    else
+        IX = tlists{ID-2};
+        stim = stim_full(IX);
+    end
+end
 
 setappdata(hfig,'M_0_fluo',M_0);
 setappdata(hfig,'fictive',fictive);
