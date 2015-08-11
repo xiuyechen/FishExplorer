@@ -91,7 +91,7 @@ if isPlotLines,
 
     end
     
-else
+else % ~isPlotLines, i.e. plot all traces as grayscale map
 
     if ~isPopout,
         barratio = 0.025;
@@ -232,8 +232,8 @@ else
     end
     
     %% Draw stim bars
-    halfbarheight = 100;
-    stimbar_ = GetStimBar(halfbarheight,stim);
+    roughhalfbarheight = 100;
+    [stimbar_,halfbarheight] = GetStimBar(roughhalfbarheight,stim);
     
     % pad with margin on right to fit combo-image size
     barlength = size(im,2);

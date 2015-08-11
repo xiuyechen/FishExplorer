@@ -1,4 +1,4 @@
-function [stimset,stim] = StimulusKeyPreprocessing(frame_turn)
+function [stimset,stim_full] = StimulusKeyPreprocessing(frame_turn,i_fish)
 
 isPlotting = 1; % plot parsing process for manual inspection!
 
@@ -7,67 +7,6 @@ isPlotting = 1; % plot parsing process for manual inspection!
 % - substitution array 'M_range', to substitute original stimulus code to a
 % tighter range that is better defined for plotting (both for plotting values and stimulus bar)
 
-%% Raw Stimlus Key ----------------------------------------------------------------------------- MANUAL INPUT!
-
-% Manually input protocol sequence
-% stored in 'block', based on the raw stimulus code
-%% Manual: params for Fish 8
-nBlocks = 3;
-block_raw = cell(nBlocks,1); % number of blocks
-% write out protocol sequence for each block; write stimulus sets within block in arrays within cell
-block_raw{1} = {[2,3,4,5],[12,13,12,14,12,15],99,};
-block_raw{2} = {[2,100,2,3,4,100,4,5],[2,100,2,3,4,100,4,5],[12,100,12,13,12,100,12,14,12,100,12,15],99};
-block_raw{3} = {[2,3,4,5],[12,13,12,14,12,15],99};
-
-stimset = [];
-stimset(1).name = 'PT (blue/red)';
-stimset(1).ij = [1,1; 3,1;];
-stimset(2).name = 'OMR';
-stimset(2).ij = [1,2; 3,2;];
-stimset(3).name = 'Spontaneous';
-stimset(3).ij = [1,3; 2,4;3,3];
-
-%%
-% PT/Color(Blue/Red)
-% 2,4: Red|Red
-% 3: Blue|Red
-% 5: Red|Blue
-%
-% OMR
-% 12: Red
-% 13: OMR F
-% 14: OMR R
-% 15: OMR L
-%
-% Spont
-% 99: same as black
-%
-% Dot(prey)
-% 23: No dot
-% 22: Dot
-%
-% Blob
-% 30: Red
-% 31: Blob R
-% 32: Blob L
-
-
-%% Manual: params for Fish 10
-% block_raw{1} = {[2,3,4,5],[12,13,12,14,12,15],99,[23,22],[30,31,30,32],[2,3,4,5]};
-% block_raw{2} = {[2,100,2,3,4,100,4,5],[12,100,12,13,12,100,12,14,12,100,12,15],99,[23,22],[30,31,30,32],[2,100,2,3,4,100,4,5]};
-% block_raw{3} = {[2,3,4,5],[12,13,12,14,12,15],99,[23,22],[30,31,30,32],[2,3,4,5],[12,13,12,14,12,15]};
-% 
-% stimset = [];
-% stimset(1).name = 'PT (blue/red)';
-% stimset(1).ij = [1,1; 1,6; 3,1; 3,6];
-% stimset(2).name = 'OMR';
-% stimset(2).ij = [1,2; 3,2; 3,7];
-% stimset(3).name = 'Spontaneous';
-% stimset(3).ij = [1,3; 2,3; 3,3];
-% stimset(4).name = 'Dot/prey';
-% stimset(4).ij = [1,4; 2,4; 3,4];
-% stimset(5).name = 'Blob';
-% stimset(5).ij = [1,5; 2,5; 3,5];
 
 %% Load stimulus
 st = frame_turn(:,17)'; % from raw file
@@ -91,20 +30,116 @@ thr_counts = round(length(st)/500);
 M_range_raw = xv(counts>thr_counts);
 disp(['M_range_raw = ' num2str(M_range_raw)]); % use this to adjust the substitution array, M_range, manually after this inspection!%%%%%%%%%%%%%%%%%%%%%%
 
-%% Standardized Stimulus Key ----------------------------------------------------------------------------- MANUAL INPUT!
-% Define normalized code, e.g. same stimulus under different raw stim keys
-% can be unified
-M_range =    [3,1,3,2, 9,10,11,12, 0,13, 3,14,15, 4,16]; % corresponding to
-% raw      = [2,3,4,5,12,13,14,15,22,23,30,31,32,99,100] % for Fish 10
+
+%% Raw Stimlus Key ----------------------------------------------------------------------------- MANUAL INPUT!
+
+% Manually input protocol sequence
+% stored in 'block', based on the raw stimulus code
+%% Manual: params for each fish
+nBlocks = 3;
+block_raw = cell(nBlocks,1); % number of blocks
+% write out protocol sequence for each block; write stimulus sets within block in arrays within cell
+
+if i_fish == 8,
+    block_raw{1} = {[2,3,4,5],[12,13,12,14,12,15],99,};
+    block_raw{2} = {[2,100,2,3,4,100,4,5],[2,100,2,3,4,100,4,5],[12,100,12,13,12,100,12,14,12,100,12,15],99};
+    block_raw{3} = {[2,3,4,5],[12,13,12,14,12,15],99};
+    
+    stimset = [];
+    stimset(1).name = 'PT';
+    stimset(1).ij = [1,1; 3,1;];
+    stimset(2).name = 'OMR';
+    stimset(2).ij = [1,2; 3,2;];
+    stimset(3).name = 'Spontaneous';
+    stimset(3).ij = [1,3; 2,4;3,3];
+    
+    % M_range_raw = [2,3,4,5,12,13,14,15,99,100]; % for Fish 8
+    M_range =       [3,1,3,2, 9,10,11,12, 4,16]; % standardized
+    
+elseif i_fish == 9 || i_fish == 10,
+    block_raw{1} = {[2,3,4,5],[12,13,12,14,12,15],99,[23,22],[30,31,30,32],[2,3,4,5]};
+    block_raw{2} = {[2,100,2,3,4,100,4,5],[12,100,12,13,12,100,12,14,12,100,12,15],99,[23,22],[30,31,30,32],[2,100,2,3,4,100,4,5]};
+    block_raw{3} = {[2,3,4,5],[12,13,12,14,12,15],99,[23,22],[30,31,30,32],[2,3,4,5],[12,13,12,14,12,15]};
+    
+    stimset = [];
+    stimset(1).name = 'PT (blue/red)';
+    stimset(1).ij = [1,1; 1,6; 3,1; 3,6];
+    stimset(2).name = 'OMR';
+    stimset(2).ij = [1,2; 3,2; 3,7];
+    stimset(3).name = 'Spontaneous';
+    stimset(3).ij = [1,3; 2,3; 3,3];
+    stimset(4).name = 'Dot/prey';
+    stimset(4).ij = [1,4; 2,4; 3,4];
+    stimset(5).name = 'Blob';
+    stimset(5).ij = [1,5; 2,5; 3,5];
+    
+    % M_range_raw = [2,3,4,5,12,13,14,15,22,23,30,31,32,99,100] % for Fish 10
+    M_range =       [3,1,3,2, 9,10,11,12,13, 0, 3,14,15, 4,16]; % standardized
+
+else % inspect manually to set these manual params
+    % set M_range here after first inspection of M_range_raw:
+    M_range =       [3,1,3,2, 9,10,11,12, 0,13, 3,14,15, 4,16]; % standardized
+    
+    M_replace = zeros(1,max(M_range_raw));
+    for i = 1:max(M_range_raw),
+        ix = find(i==M_range_raw);
+        if ~isempty(ix),
+            M_replace(i) = M_range(ix);
+        end
+    end
+    
+    stim_full = zeros(size(st));
+    block = cell(nBlocks,1);
+    for i = 1:length(M_range_raw),
+        stim_full(st==M_range_raw(i)) = M_range(i);
+    end
+    
+    figure;
+    plot(stim_full)
+    
+    stimset = [];
+    return;
+end
+%% Raw stimulus key:
+% PT/Color(Blue/Red)
+% 2,4: Red|Red
+% 3: Blue|Red
+% 5: Red|Blue
+%
+% OMR
+% 12: Red
+% 13: OMR F
+% 14: OMR R
+% 15: OMR L
+%
+% Spont
+% 99: same as black
+%
+% Dot(prey)
+% 22: Dot
+% 23: No dot
+%
+% Blob
+% 30: Red
+% 31: Blob R
+% 32: Blob L
+
+%% Standardized stimulus key:
+% (Define normalized code, e.g. same stimulus under different raw stim keys can be unified)
 
 % 0 = all black; 1 = black/white; 2 = white/black; 3 = all white; 4 = all gray;
 % 5 = gray/black; 6 = white/gray; 7 = black/gray; 8 = gray/white.
-% OMR baseline = not moving?? grey??
+% 9 = OMR baseline = not moving?? grey??
 % 10 = forward grating (very slow, more for calibration)
 % 11 = rightward grating
 % 12 = leftward grating
+% 13 = Dot
+% 14 = Blob R
+% 15 = Blob L
 
+% 16 = electric shock (spike)
 
+% ideas for stim-bar display (not implemented yet):
 % half-fields can be displayed directly. other L/R directional cues can be
 % displayed by gradient. If not-directional or unspecified, will assign a
 % color-code randomly.
@@ -157,10 +192,10 @@ for i = 1:max(M_range_raw),
     end
 end
 
-stim = zeros(size(st));
+stim_full = zeros(size(st));
 block = cell(nBlocks,1);
 for i = 1:length(M_range_raw),
-    stim(st==M_range_raw(i)) = M_range(i);
+    stim_full(st==M_range_raw(i)) = M_range(i);
     for j = 1:nBlocks,
         block{j} = cellfun(@(x) M_replace(x),block_raw{j},'UniformOutput',0);
     end
@@ -171,8 +206,8 @@ end
 
 %% Stimulus set segmentation, based on 'block' (manual input of protocol sequence)
 % reduce 'stim' to a sequence of keys without consecutive repeats
-ix_singles = find(diff([0,stim])); % index array to map back to raw indices (frame-number)
-singles = stim(ix_singles); % sequence of keys without consecutive repeats.
+ix_singles = find(diff([0,stim_full])); % index array to map back to raw indices (frame-number)
+singles = stim_full(ix_singles); % sequence of keys without consecutive repeats.
 % '_sg' below stands for 'singles'. Manipulations below in both raw and singles, in parallel.
 
 jump = 1; % searching for 'jumps' in 'singles'
@@ -292,7 +327,7 @@ end
 if isPlotting,
     figure;
     hold on;
-    plot(stim)
+    plot(stim_full)
     for I = 1:nBlocks,
         for J = 1:length(block_change{I}),
             x = block_change{I}(J);
@@ -314,7 +349,7 @@ for i_ss = 1:length(stimset),
             break;
         end
     end
-    nSetReps = length(stimset(i_ss).ij);
+    nSetReps = size(stimset(i_ss).ij,1);
     
     %% get period from first set of block
     I = stimset(i_ss).ij(1,1);
@@ -329,7 +364,7 @@ for i_ss = 1:length(stimset),
         elseif J == length(block{I}),
             next_start = set_start{I+1}(1);
         else
-            next_start = length(stim);
+            next_start = length(stim_full);
         end
         stimset(i_ss).period = next_start - set_start{I}(J);
     else % find periodicity based on stimlus key repetition
@@ -360,8 +395,17 @@ for i_ss = 1:length(stimset),
         
         if length(pattern)==1, % exception, e.g. 'Spontaneous' set, single stimlus key held for full duration of set
             stimset(i_ss).starts(i_SetRep) = stimset(i_ss).rawstarts(i_SetRep);
-            stimset(i_ss).stops(i_SetRep) = stimset(i_ss).rawstops(i_SetRep);
-            stimset(i_ss).nReps(i_SetRep) = 1;
+            % length of following occurences need to match period
+            % (period primitively extracted from first occurence)
+            i_start = stimset(i_ss).rawstarts(i_SetRep);
+            i_stop = stimset(i_ss).rawstops(i_SetRep);
+%             if (i_stop-i_start+1)<stimset(i_ss).period,
+%                 % ????????????????????????????discard this chunk??????????????????????
+%             else
+                stimset(i_ss).nReps(i_SetRep) = 1;
+                stimset(i_ss).stops(i_SetRep) = stimset(i_ss).starts(i_SetRep) + stimset(i_ss).period - 1;
+%             end
+            
         else            
             % circshift to find intact periods
             pattern = stimset(i_ss).pattern;

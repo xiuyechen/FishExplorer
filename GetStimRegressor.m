@@ -45,6 +45,10 @@ elseif fishset == 2,
     States = [0,1,2,3,4,10,11,12];
     names = {'black','phototaxis left','phototaxis right','white','grey','OMR forward','OMR left','OMR right',...
         'left PT&OMR','right PT&OMR'};
+elseif fishset == 3,
+    States = [0,1,2,3,4,9,10,11,12,13,14,15];
+    names = {'black','phototaxis left','phototaxis right','white','grey', 'OMR baseline', 'OMR forward','OMR left','OMR right',...
+        'Dot','blob left','blob right'}; %         'left PT&OMR','right PT&OMR',...
 end
 tlen=length(stim);
 impulse = 6; % in frames % arbiturary at this point
@@ -131,10 +135,16 @@ elseif fishset == 2,
 end
 
 %% pool all into cell array
-regressor_0={
-    stimPS_on;
-    stimCB_on;
+if fishset<3,
+    regressor_0={
+        stimPS_on;
+        stimCB_on;
+        };
+else
+    regressor_0={
+        stimPS_on;
     };
+end
 nRegType = length(regressor_0);
 % % name_array = {'stimPS_on','stimPS_start','stimPS_stop','stimTS','stimCB_on',...
 % %     'stimCB_start','stimCB'};
