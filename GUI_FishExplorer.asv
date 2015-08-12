@@ -1210,7 +1210,7 @@ M_fish_set = getappdata(hfig,'M_fish_set');
 fishset = M_fish_set(new_i_fish);
 setappdata(hfig,'fishset',fishset);
 
-%%
+%% load data from file
 if fishset == 1 || fishset == 2,
     tic
     load(fullfile(data_dir,['CONST_F' num2str(new_i_fish) '.mat']),'CONST');
@@ -1219,31 +1219,7 @@ if fishset == 1 || fishset == 2,
     const = CONST;
     
 else % load from parts
-    tic
-    fishdir = fullfile(data_dir,['CONST_F' num2str(new_i_fish) '_fast.mat']);
-    load(fishdir,'const');
-    toc
-    load(fishdir,'dimCR');
-    CellResp = zeros(dimCR);
-    num = 0;
-    nParts = round(dimCR(1)*dimCR(2)/42000000);
-    disp(['in ' num2str(nParts) ' parts']);
-    tic
-    for i = 1:nParts,
-        disp(num2str(i));
-        load(fishdir,['CellResp_' num2str(i)]);
-        eval(['len = size(CellResp_' num2str(i) ',1);']);
-        eval(['CellResp(num+1:num+len,:) = CellResp_' num2str(i) ';']);
-        eval(['CellResp(num+1:num+len,:) = CellResp_' num2str(i) ';']);
-        num = num+len;
-    end
-    % for i = 1:nParts,
-    %     load(fishdir,['CellResp_' num2str(i)']);
-    %     eval(['len = size(CellResp_' num2str(i) ',1);']);
-    %     eval(['CellResp(num+1:num+len,:) = CellResp_' num2str(i) ';']);
-    %     num = num+len;
-    % end
-    toc
+    CellResp = LoadFileFromParts(data_dir);
     setappdata(hfig,'CellResp',CellResp);
 end
 
@@ -1324,13 +1300,15 @@ Fc = vertcat(Fc(2,:),Fc(1,:),Fc(3:end,:));
 if ID == 1,
     M_0 = CellRespAvr;
     fictive = FcAvr;
-    stim = stimAvr;
 elseif ID == 2,
     M_0 = CellResp;
     fictive = Fc;
-    stim = stim_full;
 else    
-    IX = tlists{ID};
+    if fishset == 1,
+        IX = tlists{ID};
+    else
+        IX = tlists{ID-2};
+    end
     M_0 = CellResp(:,IX);
     temp = Fc(:,IX);
     % normalize fictive channels, in 2 sets
@@ -1341,36 +1319,20 @@ else
     m = temp(4:5,:);
     temp(4:5,:) = (m-min(min(m)))/(max(max(m))-min(min(m)));
     fictive = temp;
-
-    stim = stim_full(IX);
 end
 
+% set stim
 if fishset == 1,
-    CellRespAvr = getappdata(hfig,'CellRespAvr');    
+    stim = stim_full(tlists{ID});
 else
     if ID == 1,
-    M_0 = CellRespAvr;
-    fictive = FcAvr;
-    stim = stimAvr;
-elseif ID == 2,
-    M_0 = CellResp;
-    fictive = Fc;
-    stim = stim_full;
-else    
-    IX = tlists{ID};
-    M_0 = CellResp(:,IX);
-    temp = Fc(:,IX);
-    % normalize fictive channels, in 2 sets
-    for k = 1:3,%size(F,1),
-        m = temp(k,:);
-        temp(k,:) = (m-min(m))/(max(m)-min(m));
+        stim = stimAvr;
+    elseif ID == 2,
+        stim = stim_full;
+    else
+        IX = tlists{ID-2};
+        stim = stim_full(IX);
     end
-    m = temp(4:5,:);
-    temp(4:5,:) = (m-min(min(m)))/(max(max(m))-min(min(m)));
-    fictive = temp;
-
-    stim = stim_full(IX);
-end
 end
 
 setappdata(hfig,'M_0_fluo',M_0);

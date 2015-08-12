@@ -1210,8 +1210,8 @@ M_fish_set = getappdata(hfig,'M_fish_set');
 fishset = M_fish_set(new_i_fish);
 setappdata(hfig,'fishset',fishset);
 
-%%
-if fishset == 1 || fishset == 2,
+%% load data from file
+if fishset == 1 || fishset == 2, % load directly % should be only set 1!!!!!!!!!!!!!!!
     tic
     load(fullfile(data_dir,['CONST_F' num2str(new_i_fish) '.mat']),'CONST');
     toc
@@ -1219,29 +1219,8 @@ if fishset == 1 || fishset == 2,
     const = CONST;
     
 else % load from parts
-    tic
-    fishdir = fullfile(data_dir,['CONST_F' num2str(new_i_fish) '_fast.mat']);
-    load(fishdir,'const');
-    load(fishdir,'dimCR');
-    CellResp = zeros(dimCR);
-    num = 0;
-    nParts = round(dimCR(1)*dimCR(2)/(10^8));
-    disp(['in ' num2str(nParts) ' parts']);
-    for i = 1:nParts,
-        disp(num2str(i));
-        load(fishdir,['CellResp_' num2str(i)]);
-        eval(['len = size(CellResp_' num2str(i) ',1);']);
-        eval(['CellResp(num+1:num+len,:) = CellResp_' num2str(i) ';']);
-        eval(['CellResp(num+1:num+len,:) = CellResp_' num2str(i) ';']);
-        num = num+len;
-    end
-    % for i = 1:nParts,
-    %     load(fishdir,['CellResp_' num2str(i)']);
-    %     eval(['len = size(CellResp_' num2str(i) ',1);']);
-    %     eval(['CellResp(num+1:num+len,:) = CellResp_' num2str(i) ';']);
-    %     num = num+len;
-    % end
-    toc
+    filename = ['CONST_F' num2str(new_i_fish) '_fast.mat'];
+    [CellResp,const] = LoadFileFromParts(data_dir,filename);
     setappdata(hfig,'CellResp',CellResp);
 end
 

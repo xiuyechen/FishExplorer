@@ -104,7 +104,7 @@ if numK>1,
     end
 end
 
-ylabel(['ROI number: ' num2str(s1)]);
+ylabel(['ROI number (downsampled): ' num2str(s1)]);
 set(gca,'YTick',[],'XTick',[]);
 set(gcf,'color',[1 1 1]);
 

@@ -26,28 +26,29 @@ clear all;close all;clc
 
 i_fish = 10; 
 
-M_dir = {'F:\Janelia2014\Fish1_16states_30frames';
-    'F:\Janelia2014\Fish2_20140714_2_4_16states_10frames';
-    'F:\Janelia2014\Fish3_20140715_1_1_16_states_10frames';
-    'F:\Janelia2014\Fish4_20140721_1_8_16states_20frames';
-    'F:\Janelia2014\Fish5_20140722_1_2_16states_30frames';
-    'F:\Janelia2014\Fish6_20140722_1_1_3states_30,40frames';
-    'F:\Janelia2014\Fish7_20140722_2_3_3states_30,50frames';
-    'F:\Janelia2014\Fish8_20141222_2_2_7d_PT_3OMR_shock_lowcut';
-    'F:\Janelia2014\Fish9_20150120_2_1_photo_OMR_prey_blob_blue_cy74_6d_20150120_220356';
-    'F:\Janelia2014\Fish10_20150120_2_2_photo_OMR_prey_blob_blue_cy74_6d_20150120_231917'};
+M_dir = {'E:\Janelia2014\Fish1_16states_30frames';
+    'E:\Janelia2014\Fish2_20140714_2_4_16states_10frames';
+    'E:\Janelia2014\Fish3_20140715_1_1_16_states_10frames';
+    'E:\Janelia2014\Fish4_20140721_1_8_16states_20frames';
+    'E:\Janelia2014\Fish5_20140722_1_2_16states_30frames';
+    'E:\Janelia2014\Fish6_20140722_1_1_3states_30,40frames';
+    'E:\Janelia2014\Fish7_20140722_2_3_3states_30,50frames';
+    'E:\Janelia2014\Fish8_20141222_2_2_7d_PT_3OMR_shock_lowcut';
+    'E:\Janelia2014\Fish9_20150120_2_1_photo_OMR_prey_blob_blue_cy74_6d_20150120_220356';
+    'E:\Janelia2014\Fish10_20150120_2_2_photo_OMR_prey_blob_blue_cy74_6d_20150120_231917'};
 
 fpsec = 1.97; % Hz
 
 %% load data
+disp(['load data: fish ' num2str(i_fish)]);
 datadir = M_dir{i_fish};
 load(fullfile(datadir,'cell_resp_dim.mat')); % 'cell_resp_dim_lowcut.mat'
 load(fullfile(datadir,'cell_info.mat'));
-cell_resp = read_LSstack_fast_float(fullfile(datadir,'cell_resp.stackf'),cell_resp_dim);
+cell_resp_full = read_LSstack_fast_float(fullfile(datadir,'cell_resp.stackf'),cell_resp_dim);
 load(fullfile(datadir,'frame_turn.mat'));
 
 % parse stimulus - should check manually to be sure!
-[stimset,stim] = StimulusKeyPreprocessing(frame_turn);
+[stimset,stim] = StimulusKeyPreprocessing(frame_turn,i_fish);
 
 %% load anatomy
 tiffname = fullfile(datadir,'ave.tif');
@@ -81,21 +82,24 @@ dimv_yz = size(anat_yz);
 dimv_zx = size(anat_zx);
 
 %% compute z-score
-cell_resp_z = zscore(cell_resp')';
+disp('compute z-score')
+tic
+cell_resp_z_full = zscore(cell_resp_full')';
 nCells = cell_resp_dim(1);
+toc
 
 %% Validating all cells
 
-isDiscard50 = false; % option to pre-screen
+isDiscard50 = true; % option to pre-screen
 if isDiscard50,
     %% Round 1: discard 50% noisy cells based on std of zscore of baseline
     
     % Compute std of dimest 10% of frames for each cell.
-    prc = prctile(cell_resp_z,10,2);
+    prc = prctile(cell_resp_z_full,10,2);
     STD_full = zeros(nCells,1);
     for i = 1:nCells,
-        ix = find(cell_resp_z(i,:)<prc(i));
-        STD_full(i) = std(cell_resp_z(i,ix));
+        ix = find(cell_resp_z_full(i,:)<prc(i));
+        STD_full(i) = std(cell_resp_z_full(i,ix));
     end
     % Set threshold at 50%, i.e. discard 50% of all cells
     thr = prctile(STD_full,50);
@@ -107,7 +111,7 @@ if isDiscard50,
     % visualize cells to discard
     % gIX = (round((1:length(cIX))/1000)+1)'; % option: view sorted index
     gIX = round(cIX/1000)+1; % option: view anatomical z index
-    M = cell_resp_ave_z(cIX,:);
+    M = cell_resp_z_full(cIX,1:1000);
     BasicPlotMaps(cIX,gIX,M,cell_info,stim,anat_yx,anat_yz,anat_zx);
     
     % I_v: index of valid cells
@@ -115,7 +119,7 @@ if isDiscard50,
     I_v_Holder(cIX) = 0;
     I_v = find(I_v_Holder);
     
-    CRAZ = cell_resp_ave_z(I_v,:);
+    cell_resp_z = cell_resp_z_full(I_v,:);
     STD = STD_full(I_v);
     nCells = length(I_v);
     CInfo_0 = cell_info(I_v);
@@ -124,17 +128,18 @@ if isDiscard50,
     [~,I] = sort(STD);
     cIX = I;
     gIX = (round((1:length(cIX))/1000)+1)'; % sorted index
-    M = CRAZ(I,:);
+    M = cell_resp_z(I,1:1000);
     BasicPlotMaps(cIX,gIX,M,CInfo_0,stim,anat_yx,anat_yz,anat_zx);
 
 else    
     %% Round 1 alternative: full set
+    cell_resp_z = cell_resp_z_full;
     I_v_Holder = ones(1,nCells);
     I_v = (1:nCells)'; % valid Index. here not actually screened, I_v is fullset
 
     cIX = I_v; % 'cell-Index'
     gIX = (round((1:length(cIX))/1000)+1)'; % sorted 'group-Index'
-    M = cell_resp_z(cIX,1:1000);
+    M = cell_resp_z_full(cIX,1:1000);
     CInfo_0 = cell_info;
     BasicPlotMaps(cIX,gIX,M,CInfo_0,stim,anat_yx,anat_yz,anat_zx);
 end
@@ -239,7 +244,7 @@ cIX_Invalid_Anat = I_v(cHolder_Anat); % convert back to index for original full 
 I_v_Holder(cIX_Invalid_Anat) = 0;
 I_v2 = find(I_v_Holder);
 
-CR_raw = cell_resp_z(I_v2,:);
+CR_raw = cell_resp_z_full(I_v2,:);
 nCells = length(I_v2);
 CInfo = cell_info(I_v2);
 

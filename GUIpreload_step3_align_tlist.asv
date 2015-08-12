@@ -171,21 +171,12 @@ for i_fish = 10, %:8,
     newfishdir = fullfile(save_dir,['CONST_F' num2str(i_fish) '_fast.mat']);
     const = CONST;
     const = rmfield(const,'CellResp');
-    dimCR = size(CONST.CellResp);
-    save(newfishdir,'const','-v6');
-    save(newfishdir,'dimCR','-v6','-append');
-    
-    nParts = round(numel(CONST.CellResp)/(10^8));
-    t = zeros(1,nParts);
-    ix = round(linspace(0,size(CONST.CellResp,1),nParts+1));
-    for i = 1:nParts,
-        disp(num2str(i));
-        eval(['CellResp_' num2str(i) '= CONST.CellResp(ix(i)+1:ix(i+1),:);']);
-        save(newfishdir,['CellResp_' num2str(i)],'-v6','-append');
-    end
+%     dimCR = size(CONST.CellResp);
+    save(newfishdir,'const','-v6'); % 'dimCR',
+    % custom function:
+    SaveFileInPartsAppendv6(newfishdir,CellResp);
 
-
-    toc
+    toc; beep
     
 end
 
@@ -212,13 +203,13 @@ nCells = length(CONST.CInfo);
     VAR(i_fish).ClusGroup{1,1}.numel = length(cIX);
     VAR(i_fish).ClusGroup{1,1}.numK = 1;
 
-    %%
-        cIX = (1:10:nCells)';
-    VAR(i_fish).ClusGroup{1,1}(12).name = '1/10 of all';
-    VAR(i_fish).ClusGroup{1,1}(12).cIX = cIX;
-    VAR(i_fish).ClusGroup{1,1}(12).gIX = ones(length(cIX),1);
-    VAR(i_fish).ClusGroup{1,1}(12).numel = length(cIX);
-    VAR(i_fish).ClusGroup{1,1}(12).numK = 1;
+%     %%
+%         cIX = (1:10:nCells)';
+%     VAR(i_fish).ClusGroup{1,1}(12).name = '1/10 of all';
+%     VAR(i_fish).ClusGroup{1,1}(12).cIX = cIX;
+%     VAR(i_fish).ClusGroup{1,1}(12).gIX = ones(length(cIX),1);
+%     VAR(i_fish).ClusGroup{1,1}(12).numel = length(cIX);
+%     VAR(i_fish).ClusGroup{1,1}(12).numK = 1;
 
 %     %% varience/std for reps for each cell
 % %     if i_fish==2 || i_fish==3 || i_fish==6,

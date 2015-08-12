@@ -172,20 +172,11 @@ for i_fish = 10, %:8,
     const = CONST;
     const = rmfield(const,'CellResp');
     dimCR = size(CONST.CellResp);
-    save(newfishdir,'const','-v6');
-    save(newfishdir,'dimCR','-v6','-append');
-    
-    nParts = round(numel(CONST.CellResp)/(10^8));
-    t = zeros(1,nParts);
-    ix = round(linspace(0,size(CONST.CellResp,1),nParts+1));
-    for i = 1:nParts,
-        disp(num2str(i));
-        eval(['CellResp_' num2str(i) '= CONST.CellResp(ix(i)+1:ix(i+1),:);']);
-        save(newfishdir,['CellResp_' num2str(i)],'-v6','-append');
-    end
+    save(newfishdir,'const','dimCR','-v6');
+    % custom function:
+    SaveFileInPartsAppendv6(newfishdir,CellResp);
 
-
-    toc
+    toc; beep
     
 end
 
@@ -197,7 +188,7 @@ end
 nCells = length(CONST.CInfo);
 
     cIX = (1:nCells)';
-    i = 1;
+    i = 3;
     VAR(i_fish).Class(i).name = 'all processed';
     VAR(i_fish).Class(i).cIX = cIX;
     VAR(i_fish).Class(i).gIX = ones(length(cIX),1);

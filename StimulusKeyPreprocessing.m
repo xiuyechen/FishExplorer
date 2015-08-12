@@ -1,7 +1,10 @@
-function [stimset,stim_full] = StimulusKeyPreprocessing(frame_turn,i_fish)
+function [stimset,stim_full] = StimulusKeyPreprocessing(frame_turn,i_fish,isplotting)
 
-isPlotting = 1; % plot parsing process for manual inspection!
-
+if exist('isplotting','var'),
+    isPlotting = true; % plot parsing process for manual inspection!
+else
+    isPlotting = false;
+end
 % Manual inputs needed for this function:
 % - protocol sequence and naming, as in 'block_raw' and 'stimset' initialization
 % - substitution array 'M_range', to substitute original stimulus code to a
@@ -28,8 +31,9 @@ xv = 1:thr+1; % x-vector for histogram bins
 counts = hist(st,xv);
 thr_counts = round(length(st)/500);
 M_range_raw = xv(counts>thr_counts);
-disp(['M_range_raw = ' num2str(M_range_raw)]); % use this to adjust the substitution array, M_range, manually after this inspection!%%%%%%%%%%%%%%%%%%%%%%
-
+if isPlotting,
+    disp(['M_range_raw = ' num2str(M_range_raw)]); % use this to adjust the substitution array, M_range, manually after this inspection!%%%%%%%%%%%%%%%%%%%%%%
+end
 
 %% Raw Stimlus Key ----------------------------------------------------------------------------- MANUAL INPUT!
 
