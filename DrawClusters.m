@@ -1,4 +1,4 @@
-function DrawClusters(h1,M,gIX,dataFR,numK,stim,fictive,clrmap,rankscore,iswrite,isPopout,isPlotLines,isPlotFictive)
+function DrawClusters(h1,M,gIX,numK,stim,fictive,clrmap,rankscore,iswrite,isPopout,isPlotLines,isPlotFictive)
 axis off;
 pos = get(h1,'Position'); % [left, bottom, width, height]    
 
@@ -117,19 +117,19 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
     im = im(I,:);
     
     %% convert imagesc effect into rgb matrix 'RGB'
-    if dataFR, % is drawing cell-response fluorescence
+%     if dataFR, % is drawing cell-response fluorescence
         cmap = gray(64);
         im = AutoScaleImage0to1(im); % scaling to min/max 0/1
         minlim = 0;
         maxlim = 1;
-    else % create blue-white-red map, for regression results
-        cmap = zeros(64,3);
-        cmap(:,1) = [linspace(0,1,32), linspace(1,1,32)];
-        cmap(:,2) = [linspace(0,1,32), linspace(1,0,32)];
-        cmap(:,3) = [linspace(1,1,32), linspace(1,0,32)];
-        minlim = -1; %min(min(im));
-        maxlim = 1; %max(max(im));
-    end
+%     else % create blue-white-red map, for regression results
+%         cmap = zeros(64,3);
+%         cmap(:,1) = [linspace(0,1,32), linspace(1,1,32)];
+%         cmap(:,2) = [linspace(0,1,32), linspace(1,0,32)];
+%         cmap(:,3) = [linspace(1,1,32), linspace(1,0,32)];
+%         minlim = -1; %min(min(im));
+%         maxlim = 1; %max(max(im));
+% %     end
     RGB = ImageToRGB(im,cmap,minlim,maxlim); % map image matrix to range of colormap
     
     %% add vertical color code
