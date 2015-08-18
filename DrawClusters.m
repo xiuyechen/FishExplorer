@@ -1,4 +1,4 @@
-function DrawClusters(h1,M,gIX,numK,stim,fictive,clrmap,rankscore,iswrite,isPopout,isPlotLines,isPlotFictive)
+function DrawClusters(h1,M,gIX,numK,stim,fictive,clrmap,rankscore,iswrite,isPopout,isPlotLines,isPlotFictive,nCells)
 axis off;
 pos = get(h1,'Position'); % [left, bottom, width, height]    
 
@@ -9,7 +9,7 @@ if isPlotLines,
         fps = 1.97;
         
         % set position grid
-        nLines = length(unique(gIX));
+        nLines = size(M,1);
         if isPlotFictive,
             nExtraRows = 3; % number of extra rows
         else
@@ -99,14 +99,14 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
         barratio = 0.05;
     end
     %% Prepare cluster data
-    % down-sample
-    displaymax = 1000;
-    numcell = size(M,1);
-    if numcell > displaymax,
-        skip = round(numcell/displaymax);
-        M = M(1:skip:end,:);
-        gIX = gIX(1:skip:end,:);
-    end
+%     % down-sample
+%     displaymax = 1000;
+%     numcell = size(M,1);
+%     if numcell > displaymax,
+%         skip = round(numcell/displaymax);
+%         M = M(1:skip:end,:);
+%         gIX = gIX(1:skip:end,:);
+%     end
     
 %     numK = double(max(double(numK),double(max(gIX))));
     
@@ -192,7 +192,10 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
         end
     end
     
-    ylabel(['Number of cells: ' num2str(numcell)]);
+    if ~exist('nCells','var'),
+        nCells = nLines;
+    end
+    ylabel(['Number of cells: ' num2str(nCells)]);
     set(gca,'YTick',[],'XTick',[]);
     set(gcf,'color',[1 1 1]);
     

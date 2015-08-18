@@ -1,4 +1,4 @@
-function DrawClusters(h1,M,gIX,dataFR,numK,stim,fictive,clrmap,rankscore,iswrite,isPopout,isPlotLines,isPlotFictive)
+function DrawClusters(h1,M,gIX,numK,stim,fictive,clrmap,rankscore,iswrite,isPopout,isPlotLines,isPlotFictive,nCells)
 axis off;
 pos = get(h1,'Position'); % [left, bottom, width, height]    
 
@@ -9,7 +9,7 @@ if isPlotLines,
         fps = 1.97;
         
         % set position grid
-        nLines = length(unique(gIX));
+        nLines = size(M,1);
         if isPlotFictive,
             nExtraRows = 3; % number of extra rows
         else
@@ -91,7 +91,7 @@ if isPlotLines,
 
     end
     
-else % ~isPlotLines, i.e. plot traces
+else % ~isPlotLines, i.e. plot all traces as grayscale map
 
     if ~isPopout,
         barratio = 0.025;
@@ -99,14 +99,14 @@ else % ~isPlotLines, i.e. plot traces
         barratio = 0.05;
     end
     %% Prepare cluster data
-    % down-sample
-    displaymax = 1000;
-    numcell = size(M,1);
-    if numcell > displaymax,
-        skip = round(numcell/displaymax);
-        M = M(1:skip:end,:);
-        gIX = gIX(1:skip:end,:);
-    end
+%     % down-sample
+%     displaymax = 1000;
+%     numcell = size(M,1);
+%     if numcell > displaymax,
+%         skip = round(numcell/displaymax);
+%         M = M(1:skip:end,:);
+%         gIX = gIX(1:skip:end,:);
+%     end
     
 %     numK = double(max(double(numK),double(max(gIX))));
     
@@ -117,19 +117,19 @@ else % ~isPlotLines, i.e. plot traces
     im = im(I,:);
     
     %% convert imagesc effect into rgb matrix 'RGB'
-    if dataFR, % is drawing cell-response fluorescence
+%     if dataFR, % is drawing cell-response fluorescence
         cmap = gray(64);
         im = AutoScaleImage0to1(im); % scaling to min/max 0/1
         minlim = 0;
         maxlim = 1;
-    else % create blue-white-red map, for regression results
-        cmap = zeros(64,3);
-        cmap(:,1) = [linspace(0,1,32), linspace(1,1,32)];
-        cmap(:,2) = [linspace(0,1,32), linspace(1,0,32)];
-        cmap(:,3) = [linspace(1,1,32), linspace(1,0,32)];
-        minlim = -1; %min(min(im));
-        maxlim = 1; %max(max(im));
-    end
+%     else % create blue-white-red map, for regression results
+%         cmap = zeros(64,3);
+%         cmap(:,1) = [linspace(0,1,32), linspace(1,1,32)];
+%         cmap(:,2) = [linspace(0,1,32), linspace(1,0,32)];
+%         cmap(:,3) = [linspace(1,1,32), linspace(1,0,32)];
+%         minlim = -1; %min(min(im));
+%         maxlim = 1; %max(max(im));
+% %     end
     RGB = ImageToRGB(im,cmap,minlim,maxlim); % map image matrix to range of colormap
     
     %% add vertical color code
@@ -192,7 +192,8 @@ else % ~isPlotLines, i.e. plot traces
         end
     end
     
-    ylabel(['Number of cells: ' num2str(numcell)]);
+    
+    ylabel(['Number of cells: ' num2str(nLines)]);
     set(gca,'YTick',[],'XTick',[]);
     set(gcf,'color',[1 1 1]);
     
@@ -232,8 +233,8 @@ else % ~isPlotLines, i.e. plot traces
     end
     
     %% Draw stim bars
-    halfbarheight = 100;
-    stimbar_ = GetStimBar(halfbarheight,stim);
+    roughhalfbarheight = 100;
+    [stimbar_,halfbarheight] = GetStimBar(roughhalfbarheight,stim);
     
     % pad with margin on right to fit combo-image size
     barlength = size(im,2);

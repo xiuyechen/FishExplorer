@@ -43,12 +43,16 @@ if fishset == 1,
         'right on','left on','right off','left off'};
 elseif fishset == 2,
     States = [0,1,2,3,4,10,11,12];
-    names = {'black','phototaxis left','phototaxis right','white','grey','OMR forward','OMR left','OMR right',...
+    names = {'black','phototaxis left','phototaxis right','white','grey',...
+        'OMR forward','OMR left','OMR right',...
         'left PT&OMR','right PT&OMR'};
 elseif fishset == 3,
     States = [0,1,2,3,4,9,10,11,12,13,14,15];
-    names = {'black','phototaxis left','phototaxis right','white','grey', 'OMR baseline', 'OMR forward','OMR left','OMR right',...
-        'Dot','blob left','blob right'}; %         'left PT&OMR','right PT&OMR',...
+    names = {'black','phototaxis left','phototaxis right','white','grey',...
+        'OMR baseline', 'OMR forward','OMR right','OMR left',...
+        'Dot','blob right','blob left',...
+        'left PT&OMR','right PT&OMR','left OMR&blob','right OMR&blob',...
+        'left PT&blob','right PT&blob','left all-3','right all-3'}; 
 end
 tlen=length(stim);
 impulse = 6; % in frames % arbiturary at this point
@@ -92,7 +96,7 @@ if fishset == 1,
     % right off: 0 1
     % left off:  0 2
     H = {[2 3],[1 3],[0 1],[0 2]};
-    numCB1 = 4;
+    numCB1 = length(H);
     stimCB_on = zeros(numCB1, tlen);
     for i = 1:numCB1,
         for j = 1:length(H{i});
@@ -120,7 +124,7 @@ elseif fishset == 2,
     % right PT/OMR: 2 12
     
     H = {[1 11],[2 12]};
-    numCB1 = 2;
+    numCB1 = length(H);
     stimCB_on = zeros(numCB1, tlen);
     for i = 1:numCB1,
         for j = 1:length(H{i});
@@ -132,19 +136,32 @@ elseif fishset == 2,
         end
     end
     
+elseif fishset == 3,
+%   States = [0,1,2,3,4,9,10,11,12,13,14,15];
+%     names = {'black','phototaxis left','phototaxis right','white','grey',...
+%         'OMR baseline', 'OMR forward','OMR right','OMR left',...
+%         'Dot','blob right','blob left',...  
+
+H = {[1,12],[2,11],[12,15],[11,14],[1,15],[2,14],[1,12,15],[2,11,14]};
+    numCB1 = length(H);
+    stimCB_on = zeros(numCB1, tlen);
+    for i = 1:numCB1,
+        for j = 1:length(H{i});
+            temp = (stim==H{i}(j));
+            ix = find(temp);
+            if ~isempty(ix),
+                stimCB_on(i,ix) = 1;
+            end
+        end
+    end
 end
 
 %% pool all into cell array
-if fishset<3,
-    regressor_0={
-        stimPS_on;
-        stimCB_on;
-        };
-else
-    regressor_0={
-        stimPS_on;
+regressor_0={
+    stimPS_on;
+    stimCB_on;
     };
-end
+
 nRegType = length(regressor_0);
 % % name_array = {'stimPS_on','stimPS_start','stimPS_stop','stimTS','stimCB_on',...
 % %     'stimCB_start','stimCB'};
