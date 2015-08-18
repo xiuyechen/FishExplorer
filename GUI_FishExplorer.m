@@ -888,12 +888,36 @@ end
 %% row 1: File
 
 function pushbutton_save_Callback(hObject,~)
+
 hfig = getParentFigure(hObject);
-i_fish = getappdata(hfig,'i_fish');
-global VAR;
-VAR(i_fish).Class = getappdata(hfig,'Class');
-VAR(i_fish).ClusGroup = CurrentClusGroup(hfig);
-disp('saved to workspace ''VAR''');
+tic
+for i = 1,
+    M_0 = [];
+    CellResp = getappdata(hfig,'CellResp');
+    cIX = getappdata(hfig,'cIX');
+    tIX = getappdata(hfig,'tIX');
+    M_0 = CellResp(cIX,tIX);
+    setappdata(hfig,'M_0',M_0);
+%     M = getappdata(hfig,'M');
+%     M_0 = getappdata(hfig,'M_0');
+end
+toc
+
+% 
+% tic
+% 
+% for i = 1:10,
+%     setappdata(hfig,'M_0',M_0);
+%     M_0 = getappdata(hfig,'M_0');
+% end
+% toc
+
+% hfig = getParentFigure(hObject);
+% i_fish = getappdata(hfig,'i_fish');
+% global VAR;
+% VAR(i_fish).Class = getappdata(hfig,'Class');
+% VAR(i_fish).ClusGroup = CurrentClusGroup(hfig);
+% disp('saved to workspace ''VAR''');
 end
 
 function pushbutton_savemat_Callback(hObject,~)
@@ -1066,7 +1090,7 @@ if isCentroid,
     DrawClusters(h1,C,unique(gIX),numK,stim,fictive,clrmap,rankscore,...
         iswrite,isPopout,isPlotLines,isPlotFictive);
 else
-    M = GetTimeIndexedData(hfig);
+    M = getappdata(hfig,'M');
     DrawClusters(h1,M,gIX,numK,stim,fictive,clrmap,rankscore,...
         iswrite,isPopout,isPlotLines,isPlotFictive);
 %     [M_ds,skip] = GetTimeIndexedM_ds(hfig);
@@ -1094,7 +1118,7 @@ end
 
 function pushbutton_exporttoworkspace_Callback(hObject,~)
 hfig = getParentFigure(hObject);
-M = GetTimeIndexedData(hfig);
+M = getappdata(hfig,'M');
 M_0_fluo = GetTimeIndexedData(hfig,'isAllCells');
 assignin('base', 'M', M);
 assignin('base', 'M_0_fluo', M_0_fluo);
@@ -1541,7 +1565,7 @@ gIX = getappdata(hfig,'gIX');
 switch rankID,
     case 1,
         disp('hier. (default)');
-        M = GetTimeIndexedData(hfig);
+        M = getappdata(hfig,'M');
         [gIX, numU] = HierClus(M,gIX);
     case 2,
         disp('size');
@@ -2089,7 +2113,7 @@ end
 function pushbutton_topnum_regression_Callback(hObject,~)
 disp('regression...');
 hfig = getParentFigure(hObject);
-M_0 = GetTimeIndexedData(hfig,'isAllCells');
+M_0 = getappdata(hfig,'M_0');
 numTopCorr = getappdata(hfig,'numTopCorr');
 regressor = GetRegressor(hfig);
 
@@ -2128,7 +2152,7 @@ function pushbutton_thres_regression_Callback(hObject,~)
 disp('regression...');
 tic
 hfig = getParentFigure(hObject);
-M_0 = GetTimeIndexedData(hfig,'isAllCells');
+M_0 = getappdata(hfig,'M_0');
 thres_reg = getappdata(hfig,'thres_reg');
 regressor = GetRegressor(hfig);
 if isempty(regressor),
@@ -2188,7 +2212,7 @@ end
 
 function pushbutton_AllCentroidRegression_Callback(hObject,~)
 hfig = getParentFigure(hObject);
-M_0 = GetTimeIndexedData(hfig,'isAllCells');
+M_0 = getappdata(hfig,'M_0');
 thres_reg = getappdata(hfig,'thres_reg');
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
@@ -2222,7 +2246,7 @@ end
 
 function pushbutton_IterCentroidRegression_Callback(hObject,~)
 hfig = getParentFigure(hObject);
-M_0 = GetTimeIndexedData(hfig,'isAllCells');
+M_0 = getappdata(hfig,'M_0');
 thres_reg = getappdata(hfig,'thres_reg');
 gIX = getappdata(hfig,'gIX');
 regchoice = getappdata(hfig,'regchoice');
@@ -2267,7 +2291,7 @@ end
 
 function edit_kmeans_Callback(hObject,~)
 hfig = getParentFigure(hObject);
-M = GetTimeIndexedData(hfig);
+M = getappdata(hfig,'M');
 
 str = get(hObject,'String');
 if ~isempty(str),
@@ -2303,7 +2327,7 @@ hfig = getParentFigure(hObject);
 z_res = getappdata(hfig,'z_res');
 cIX = getappdata(hfig,'cIX');
 CInfo = getappdata(hfig,'CInfo');
-M = GetTimeIndexedData(hfig);
+M = getappdata(hfig,'M');
 
 XY = reshape([CInfo(cIX).center],2,[])';
 Z = [CInfo(cIX).slice]'.*z_res;
@@ -2334,7 +2358,7 @@ end
 function edit_kmeans_elbow_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 gIX = getappdata(hfig,'gIX');
-M = GetTimeIndexedData(hfig);
+M = getappdata(hfig,'M');
 
 str = get(hObject,'String');
 if ~isempty(str),
@@ -2391,7 +2415,7 @@ function pushbutton_merge_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
-M = GetTimeIndexedData(hfig);
+M = getappdata(hfig,'M');
 U = unique(gIX);
 numU = length(U);
 [C,D] = FindCentroid(hfig);
@@ -2441,7 +2465,7 @@ cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
 numU = getappdata(hfig,'numK');
 thres_split = getappdata(hfig,'thres_split');
-M_0 = GetTimeIndexedData(hfig,'isAllCells');
+M_0 = getappdata(hfig,'M_0');
 classheader = getappdata(hfig,'classheader');
 
 disp('iter. split all, beep when done...');
@@ -2554,8 +2578,8 @@ function pushbutton_autoclus_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
-M = GetTimeIndexedData(hfig);
-M_0 = GetTimeIndexedData(hfig,'isAllCells');
+M = getappdata(hfig,'M');
+M_0 = getappdata(hfig,'M_0');
 classheader = getappdata(hfig,'classheader');
 thres_size = 10;
 thres_split = getappdata(hfig,'thres_split');
@@ -2752,7 +2776,7 @@ function pushbutton_hierplot_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
-M = GetTimeIndexedData(hfig);
+M = getappdata(hfig,'M');
 
 [gIX2, numU] = HierClus(M,gIX,'isplotfig');
 if ~isequal(gIX,gIX2),
@@ -3061,7 +3085,7 @@ end
 function edit_clusUnion_Callback(hObject,~)
 disp('union processing...');
 hfig = getParentFigure(hObject);
-M_0 = GetTimeIndexedData(hfig,'isAllCells');
+M_0 = getappdata(hfig,'M_0');
 Cluster = getappdata(hfig,'Cluster');
 str = get(hObject,'String');
 if ~isempty(str),
@@ -3418,7 +3442,7 @@ if opID ~= 0,
             disp('smartUnion');
             CIX = vertcat(cIX_last,cIX);
             GIX = [gIX_last;gIX+max(gIX_last)]; % gIX to match
-            M_0 = GetTimeIndexedData(hfig,'isAllCells');
+            M_0 = getappdata(hfig,'M_0');
             [cIX,gIX,numK] = SmartUnique(CIX,GIX,M_0(CIX,:));              
     end
     if opID<6,
@@ -3438,12 +3462,17 @@ end
 
 % tIX = getappdata(hfig,'tIX');
 % if length(cIX)*length(tIX)<5*10^8,
-    setappdata(hfig,'bCache',bC);
-    setappdata(hfig,'cIX',cIX);
-    setappdata(hfig,'gIX',gIX);
-    if exist('numK','var'),
-        setappdata(hfig,'numK',double(numK));
-    end
+
+setappdata(hfig,'bCache',bC);
+setappdata(hfig,'cIX',cIX);
+setappdata(hfig,'gIX',gIX);
+
+M = GetTimeIndexedData(hfig);
+setappdata(hfig,'M',M);
+
+if exist('numK','var'),
+    setappdata(hfig,'numK',double(numK));
+end
 % else
 %     errordlg('dataset too large!')
 %     waitforbuttonpress;
@@ -3502,15 +3531,25 @@ figure(hfig);
 % left subplot
 h1 = axes('Position',[0.05, 0.04, 0.55, 0.83]);
 if isCentroid,
-    [C,~] = FindCentroid(gIX,M);
+    C = FindCentroid(hfig);
     DrawClusters(h1,C,unique(gIX),numK,stim,fictive,clrmap,rankscore,...
         iswrite,isPopout,isPlotLines,isPlotFictive);
 else    
-    [M_ds,skip] = GetTimeIndexedM_ds(hfig);
-    nCells = length(gIX);
+    M = getappdata(hfig,'M');    
+    % down-sample
+    ds_cap = 1000;
+    nCells = length(cIX);
+    skip = max(1,round(nCells/ds_cap));
+    M_ds = M(1:skip:end,:);
     gIX_ds = gIX(1:skip:end,:);
     DrawClusters(h1,M_ds,gIX_ds,numK,stim,fictive,clrmap,rankscore,...
         iswrite,isPopout,isPlotLines,isPlotFictive,nCells);
+
+%     [M_ds,skip] = GetTimeIndexedM_ds(hfig);
+%     nCells = length(gIX);
+%     gIX_ds = gIX(1:skip:end,:);
+%     DrawClusters(h1,M_ds,gIX_ds,numK,stim,fictive,clrmap,rankscore,...
+%         iswrite,isPopout,isPlotLines,isPlotFictive,nCells);
 end
 
 % right subplot
@@ -3526,7 +3565,7 @@ gIX = getappdata(hfig,'gIX');
 C = getappdata(hfig,'Centroids');
 D = getappdata(hfig,'D_ctrd');
 if isempty(C),
-    M = GetTimeIndexedData(hfig);
+    M = getappdata(hfig,'M');
     
     U = unique(gIX);
     numU = length(U);
@@ -3606,8 +3645,11 @@ else % fishset>1,
 end
 setappdata(hfig,'tIX',tIX);
 
-%% set 'fictive' and 'stim' with setappdata
-GetTimeIndexedData(hfig); % (don't need M_0 as output)
+%% also set 'fictive' and 'stim' with setappdata
+M_0 = GetTimeIndexedData(hfig,'isAllCells');
+setappdata(hfig,'M_0',M_0);
+cIX = getappdata(hfig,'cIX');
+setappdata(hfig,'M',M_0(cIX,:));
 
 % obsolete
 %{
@@ -3659,7 +3701,9 @@ GetTimeIndexedData(hfig); % (don't need M_0 as output)
 end
 
 %{
+M = getappdata(hfig,'M');
 M = GetTimeIndexedData(hfig);
+M_0 = getappdata(hfig,'M_0');
 M_0 = GetTimeIndexedData(hfig,'isAllCells');
 %}
 function [M,fictive,stim] = GetTimeIndexedData(hfig,isAllCells)
