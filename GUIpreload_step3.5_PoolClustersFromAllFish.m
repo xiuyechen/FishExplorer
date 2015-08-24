@@ -11,20 +11,9 @@ CONSTs = cell(1,numfish);
 for i_fish = 1:numfish,
     disp(['i_fish = ' num2str(i_fish)]);
     
-    % for new partitioned data, consistant with GUI_050415, but not tested
-    fishdir = fullfile(data_dir,['CONST_F' num2str(new_i_fish) '_fast.mat']);
-    load(fishdir,'const');
-    load(fishdir,'dimCR');
-    CellResp = zeros(dimCR);
-    num = 0;
-    nParts = round(dimCR(1)*dimCR(2)/42000000);
-    for i = 1:nParts,
-        load(fishdir,['CRZt_' num2str(i)']);
-        eval(['len = size(CRZt_' num2str(i) ',1);']);
-        eval(['CellResp(num+1:num+len,:) = CRZt_' num2str(i) ';']);
-        eval(['CellResp(num+1:num+len,:) = CRZt_' num2str(i) ';']);
-        num = num+len;
-    end
+    filename = ['CONST_F' num2str(new_i_fish) '_fast.mat'];
+    [CellResp,const,dimCR] = LoadFileFromParts(data_dir,filename);
+    
     names = fieldnames(const); % cell of strings
     for i = 1:length(names),
         % renaming exception!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -81,7 +70,7 @@ for i_fish = 1:numfish,
 %     CONSTs{i_fish}.clus = [];
 %     CIX = [];
 %     for i = 1, % just one for now...
-%         if length(VAR(i_fish).ClusGroup{1})-i+1>0,
+%         if length(VAR(i_fidsh).ClusGroup{1})-i+1>0,
 %             % copy from VAR
 %             clus = VAR(i_fish).ClusGroup{1}(i);
 %             CONSTs{i_fish}.clus(i).cIX = clus.cIX;

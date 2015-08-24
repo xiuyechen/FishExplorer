@@ -12,6 +12,7 @@ end
 
 
 %% Load stimulus
+
 st = frame_turn(:,17)'; % from raw file
 
 % cap abnormally high values in raw values

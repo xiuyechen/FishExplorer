@@ -4,27 +4,27 @@ m1 = 0.3*ones(halfbarnum,length(stim));
 m2 = m1; % bottom half
 x = stim;
 
-% 0 = all black; 1 = black/white; 2 = white/black; 3 = all white; 4 = all gray;
+% 0 = all black; 1 = white/black (PT L); 2 = black/white (PT R); 3 = all white; 4 = all gray;
 % 5 = gray/black; 6 = white/gray; 7 = black/gray; 8 = gray/white.
 % 9 = OMR baseline = not moving?? grey??
 % 10 = forward grating (very slow, more for calibration)
-% 11 = rightward grating
-% 12 = leftward grating
+% 11 = leftward grating
+% 12 = rightward grating
 % 13 = Dot
-% 14 = Blob R
-% 15 = Blob L
+% 14 = Blob L
+% 15 = Blob R
 
 % 16 = electric shock (spike)
 
 %% code 0-8
 % top (~ projection left)
-m1(:,x==0 | x==2 | x==5) = 0; % black
+m1(:,x==0 | x==1 | x==5) = 0; % black
 m1(:,x==4 | x==6 | x==7) = 0.8; % grey
-m1(:,x==1 | x==3 | x==8) = 1; % white
+m1(:,x==2 | x==3 | x==8) = 1; % white
 % bottom (~ projection right)
-m2(:,x==0 | x==1 | x==7) = 0;
+m2(:,x==0 | x==2 | x==7) = 0;
 m2(:,x==4 | x==5 | x==8) = 0.8;
-m2(:,x==2 | x==3 | x==6) = 1;
+m2(:,x==1 | x==3 | x==6) = 1;
 
 %% code 9-12
 % colors for OMR

@@ -81,6 +81,26 @@ dimv_yx = size(anat_yx);
 dimv_yz = size(anat_yz);
 dimv_zx = size(anat_zx);
 
+%% NEW: fix the left-right flip in the anatomy stack and subsequent cell_info
+ave_stack = fliplr(ave_stack);
+anat_yx = fliplr(anat_yx);
+anat_zx = fliplr(anat_zx);
+
+[s1,s2,~] = size(ave_stack);
+
+for i_cell = 1:length(cell_info.center),
+    % fix '.center'
+    cell_info.center(2) = s2-cell_info.center(2)+1;
+    % fix '.inds'    
+    IX = cell_info.inds(i_cell);
+    [I,J] = ind2sub([s1,s2],IX);
+    J = s2-J+1;
+    cell_info.inds(i_cell) = sub2ind([s1,s2],I,J);
+    % fix '.x_minmax'
+    cell_info.x_minmax(1) = s2-cell_info.x_minmax(1)+1;
+    cell_info.x_minmax(2) = s2-cell_info.x_minmax(2)+1;
+end
+
 %% compute z-score
 disp('compute z-score')
 tic
@@ -90,7 +110,7 @@ toc
 
 %% Validating all cells
 
-isDiscard50 = true; % option to pre-screen
+isDiscard50 = false; % option to pre-screen
 if isDiscard50,
     %% Round 1: discard 50% noisy cells based on std of zscore of baseline
     
