@@ -16,17 +16,18 @@ M_dir = {'E:\Janelia2014\Fish1_16states_30frames';
     'E:\Janelia2014\Fish7_20140722_2_3_3states_30,50frames';
     'E:\Janelia2014\Fish8_20141222_2_2_7d_PT_3OMR_shock_lowcut';
     'E:\Janelia2014\Fish9_20150120_2_1_photo_OMR_prey_blob_blue_cy74_6d_20150120_220356';
-    'E:\Janelia2014\Fish10_20150120_2_2_photo_OMR_prey_blob_blue_cy74_6d_20150120_231917'};
-
-M_stimset = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2];
+    'E:\Janelia2014\Fish10_20150120_2_2_photo_OMR_prey_blob_blue_cy74_6d_20150120_231917';
+    'E:\Janelia2014\Fish11_20150122_2_2_cy74_6d_photo_OMR_prey_blob_blue_20150122_190028'};
+M_stimset = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2];
 
 save_dir = 'C:\Janelia2014';
 
 dshift = 2; % this is basically a manually chosen shift between fictive and fluo
         
 %% MANUAL
-for i_fish = 9, %:8,
+for i_fish = 1:6, %:8,
     disp(num2str(i_fish));
+    tic
     %% load data
     datadir = M_dir{i_fish};
     load(fullfile(datadir,['Fish' num2str(i_fish) '_direct_load.mat']),varList{:});
@@ -99,16 +100,20 @@ for i_fish = 9, %:8,
             tlists = [tlists, ix];
         end
         
-        stim_full = frame_turn(17,IX_all);
+        stim_full = frame_turn(IX_all,17)';
         stim_full = round(stim_full);
         
-        stimAvr = stim_full(1:periods{1});
+        stimAvr = stim_full(1:period);
         
     else % multiple protocols                
         % process raw stimulus code
         [stimset,stim_full_raw] = StimulusKeyPreprocessing(frame_turn,i_fish);
-        
-        % find time-lists = list of time-frames numbers for a certain stimulus
+                
+        %% variables to save later in struct
+        periods = [stimset.period];
+        stimrangenames = {stimset.name};
+
+        %% find time-lists = list of time-frames numbers for a certain stimulus
         nTypes = length(stimset);
         tlists_raw = cell(1,nTypes+1); % time-lists, i.e. frame indices
         IX_all = [];
@@ -148,10 +153,6 @@ for i_fish = 9, %:8,
             m = stim_full(tlists{i});
             stimAvr = horzcat(stimAvr,m(1:periods(i)));
         end
-        
-        %% variables to save later in struct
-        periods = [stimset.period];
-        stimrangenames = {stimset.name};
 
     end
     
@@ -190,7 +191,11 @@ for i_fish = 9, %:8,
     CONST = [];
     names = {'ave_stack','anat_yx','anat_yz','anat_zx','CInfo','periods','shift','dshift',...
         'CellResp','CellRespAvr','Fictive','FictiveAvr','stim_full','stimAvr',...
-        'stimset','tlists','tlists_raw','stimrangenames'};
+        'tlists','stimrangenames'};
+    if M_stimset(i_fish) > 1,
+        names = [names,{'tlists_raw','stimset'}];
+    end
+    
     for i = 1:length(names), % use loop to save variables into fields of CONST
         eval(['CONST.',names{i},'=', names{i},';']);
     end
@@ -224,31 +229,31 @@ end
 
 %% Initialize VARS % outdated? Clusgroup?
 
-nCells = length(CONST.CInfo);
-
-cIX = (1:nCells)';
-i = 1;
-VAR(i_fish).Class(i).name = 'all processed';
-VAR(i_fish).Class(i).cIX = cIX;
-VAR(i_fish).Class(i).gIX = ones(length(cIX),1);
-VAR(i_fish).Class(i).numel = nCells;
-VAR(i_fish).Class(i).numK = 1;
-VAR(i_fish).Class(i).datatype = 'std';
-
-cIX = (1:100:nCells)';
-VAR(i_fish).ClusGroup{1,1}.name = 'test';
-VAR(i_fish).ClusGroup{1,1}.cIX = cIX;
-VAR(i_fish).ClusGroup{1,1}.gIX = ones(length(cIX),1);
-VAR(i_fish).ClusGroup{1,1}.numel = length(cIX);
-VAR(i_fish).ClusGroup{1,1}.numK = 1;
-
-%%
-cIX = (1:10:nCells)';
-VAR(i_fish).ClusGroup{1,1}(12).name = '1/10 of all';
-VAR(i_fish).ClusGroup{1,1}(12).cIX = cIX;
-VAR(i_fish).ClusGroup{1,1}(12).gIX = ones(length(cIX),1);
-VAR(i_fish).ClusGroup{1,1}(12).numel = length(cIX);
-VAR(i_fish).ClusGroup{1,1}(12).numK = 1;
+% nCells = length(CONST.CInfo);
+% 
+% cIX = (1:nCells)';
+% i = 1;
+% VAR(i_fish).Class(i).name = 'all processed';
+% VAR(i_fish).Class(i).cIX = cIX;
+% VAR(i_fish).Class(i).gIX = ones(length(cIX),1);
+% VAR(i_fish).Class(i).numel = nCells;
+% VAR(i_fish).Class(i).numK = 1;
+% VAR(i_fish).Class(i).datatype = 'std';
+% 
+% cIX = (1:100:nCells)';
+% VAR(i_fish).ClusGroup{1,1}.name = 'test';
+% VAR(i_fish).ClusGroup{1,1}.cIX = cIX;
+% VAR(i_fish).ClusGroup{1,1}.gIX = ones(length(cIX),1);
+% VAR(i_fish).ClusGroup{1,1}.numel = length(cIX);
+% VAR(i_fish).ClusGroup{1,1}.numK = 1;
+% 
+% %%
+% cIX = (1:10:nCells)';
+% VAR(i_fish).ClusGroup{1,1}(12).name = '1/10 of all';
+% VAR(i_fish).ClusGroup{1,1}(12).cIX = cIX;
+% VAR(i_fish).ClusGroup{1,1}(12).gIX = ones(length(cIX),1);
+% VAR(i_fish).ClusGroup{1,1}(12).numel = length(cIX);
+% VAR(i_fish).ClusGroup{1,1}(12).numK = 1;
 
 %% varience/std for reps for each cell
 %     if i_fish==2 || i_fish==3 || i_fish==6,

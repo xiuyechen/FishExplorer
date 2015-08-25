@@ -61,7 +61,7 @@ if i_fish == 8,
     % M_range_raw = [2,3,4,5,12,13,14,15,99,100]; % for Fish 8
     M_range =       [3,1,3,2, 9,10,11,12, 4,16]; % standardized
     
-elseif i_fish == 9 || i_fish == 10,
+elseif i_fish == 9 || i_fish == 10 || i_fish == 11,
     block_raw{1} = {[2,3,4,5],[12,13,12,14,12,15],99,[23,22],[30,31,30,32],[2,3,4,5]};
     block_raw{2} = {[2,100,2,3,4,100,4,5],[12,100,12,13,12,100,12,14,12,100,12,15],99,[23,22],[30,31,30,32],[2,100,2,3,4,100,4,5]};
     block_raw{3} = {[2,3,4,5],[12,13,12,14,12,15],99,[23,22],[30,31,30,32],[2,3,4,5],[12,13,12,14,12,15]};
@@ -100,7 +100,7 @@ else % inspect manually to set these manual params
     end
     
     figure;
-    plot(stim_full)
+    plot(stim_full);
     
     stimset = [];
     return;

@@ -2,6 +2,9 @@ function DrawClusters(h1,M,gIX,numK,stim,fictive,clrmap,rankscore,iswrite,isPopo
 axis off;
 pos = get(h1,'Position'); % [left, bottom, width, height]    
 
+% double-check numK
+numK = max(max(gIX),numK);
+
 if isPlotLines,
     if 1, % (just to collapse isPlotLines = true)
         %% settings

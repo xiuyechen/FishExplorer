@@ -55,7 +55,7 @@ setappdata(hfig,'VAR',VAR);
 nFish = length(CONSTs) + 1; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % fish protocol sets (different sets have different parameters)
-M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 3, 3]; % M = Matrix
+M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2]; % M = Matrix
 setappdata(hfig,'M_fish_set',M_fish_set);
 
 % parameters / constants
@@ -1035,13 +1035,8 @@ end
 end
 
 function pushbutton_popupplot_Callback(hObject,~)
+% similar as function RefreshFigure(hfig)
 hfig = getParentFigure(hObject);
-
-% same as function RefreshFigure(hfig), except new axes not global
-
-% figure('Position',[50,100,853,512]); % right plot size: 2048x1706
-% h1 = axes('Position',[0, 0, 0.5, 1]); % left ~subplot
-% h2 = axes('Position',[0.50, 0, 0.5, 1]); % right ~subplot
 figure('Position',[50,100,1600,800],'color',[1 1 1]);
 h1 = axes('Position',[0.05, 0.03, 0.53, 0.94]); % left ~subplot
 h2 = axes('Position',[0.61, 0.03, 0.35, 0.94]); % right ~subplot
@@ -1076,11 +1071,6 @@ else
     M = getappdata(hfig,'M');
     DrawClusters(h1,M,gIX,numK,stim,fictive,clrmap,rankscore,...
         iswrite,isPopout,isPlotLines,isPlotFictive);
-%     [M_ds,skip] = GetTimeIndexedM_ds(hfig);
-%     nCells = length(gIX);
-%     gIX_ds = gIX(1:skip:end,:);
-%     DrawClusters(h1,M_ds,gIX_ds,numK,stim,fictive,clrmap,rankscore,...
-%         iswrite,isPopout,isPlotLines,isPlotFictive,nCells);
 end
 
 % right subplot
@@ -1216,10 +1206,14 @@ shift = getappdata(hfig,'shift');
 numcell = getappdata(hfig,'numcell');
 fishset = getappdata(hfig,'fishset');
 
-% compute and store CellRespAvr
+% compute and store CellRespAvr?? only for CONSTs?
 if fishset == 1,
-%     CellRespAvr = getappdata(hfig,'CellRespAvr');    
-    setappdata(hfig,'stimAvr',stim_full(1:periods{1}));
+    %     CellRespAvr = getappdata(hfig,'CellRespAvr');
+    if iscell(periods),
+        setappdata(hfig,'stimAvr',stim_full(1:periods{1}));
+    else
+        setappdata(hfig,'stimAvr',stim_full(1:periods));
+    end
 else
     % find averages of different stimuli, and splice together
     CellRespAvr = [];   
@@ -1237,24 +1231,6 @@ end
 
 setappdata(hfig,'FictiveAvr',FictiveAvr);
 setappdata(hfig,'Fictive',Fictive);
-
-%% update GUI (tlists selection)
-stimrangenames = getappdata(hfig,'stimrangenames');
-global hstimrangemenu;
-if ~isempty(hstimrangemenu), % before GUI initialization
-    % 'global' remnant from previous run: hstimrangemenu is not empty but is invalid object
-    if isvalid(hstimrangemenu), 
-        set(hstimrangemenu,'String',stimrangenames);
-        set(hstimrangemenu,'Value',1);
-%         set(hstimrangemenu,'Value',ID);
-    end
-end
-
-%% set current tlists
-setappdata(hfig,'stimrange',1:length(periods));
-global hstimrange;
-set(hstimrange,'String','1:end');
-UpdateTimeIndex(hfig); % doesn't include Refresh
 
 %% set Cluster display
 % save ClusGroup before updating, if applicable
@@ -1279,6 +1255,25 @@ setappdata(hfig,'clusgroupID',clusgroupID);
 
 Cluster = ClusGroup{clusgroupID};% collection of clusters, 'Cluster' structurally same as 'Class'
 setappdata(hfig,'Cluster',Cluster);
+
+%% update GUI (tlists selection)
+stimrangenames = getappdata(hfig,'stimrangenames');
+global hstimrangemenu;
+if ~isempty(hstimrangemenu), % before GUI initialization
+    % 'global' remnant from previous run: hstimrangemenu is not empty but is invalid object
+    if isvalid(hstimrangemenu), 
+        set(hstimrangemenu,'String',stimrangenames);
+        set(hstimrangemenu,'Value',1);
+%         set(hstimrangemenu,'Value',ID);
+    end
+end
+
+%% set current tlists
+periods = getappdata(hfig,'periods');
+setappdata(hfig,'stimrange',1:length(periods));
+% global hstimrange;
+% set(hstimrange,'String','1:end');
+UpdateTimeIndex(hfig,'isSkipcIX'); % doesn't include Refresh
 
 end
 
@@ -1317,37 +1312,24 @@ fishset = M_fish_set(new_i_fish);
 setappdata(hfig,'fishset',fishset);
 
 %% load data from file
-if fishset == 1 || fishset == 2, % load directly % should be only set 1!!!!!!!!!!!!!!!
-    tic
-    load(fullfile(data_dir,['CONST_F' num2str(new_i_fish) '.mat']),'CONST');
-    toc
-    setappdata(hfig,'CellResp',CONST.CRZt);
-    const = CONST;
-    
-else % load from parts
+% if fishset == 1,
+%     tic
+%     load(fullfile(data_dir,['CONST_F' num2str(new_i_fish) '.mat']),'CONST');
+%     toc
+%     setappdata(hfig,'CellResp',CONST.CRZt);
+%     const = CONST;
+%     
+% else % load from parts
     filename = ['CONST_F' num2str(new_i_fish) '_fast.mat'];
     [CellResp,const] = LoadFileFromParts(data_dir,filename);
     setappdata(hfig,'CellResp',CellResp);
-end
+% end
     
 %% load all fields from CONST, with names preserved
 tic
 names = fieldnames(const); % cell of strings
 for i = 1:length(names),
-    
-    
-    
-    % renaming exception!!!!!!!!!!!!should be obsolete!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    if strcmp(names{i},'CRAZ'),
-        setappdata(hfig,'CellRespAvr',const.CRAZ);
-    elseif strcmp(names{i},'photostate'),
-        setappdata(hfig,'stim_full',const.photostate);
-        
-        
-        
-    else
-        setappdata(hfig,names{i},eval(['const.',names{i}]));
-    end
+    setappdata(hfig,names{i},eval(['const.',names{i}]));
 end
 setappdata(hfig,'numcell',length(const.CInfo));
 
@@ -1436,6 +1418,9 @@ if ~isempty(bC.cIX{1}),
     setappdata(hfig,'numK',numK);
     % handle rankID: >=2 means write numbers as text next to colorbar
     setappdata(hfig,'rankID',0);
+    M = GetTimeIndexedData(hfig);
+    setappdata(hfig,'M',M);
+
     % finish
     disp('back (from cache)')
     RefreshFigure(hfig);
@@ -1471,6 +1456,9 @@ if ~isempty(fC.cIX{1}),
     setappdata(hfig,'numK',numK);
     % handle rankID: >=2 means write numbers as text next to colorbar
     setappdata(hfig,'rankID',0);
+    M = GetTimeIndexedData(hfig);
+    setappdata(hfig,'M',M);
+
     % finish
     disp('forward (from cache)')
     RefreshFigure(hfig);
@@ -1632,20 +1620,12 @@ periods = getappdata(hfig,'periods');
 fishset = getappdata(hfig,'fishset');
 C = FindCentroid(hfig);
 
-if fishset==1,
+if fishset == 1,
     period = periods;
     C_3D_0 = reshape(C,size(C,1),period,[]);
     C_3D = zscore(C_3D_0,0,2);
     
     H = nanmean(nanstd(C_3D,0,3),2);
-% elseif fishset==2,
-%     tlists = getappdata(hfig,'tlists');
-%     CellResp = getappdata(hfig,'CellResp');
-%     IX = tlists{6}; % ptomr_circ
-%     M_ = CellResp(cIX,IX);
-%     [C,~] = FindCentroid(gIX,M_);
-%     periods = getappdata(hfig,'periods');
-%     period = periods{1}+periods{2};
 else
     stimset = getappdata(hfig,'stimset');
     stimrange = getappdata(hfig,'stimrange');
@@ -2344,7 +2324,6 @@ if ~isempty(cIX_),
     RefreshFigure(hfig);
 end
 end
-
 
 %% ----- tab four ----- (Clustering etc.)
 
@@ -3667,7 +3646,7 @@ for i=1:numU,
 end
 end
 
-function UpdateTimeIndex(hfig)
+function UpdateTimeIndex(hfig,isSkipcIX)
 % input params
 isAvr = getappdata(hfig,'isAvr');
 isRawtime = getappdata(hfig,'isRawtime');
@@ -3714,56 +3693,10 @@ setappdata(hfig,'tIX',tIX);
 %% also set 'fictive' and 'stim' with setappdata
 M_0 = GetTimeIndexedData(hfig,'isAllCells');
 setappdata(hfig,'M_0',M_0);
-cIX = getappdata(hfig,'cIX');
-setappdata(hfig,'M',M_0(cIX,:));
-
-% obsolete
-%{
-% if ID == 1,
-%     M_0 = CellRespAvr;
-%     fictive = FictiveAvr;
-% elseif ID == 2,
-%     M_0 = CellResp;
-%     fictive = Fictive;
-% else    
-%     if fishset == 1,
-%         IX = tlists{ID};
-%     else
-%         IX = tlists{ID-2};
-%     end
-%     M_0 = CellResp(:,IX);
-%     temp = Fictive(:,IX);
-%     % normalize fictive channels, in 2 sets
-%     for k = 1:3,%size(F,1),
-%         m = temp(k,:);
-%         temp(k,:) = (m-min(m))/(max(m)-min(m));
-%     end
-%     m = temp(4:5,:);
-%     temp(4:5,:) = (m-min(min(m)))/(max(max(m))-min(min(m)));
-%     fictive = temp;
-% end
-% 
-% % set stim
-% if fishset == 1,
-%     stim = stim_full(tlists{ID});
-% else
-%     if ID == 1,
-%         stim = stimAvr;
-%     elseif ID == 2,
-%         stim = stim_full;
-%     else
-%         IX = tlists{ID-2};
-%         stim = stim_full(IX);
-%     end
-% end
-
-% setappdata(hfig,'M_0_fluo',M_0);
-% setappdata(hfig,'fictive',fictive);
-% setappdata(hfig,'fictive_0',fictive);
-% setappdata(hfig,'dataname',stimrangenames(ID)); % need work
-% setappdata(hfig,'stim',stim);
-%}
-
+if ~exist('isSkipcIX','var'),
+    cIX = getappdata(hfig,'cIX');
+    setappdata(hfig,'M',M_0(cIX,:));
+end
 end
 
 %{
@@ -3806,17 +3739,6 @@ end
 
 setappdata(hfig,'fictive',fictive);
 setappdata(hfig,'stim',stim);
-%% ????? need work
-
-%     % normalize fictive channels, in 2 sets
-%     for k = 1:3,%size(F,1),
-%         m = temp(k,:);
-%         temp(k,:) = (m-min(m))/(max(m)-min(m));
-%     end
-%     m = temp(4:5,:);
-%     temp(4:5,:) = (m-min(min(m)))/(max(max(m))-min(min(m)));
-%     fictive = temp;
-
 end
 
 function [M_ds,skip] = GetTimeIndexedM_ds(hfig) %% down-sampling M

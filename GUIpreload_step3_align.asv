@@ -17,7 +17,7 @@ M_dir = {'E:\Janelia2014\Fish1_16states_30frames';
     'E:\Janelia2014\Fish8_20141222_2_2_7d_PT_3OMR_shock_lowcut';
     'E:\Janelia2014\Fish9_20150120_2_1_photo_OMR_prey_blob_blue_cy74_6d_20150120_220356';
     'E:\Janelia2014\Fish10_20150120_2_2_photo_OMR_prey_blob_blue_cy74_6d_20150120_231917'};
-
+    Fish11_20150122_2_2_cy74_6d_photo_OMR_prey_blob_blue_20150122_190028
 M_stimset = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2];
 
 save_dir = 'C:\Janelia2014';
@@ -211,20 +211,11 @@ for i_fish = 9, %:8,
     const = CONST;
     const = rmfield(const,'CellResp');
     dimCR = size(CONST.CellResp);
-    save(newfishdir,'const','-v6');
-    save(newfishdir,'dimCR','-v6','-append');
-    
-    nParts = round(numel(CONST.CellResp)/42000000);
-    t = zeros(1,nParts);
-    ix = round(linspace(1,size(CONST.CellResp,1),nParts+1));
-    for i = 1:nParts,
-        disp(num2str(i));
-        eval(['CellResp_' num2str(i) '= CONST.CellResp(ix(i):ix(i+1),:);']);
-        save(newfishdir,['CellResp_' num2str(i)],'-v6','-append');
-    end
-    
-    
-    %% OR
+    save(newfishdir,'const','dimCR','-v6');
+    % custom function:
+    SaveFileInPartsAppendv6(newfishdir,CellResp);
+
+    toc; beep
     
 end
 
