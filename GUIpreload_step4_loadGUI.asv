@@ -8,14 +8,14 @@ data_dir = 'C:\Janelia2014'; %[pwd '\example data']; % 'F:\Janelia2014';%
 
 global VAR;
 
-load(fullfile(data_dir,'VAR_current.mat'),'VAR'); % stores all clustering indices
+load(fullfile(data_dir,'VAR_current.mat'),'VAR');
 
-name_CONSTs = 'CONSTs_current2.mat'; % stores selected data from all fish
+name_CONSTs = 
+%matfile(fullfile(data_dir,'CONSTs_current2.mat'));
 
-% Example usage of name_CONSTs, used in 'Quickload' in GUI:
-% matObj = matfile(fullfile(data_dir,'CONSTs_current2.mat'));
+% % only load first fish
 % i_fish = 1;
-% eval(['CONST_s = matObj.CONST',num2str(i_fish),';']); 
+% eval(['CONSTs = matObj.CONST',num2str(i_fish),';']);
 
 %% Start GUI
 

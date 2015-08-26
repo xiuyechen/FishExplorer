@@ -30,7 +30,7 @@ Full datasets are stored as 'CONST_F?.mat' or 'CONST_F?_fast.mat' (? = fish numb
 
 %% User Interface:
 % function hfig = GUI_FishExplorer(CONSTs,VAR,CONST,i_fish)
-function [hfig,fcns] = GUI_FishExplorer(data_dir,CONSTs,VAR,flag_script,var_script)
+function [hfig,fcns] = GUI_FishExplorer(data_dir,name_CONSTs,VAR,flag_script,var_script)
 if exist('flag_script','var')
     if ~exist('var_script','var')
         var_script={};
@@ -50,9 +50,11 @@ hold off; axis off
 setappdata(hfig,'data_dir',data_dir);
 
 %% Pass external variables into appdata (stored with main figure handle)
-setappdata(hfig,'CONSTs',CONSTs);
 setappdata(hfig,'VAR',VAR);
-nFish = length(CONSTs) + 1; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+setappdata(hfig,'name_CONSTs',name_CONSTs);
+matObj = matfile(fullfile(data_dir,name_CONSTs));
+varlist = who(matObj);
+nFish = length(varlist) + 2; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % fish protocol sets (different sets have different parameters)
 M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2]; % M = Matrix
@@ -250,7 +252,7 @@ uicontrol('Parent',tab{i_tab},'Style','text','String','Data type:',...
 
 i=i+n;
 n=3; 
-hstimrangemenu = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',CONSTs{i_fish}.stimrangenames,...
+hstimrangemenu = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String','(holder)',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@popup_stimrangemenu_Callback);
 
@@ -1146,32 +1148,38 @@ QuickUpdateFish(hfig,new_i_fish);
 end
 
 function QuickUpdateFish(hfig,new_i_fish,init) %#ok<INUSD>
+disp('loading...');
+tic
 M_fish_set = getappdata(hfig,'M_fish_set');
 fishset = M_fish_set(new_i_fish);
 setappdata(hfig,'fishset',fishset);
-
-CONSTs = getappdata(hfig,'CONSTs');
 setappdata(hfig,'isfullfish',0);
+% get CONST_s for this fish by loading just this piece from the .mat
+name_CONSTs = getappdata(hfig,'name_CONSTs');
+data_dir = getappdata(hfig,'data_dir');
+matObj = matfile(fullfile(data_dir,name_CONSTs)); %#ok<NASGU>
+eval(['CONST_s = matObj.CONST',num2str(new_i_fish),';']);
 
-% load all fields from CONSTs, with names preserved
-names = fieldnames(CONSTs{new_i_fish}); % cell of strings
+
+% load all fields from CONST_s.const, with names preserved
+names = fieldnames(CONST_s.const); % cell of strings
 for i = 1:length(names),
-    setappdata(hfig,names{i},eval(['CONSTs{new_i_fish}.',names{i}]));
+    setappdata(hfig,names{i},eval(['CONST_s.const.',names{i}]));
 end
 
 % recontruct the 3 big matrices from CIX to original size (numcell)
-CIX = CONSTs{new_i_fish}.CIX;
-numcell = CONSTs{new_i_fish}.numcell;
+CIX = CONST_s.CIX;
+numcell = CONST_s.numcell;
 
-temp = CONSTs{new_i_fish}.CRAZ;
+temp = CONST_s.CellRespAvr;
 CellRespAvr = zeros(numcell,size(temp,2));
 CellRespAvr(CIX,:) = temp;
 
-temp = CONSTs{new_i_fish}.CRZt;
+temp = CONST_s.CellResp;
 CellResp = zeros(numcell,size(temp,2));
 CellResp(CIX,:) = temp;
 
-temp = CONSTs{new_i_fish}.CInfo;
+temp = CONST_s.CInfo;
 CInfo(numcell).center = '';
 CInfo(numcell).area = '';
 CInfo(numcell).slice = '';
@@ -1183,6 +1191,7 @@ CInfo(CIX) = temp;
 setappdata(hfig,'CellRespAvr',CellRespAvr); 
 setappdata(hfig,'CellResp',CellResp); 
 setappdata(hfig,'CInfo',CInfo); 
+toc
 
 UpdateFishData(hfig,new_i_fish);
 if ~exist('init','var'),
@@ -1193,44 +1202,44 @@ end
 function UpdateFishData(hfig,new_i_fish) % loading steps shared by both quick-load and full-load
 %% reformat main data
 
-% main data input
-CellResp = getappdata(hfig,'CellResp');
-Fictive = getappdata(hfig,'Fictive');
-FictiveAvr = getappdata(hfig,'FictiveAvr');
-stim_full = getappdata(hfig,'stim_full');
-
-tlists = getappdata(hfig,'tlists');
-% other params
-periods = getappdata(hfig,'periods');
-shift = getappdata(hfig,'shift');
-numcell = getappdata(hfig,'numcell');
-fishset = getappdata(hfig,'fishset');
-
-% compute and store CellRespAvr?? only for CONSTs?
-if fishset == 1,
-    %     CellRespAvr = getappdata(hfig,'CellRespAvr');
-    if iscell(periods),
-        setappdata(hfig,'stimAvr',stim_full(1:periods{1}));
-    else
-        setappdata(hfig,'stimAvr',stim_full(1:periods));
-    end
-else
-    % find averages of different stimuli, and splice together
-    CellRespAvr = [];   
-    stimAvr = [];
-    for i = 1:length(periods),
-        M = circshift(CellResp(:,tlists{i}),shift,2);
-        CellRespAvr = horzcat(CellRespAvr,mean(reshape(M,numcell,periods(i),[]),3));
-        % stim from stim_full
-        m = stim_full(tlists{i});
-        stimAvr = horzcat(stimAvr,m(1:periods(i)));
-    end
-    setappdata(hfig,'CellRespAvr',CellRespAvr);
-    setappdata(hfig,'stimAvr',stimAvr);
-end
-
-setappdata(hfig,'FictiveAvr',FictiveAvr);
-setappdata(hfig,'Fictive',Fictive);
+% % main data input
+% CellResp = getappdata(hfig,'CellResp');
+% Fictive = getappdata(hfig,'Fictive');
+% FictiveAvr = getappdata(hfig,'FictiveAvr');
+% stim_full = getappdata(hfig,'stim_full');
+% 
+% tlists = getappdata(hfig,'tlists');
+% % other params
+% periods = getappdata(hfig,'periods');
+% shift = getappdata(hfig,'shift');
+% numcell = getappdata(hfig,'numcell');
+% fishset = getappdata(hfig,'fishset');
+% 
+% % compute and store CellRespAvr?? only for CONSTs?
+% if fishset == 1,
+%     %     CellRespAvr = getappdata(hfig,'CellRespAvr');
+%     if iscell(periods),
+%         setappdata(hfig,'stimAvr',stim_full(1:periods{1}));
+%     else
+%         setappdata(hfig,'stimAvr',stim_full(1:periods));
+%     end
+% else
+%     % find averages of different stimuli, and splice together
+%     CellRespAvr = [];   
+%     stimAvr = [];
+%     for i = 1:length(periods),
+%         M = circshift(CellResp(:,tlists{i}),shift,2);
+%         CellRespAvr = horzcat(CellRespAvr,mean(reshape(M,numcell,periods(i),[]),3));
+%         % stim from stim_full
+%         m = stim_full(tlists{i});
+%         stimAvr = horzcat(stimAvr,m(1:periods(i)));
+%     end
+%     setappdata(hfig,'CellRespAvr',CellRespAvr);
+%     setappdata(hfig,'stimAvr',stimAvr);
+% end
+% 
+% setappdata(hfig,'FictiveAvr',FictiveAvr);
+% setappdata(hfig,'Fictive',Fictive);
 
 %% set Cluster display
 % save ClusGroup before updating, if applicable
@@ -3583,12 +3592,6 @@ else
     gIX_ds = gIX(1:skip:end,:);
     DrawClusters(h1,M_ds,gIX_ds,numK,stim,fictive,clrmap,rankscore,...
         iswrite,isPopout,isPlotLines,isPlotFictive,nCells);
-
-%     [M_ds,skip] = GetTimeIndexedM_ds(hfig);
-%     nCells = length(gIX);
-%     gIX_ds = gIX(1:skip:end,:);
-%     DrawClusters(h1,M_ds,gIX_ds,numK,stim,fictive,clrmap,rankscore,...
-%         iswrite,isPopout,isPlotLines,isPlotFictive,nCells);
 end
 
 % right subplot

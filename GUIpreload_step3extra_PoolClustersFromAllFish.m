@@ -1,36 +1,29 @@
 % Pool from all fish
 clear all;close all;clc
 
-data_dir = 'F:\Janelia2014';
+loading_dir = 'C:\Janelia2014';
 
 global VAR;
 load('VAR_current.mat','VAR');
 %%
-numfish = 8;
+numfish = 9;
 CONSTs = cell(1,numfish);
 for i_fish = 1:numfish,
     disp(['i_fish = ' num2str(i_fish)]);
     
-    filename = ['CONST_F' num2str(new_i_fish) '_fast.mat'];
-    [CellResp,const,dimCR] = LoadFileFromParts(data_dir,filename);
+    filename = ['CONST_F' num2str(i_fish) '_fast.mat'];
+    [CellResp,const,dimCR] = LoadFileFromParts(loading_dir,filename);
     
-    names = fieldnames(const); % cell of strings
-    for i = 1:length(names),
-        % renaming exception!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-%         if strcmp(names{i},'CRAZ'),
-%             setappdata(hfig,'CellRespAvr',const.CRAZ);
-%         elseif strcmp(names{i},'photostate'),
-%             setappdata(hfig,'stim_full',const.photostate);
-        else
-            setappdata(hfig,names{i},eval(['const.',names{i}]));
-        end
-    end
-    % add one variable
+    const2 = const;
+    const2 = rmfield(const2,{'CellRespAvr','CInfo'});
+    CONSTs{i_fish}.const = const2;
+%     names = fieldnames(const2); % cell of strings    
+    
+% additional param
     CONSTs{i_fish}.numcell = length(const.CInfo);
     
 %%
     % load selected clusters
-    CONSTs{i_fish}.clus = [];
     CIX = [];
     for i = 1, % just one for now...
         if length(VAR(i_fish).ClusGroup{1})-i+1>0,
@@ -47,8 +40,8 @@ for i_fish = 1:numfish,
     CIX = unique(CIX);
     CONSTs{i_fish}.CIX = CIX;
     CONSTs{i_fish}.CInfo = const.CInfo(CIX); % CIF
-    CONSTs{i_fish}.CRAZ = const.CRAZ(CIX,:);
-    CONSTs{i_fish}.CRZt = CellResp(CIX,:);
+    CONSTs{i_fish}.CellRespAvr = const.CellRespAvr(CIX,:);
+    CONSTs{i_fish}.CellResp = CellResp(CIX,:);
     
     %% OLD FORMAT without partitioning
 %     % load general info
@@ -88,7 +81,6 @@ for i_fish = 1:numfish,
 %     CONSTs{i_fish}.CRZt = CONST.CRZt(CIX,:);
 end
 %%
-clear CONST;
 temp = whos('CONSTs');
 if [temp.bytes]>2*10^9,
     save('CONSTs_current.mat','CONSTs','-v7.3');
@@ -98,5 +90,4 @@ end
 
 %% optional
 timestamp  = datestr(now,'mmddyy_HHMM');
-currentfolder = pwd;
-save([currentfolder '\arc mat\CONSTs_' timestamp '.mat'],'CONSTs');
+save([loading_dir '\arc mat\CONSTs_' timestamp '.mat'],'CONSTs');
