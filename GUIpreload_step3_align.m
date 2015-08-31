@@ -1,69 +1,63 @@
 %%%%%%%%%%%%%%%
 %%
-clear all;close all;
-varList = {'CR_dtr','nCells','CInfo','anat_yx','anat_yz','anat_zx','ave_stack','fpsec','frame_turn','periods'};
-
-% % or
-% varList = {'nCells','CInfo','anat_yx','anat_yz','anat_zx','ave_stack','fpsec','frame_turn'};
+if false,
+    clear all;close all;
+    varList = {'CR_dtr','nCells','CInfo','anat_yx','anat_yz','anat_zx','ave_stack','fpsec','frame_turn'};
+else
+    % or without 'CR_dtr', keeping it from previous step:
+    clearvars -except 'CR_dtr';
+    varList = {'nCells','CInfo','anat_yx','anat_yz','anat_zx','ave_stack','fpsec','frame_turn'};
+end
 
 %%
-M_dir = {'E:\Janelia2014\Fish1_16states_30frames';
-    'E:\Janelia2014\Fish2_20140714_2_4_16states_10frames';
-    'E:\Janelia2014\Fish3_20140715_1_1_16_states_10frames';
-    'E:\Janelia2014\Fish4_20140721_1_8_16states_20frames';
-    'E:\Janelia2014\Fish5_20140722_1_2_16states_30frames';
-    'E:\Janelia2014\Fish6_20140722_1_1_3states_30,40frames';
-    'E:\Janelia2014\Fish7_20140722_2_3_3states_30,50frames';
-    'E:\Janelia2014\Fish8_20141222_2_2_7d_PT_3OMR_shock_lowcut';
-    'E:\Janelia2014\Fish9_20150120_2_1_photo_OMR_prey_blob_blue_cy74_6d_20150120_220356';
-    'E:\Janelia2014\Fish10_20150120_2_2_photo_OMR_prey_blob_blue_cy74_6d_20150120_231917';
-    'E:\Janelia2014\Fish11_20150122_2_2_cy74_6d_photo_OMR_prey_blob_blue_20150122_190028'};
+M_dir = GetFishDirectories();
 M_stimset = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2];
 
-save_dir = 'C:\Janelia2014';
+save_dir = GetCurrentDataDir();
 
 dshift = 2; % this is basically a manually chosen shift between fictive and fluo
         
+isNeedfliplr = false;
 %% MANUAL
-for i_fish = 1:6, %:8,
+for i_fish = 11, %:8,
     disp(num2str(i_fish));
     tic
     %% load data
     datadir = M_dir{i_fish};
-    load(fullfile(datadir,['Fish' num2str(i_fish) '_direct_load.mat']),varList{:});
+    load(fullfile(datadir,['Fish' num2str(i_fish) '_direct_load_nodiscard.mat']),varList{:});
     
     if size(frame_turn,1)<size(frame_turn,2),
         frame_turn = frame_turn';
+    end    
+    
+    %% for old directloads (? 8/26/2015, fish#<11)Flip correction from original data
+    if isNeedfliplr,
+        ave_stack = fliplr(ave_stack);
+        anat_yx = fliplr(anat_yx);
+        anat_zx = fliplr(anat_zx);
+        
+        % CInfo = cell info, need to correct indices too
+        [s1,s2,~] = size(ave_stack);
+        for i_cell = 1:length(CInfo),
+            % fix '.center'
+            CInfo(i_cell).center(2) = s2-CInfo(i_cell).center(2)+1;
+            % fix '.inds'
+            IX = CInfo(i_cell).inds;
+            [I,J] = ind2sub([s1,s2],IX);
+            J = s2-J+1;
+            CInfo(i_cell).inds = sub2ind([s1,s2],I,J);
+            % fix '.x_minmax'
+            CInfo(i_cell).x_minmax(1) = s2-CInfo(i_cell).x_minmax(1)+1;
+            CInfo(i_cell).x_minmax(2) = s2-CInfo(i_cell).x_minmax(2)+1;
+        end
     end
+    %% Manual occasional frame corrections: ONLY RUN ONCE!!!!!!!!!
     
-    %% Flip correction from original data
-    
-    ave_stack = fliplr(ave_stack);
-    anat_yx = fliplr(anat_yx);
-    anat_zx = fliplr(anat_zx);
-    
-    %% CInfo = cell info, need to correct indices too
-    [s1,s2,~] = size(ave_stack);
-    for i_cell = 1:length(CInfo),
-        % fix '.center'
-        CInfo(i_cell).center(2) = s2-CInfo(i_cell).center(2)+1;
-        % fix '.inds'
-        IX = CInfo(i_cell).inds;
-        [I,J] = ind2sub([s1,s2],IX);
-        J = s2-J+1;
-        CInfo(i_cell).inds = sub2ind([s1,s2],I,J);
-        % fix '.x_minmax'
-        CInfo(i_cell).x_minmax(1) = s2-CInfo(i_cell).x_minmax(1)+1;
-        CInfo(i_cell).x_minmax(2) = s2-CInfo(i_cell).x_minmax(2)+1;
+    if false,
+        % add 1 frame at start: ------------- for which fish again??
+        CR_dtr = horzcat(CR_dtr(:,1),CR_dtr);
+        frame_turn = vertcat(frame_turn(1,:),frame_turn);
     end
-
-
-    %% ONLY RUN ONCE!!!!!!!!!
-    
-    
-    % add 1 frame at start: ------------- for all fish??
-    CR_dtr = horzcat(CR_dtr(:,1),CR_dtr);
-    frame_turn = vertcat(frame_turn(1,:),frame_turn);
 
     % correction of an error in Fish #1
     if i_fish == 1,

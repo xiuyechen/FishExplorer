@@ -1,7 +1,7 @@
 % Pool from all fish
 clear all;close all;clc
 
-loading_dir = 'C:\Janelia2014';
+loading_dir = GetCurrentDataDir();
 
 global VAR;
 load('VAR_current.mat','VAR');

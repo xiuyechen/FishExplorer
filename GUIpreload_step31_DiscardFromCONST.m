@@ -1,10 +1,11 @@
 % (This is tailored for fishset>1)
 
 clear all;close all;clc
+% clearvars -except 'CellResp' 'const'; clc
 
-data_dir = 'C:\Janelia2014';
-save_dir = 'C:\Janelia2014';
-i_fish = 10;
+data_dir = GetCurrentDataDir();
+save_dir = GetCurrentDataDir();
+i_fish = 11;
 
 %% load data
 disp(['load fish ' num2str(i_fish)]);
@@ -13,8 +14,15 @@ filename = ['CONST_F' num2str(i_fish) '_fast_nodiscard.mat'];
 [CellResp,const,dimCR] = LoadFileFromParts(data_dir,filename);
 
 CellResp_full = CellResp;
-%% Test1: discard 50% noisy cells based on std of zscore of baseline
-if false,
+
+%% Discard cells
+isRankcells = true;
+
+if isRankcells,
+    % Method 1: discard __% noisy cells based on std of zscore of baseline
+    % ! Manually set threshold:
+    perc_keep = 50;
+        
     % Compute std of dimest 10% of frames for each cell.
     tic
     prc = prctile(CellResp_full,10,2);
@@ -27,8 +35,7 @@ if false,
     toc
     beep
     
-    %% Set threshold and discard
-    perc_keep = 90;
+    %% threshold and discard
     thr = prctile(STD_full,perc_keep);
     
     temp = find(STD_full>thr);
@@ -63,8 +70,10 @@ if false,
     M = CellResp(I,1:1000);
     BasicPlotMaps(cIX,gIX,M,CInfo_thr,stim,anat_yx,anat_yz,anat_zx);
     
+    %% update
+    const.CInfo = CInfo(I_v);
 else
-    %% Try: discard half, unranked
+    % Method 2: discard half undiscriminatedly (unranked)
     nCells = size(CellResp_full,1);
     cIX = (1:2:nCells)';
     
@@ -89,9 +98,9 @@ end
 
 
 
-%% Save new .mat
+%% Save new .mat - remember to rename properly!
 % with partitioning of main data
-newfishdir = fullfile(save_dir,['CONST_F' num2str(i_fish) '_fast_new.mat']);
+newfishdir = fullfile(save_dir,['CONST_F' num2str(i_fish) '_fast_50noise.mat']);
 dimCR = size(CellResp);
 save(newfishdir,'const','dimCR','-v6');
 SaveFileInPartsAppendv6(newfishdir,CellResp);

@@ -57,7 +57,7 @@ varlist = who(matObj);
 nFish = length(varlist) + 2; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % fish protocol sets (different sets have different parameters)
-M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2]; % M = Matrix
+M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2 2]; % M = Matrix
 setappdata(hfig,'M_fish_set',M_fish_set);
 
 % parameters / constants
@@ -525,7 +525,7 @@ i=i+n+1; % more automatic, do a regression with every centroid, then combine (wi
 n=4; % i.e. overlapping cells are assigned to the cluster with which the correlation is the highest)
 uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Regression with all centroids',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-    'Callback',{@pushbutton_AllCentroidRegression_Callback});
+    'Callback',{@pushbutton_allCentroidRegression_Callback});
 
 i=i+n; % this is a remnant button from a failed experiment, idea was to iterate the regression process
 n=2; % until the cluster converges, but most of the time it doesn't...
@@ -1321,19 +1321,10 @@ fishset = M_fish_set(new_i_fish);
 setappdata(hfig,'fishset',fishset);
 
 %% load data from file
-% if fishset == 1,
-%     tic
-%     load(fullfile(data_dir,['CONST_F' num2str(new_i_fish) '.mat']),'CONST');
-%     toc
-%     setappdata(hfig,'CellResp',CONST.CRZt);
-%     const = CONST;
-%     
-% else % load from parts
-    filename = ['CONST_F' num2str(new_i_fish) '_fast.mat'];
-    [CellResp,const] = LoadFileFromParts(data_dir,filename);
-    setappdata(hfig,'CellResp',CellResp);
-% end
-    
+filename = ['CONST_F' num2str(new_i_fish) '_fast.mat'];
+[CellResp,const] = LoadFileFromParts(data_dir,filename);
+setappdata(hfig,'CellResp',CellResp);
+
 %% load all fields from CONST, with names preserved
 tic
 names = fieldnames(const); % cell of strings
@@ -2150,7 +2141,6 @@ function pushbutton_thres_regression_Callback(hObject,~)
 disp('regression...');
 tic
 hfig = getParentFigure(hObject);
-M_0 = getappdata(hfig,'M_0');
 thres_reg = getappdata(hfig,'thres_reg');
 regressor = GetRegressor(hfig);
 if isempty(regressor),
@@ -2159,7 +2149,7 @@ end
 
 isPlotCorrHist = getappdata(hfig,'isPlotCorrHist');
 
-[cIX,gIX] = Regression_direct(M_0,thres_reg,regressor,isPlotCorrHist);
+[cIX,gIX] = Regression_Direct(hfig,thres_reg,regressor,isPlotCorrHist);
 
 if ~isempty(gIX),
     gIX = ceil((1:length(cIX))'/length(cIX)*min(20,length(cIX)));
@@ -2170,7 +2160,8 @@ toc
 beep
 end
 
-function [cIX_,gIX_,R] = Regression_direct(M_0,thres_reg,regressor,isPlotCorrHist) % gIX_ is just ones
+function [cIX_,gIX_,R] = Regression_Direct(hfig,thres_reg,regressor,isPlotCorrHist) % gIX_ is just ones
+M_0 = getappdata(hfig,'M_0');
 tic
 R = corr(regressor',M_0');
 tlen = toc;
@@ -2260,29 +2251,27 @@ if ~isempty(str),
 end
 end
 
-function pushbutton_AllCentroidRegression_Callback(hObject,~)
+function pushbutton_allCentroidRegression_Callback(hObject,~)
 hfig = getParentFigure(hObject);
-M_0 = getappdata(hfig,'M_0');
-thres_reg = getappdata(hfig,'thres_reg');
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
-
-[cIX,gIX,numK] = AllCentroidRegression_Direct(M_0,thres_reg,cIX,gIX);
+[cIX,gIX,numK] = AllCentroidRegression_direct(hfig,cIX,gIX);
 
 UpdateIndices(hfig,cIX,gIX,numK);
 RefreshFigure(hfig);
-
 disp('all regression complete');
 end
 
-function [cIX,gIX,numK] = AllCentroidRegression_Direct(M_0,thres_reg,cIX,gIX)
+function [cIX,gIX,numK] = AllCentroidRegression_direct(hfig,cIX,gIX)
+M_0 = getappdata(hfig,'M_0');
+thres_reg = getappdata(hfig,'thres_reg');
 U = unique(gIX);
 clusters(length(U)).cIX = [];
 for i = 1:length(U),
     disp(['i = ' num2str(i)]);
     IX = find(gIX == U(i));    
     [~,regressor] = kmeans(M_0(cIX(IX),:),1,'distance','correlation'); %#ok<FNDSB>
-    cIX_ = Regression_direct(M_0,thres_reg,regressor);
+    cIX_ = Regression_Direct(hfig,thres_reg,regressor);
     clusters(i).cIX = cIX_;
 end
 disp('union...');
@@ -2311,12 +2300,12 @@ if isempty(i),
 end
 C = FindCentroid(hfig);
 regressor = C(i,:);
-cIX_= Regression_direct(M_0,thres_reg,regressor);
+cIX_= Regression_Direct(hfig,thres_reg,regressor);
 regressor_last = regressor;
 
 if ~isempty(cIX_),
     for itr = 1:20,
-        [cIX_,gIX_] = Regression_direct(M_0,thres_reg,regressor_last);
+        [cIX_,gIX_] = Regression_Direct(hfig,thres_reg,regressor_last);
         numC = length(cIX_);
         disp(num2str(numC));
         M = M_0(cIX_,:);
@@ -2685,6 +2674,7 @@ SaveClass(hfig,I_rest,ones(length(I_rest),1),classheader,...
 
 %% rank by stim-lock
 disp('stim-lock');
+UpdateIndices(hfig,cIX,gIX,numU);
 [gIX,rankscore] = RankByStimLock_Direct(hfig,cIX,gIX,numU);
 disp('ranking complete');
 % and threshold
@@ -2693,13 +2683,11 @@ ix = ismember(gIX,IX);
 gIX = gIX(ix);
 cIX = cIX(ix);
 
-%% ~ pushbutton_autoregclus_Callback(hObject,~);
-thres_reg = getappdata(hfig,'thres_reg');
-[cIX,gIX,~] = AllCentroidRegression_Direct(M_0,thres_reg,cIX,gIX);
+%% Regression with the centroid of each cluster
+[cIX,gIX,~] = AllCentroidRegression_direct(hfig,cIX,gIX);
 disp('auto-reg-clus complete');
 
 [gIX, numU] = Merge_direct(thres_merge,M_0,cIX,gIX);
-
 SaveClass(hfig,cIX,gIX,classheader,'clean_round2');
 
 %% Silhouette
@@ -2720,8 +2708,6 @@ for i = 1:numU,
     end
 end
 [gIX, ~] = SqueezeGroupIX(gIX);
-
-SaveClass(hfig,cIX,gIX,classheader,'clean_round3');
 
 %% rank by stim-lock ?? bug?
 % disp('stim-lock');
@@ -2747,6 +2733,8 @@ if isempty(gIX),
 end
 UpdateIndices(hfig,cIX,gIX,numU);
 RefreshFigure(hfig);
+
+SaveClass(hfig,cIX,gIX,classheader,'clean_round3');
 beep;
 
 end
@@ -2788,7 +2776,7 @@ M = M_0(cIX,:);
 [gIX, numU] = HierClus(M,gIX);
 U = unique(gIX);
 M = M_0(cIX,:);
-[C,D] = FindCentroid(gIX,M);
+[C,D] = FindCentroid_Direct(gIX,M);
 i = 1;
 while i<numU,    
     c = corr(C(i,:)',C(i+1,:)');
@@ -3375,7 +3363,7 @@ end
 
 function [gIX, numU] = HierClus(M,gIX,isplotfig) %#ok<INUSD>
 [gIX, numU] = SqueezeGroupIX(gIX);
-[C,~] = FindCentroid(gIX,M);
+[C,~] = FindCentroid_Direct(gIX,M);
 D = pdist(C,'correlation');
 tree = linkage(C,'average','correlation');
 leafOrder = optimalleaforder(tree,D);
@@ -3744,7 +3732,7 @@ setappdata(hfig,'fictive',fictive);
 setappdata(hfig,'stim',stim);
 end
 
-function [M_ds,skip] = GetTimeIndexedM_ds(hfig) %% down-sampling M
+function [M_ds,skip] = GetTimeIndexedM_Direct(hfig,cIX)
 CellResp = getappdata(hfig,'CellResp');
 CellRespAvr = getappdata(hfig,'CellRespAvr');
 isAvr = getappdata(hfig,'isAvr');

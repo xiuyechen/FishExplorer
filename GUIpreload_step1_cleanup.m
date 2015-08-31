@@ -24,27 +24,32 @@ clear all;close all;clc
 
 %% Set Manaully!
 
-i_fish = 10; 
+i_fish = 13; 
 
-M_dir = {'E:\Janelia2014\Fish1_16states_30frames';
-    'E:\Janelia2014\Fish2_20140714_2_4_16states_10frames';
-    'E:\Janelia2014\Fish3_20140715_1_1_16_states_10frames';
-    'E:\Janelia2014\Fish4_20140721_1_8_16states_20frames';
-    'E:\Janelia2014\Fish5_20140722_1_2_16states_30frames';
-    'E:\Janelia2014\Fish6_20140722_1_1_3states_30,40frames';
-    'E:\Janelia2014\Fish7_20140722_2_3_3states_30,50frames';
-    'E:\Janelia2014\Fish8_20141222_2_2_7d_PT_3OMR_shock_lowcut';
-    'E:\Janelia2014\Fish9_20150120_2_1_photo_OMR_prey_blob_blue_cy74_6d_20150120_220356';
-    'E:\Janelia2014\Fish10_20150120_2_2_photo_OMR_prey_blob_blue_cy74_6d_20150120_231917'};
+M_dir = GetFishDirectories();
 
 fpsec = 1.97; % Hz
 
 %% load data
 disp(['load data: fish ' num2str(i_fish)]);
 datadir = M_dir{i_fish};
-load(fullfile(datadir,'cell_resp_dim.mat')); % 'cell_resp_dim_lowcut.mat'
+if exist(fullfile(datadir,'cell_resp_dim.mat'), 'file'),
+  load(fullfile(datadir,'cell_resp_dim.mat'));
+elseif exist(fullfile(datadir,'cell_resp_dim_lowcut.mat'), 'file'),
+    load(fullfile(datadir,'cell_resp_dim_lowcut.mat'));
+else
+    errordlg('find data to load!');
+end
+
 load(fullfile(datadir,'cell_info.mat'));
-cell_resp_full = read_LSstack_fast_float(fullfile(datadir,'cell_resp.stackf'),cell_resp_dim);
+if exist(fullfile(datadir,'cell_resp.stackf'), 'file'),
+  cell_resp_full = read_LSstack_fast_float(fullfile(datadir,'cell_resp.stackf'),cell_resp_dim);
+elseif exist(fullfile(datadir,'cell_resp_lowcut.stackf'), 'file'),
+    cell_resp_full = read_LSstack_fast_float(fullfile(datadir,'cell_resp_lowcut.stackf'),cell_resp_dim);
+else
+    errordlg('find data to load!');
+end
+
 load(fullfile(datadir,'frame_turn.mat'));
 
 % parse stimulus - should check manually to be sure!
@@ -87,26 +92,25 @@ anat_yx = fliplr(anat_yx);
 anat_zx = fliplr(anat_zx);
 
 [s1,s2,~] = size(ave_stack);
-
-for i_cell = 1:length(cell_info.center),
+tic
+for i_cell = 1:length(cell_info),
     % fix '.center'
-    cell_info.center(2) = s2-cell_info.center(2)+1;
-    % fix '.inds'    
-    IX = cell_info.inds(i_cell);
+    cell_info(i_cell).center(2) = s2-cell_info(i_cell).center(2)+1;
+    % fix '.inds'
+    IX = cell_info(i_cell).inds;
     [I,J] = ind2sub([s1,s2],IX);
     J = s2-J+1;
-    cell_info.inds(i_cell) = sub2ind([s1,s2],I,J);
+    cell_info(i_cell).inds = sub2ind([s1,s2],I,J);
     % fix '.x_minmax'
-    cell_info.x_minmax(1) = s2-cell_info.x_minmax(1)+1;
-    cell_info.x_minmax(2) = s2-cell_info.x_minmax(2)+1;
+    cell_info(i_cell).x_minmax(1) = s2-cell_info(i_cell).x_minmax(1)+1;
+    cell_info(i_cell).x_minmax(2) = s2-cell_info(i_cell).x_minmax(2)+1;
 end
+toc
 
 %% compute z-score
 disp('compute z-score')
-tic
 cell_resp_z_full = zscore(cell_resp_full')';
 nCells = cell_resp_dim(1);
-toc
 
 %% Validating all cells
 
@@ -276,14 +280,15 @@ figure;
 DrawClustersOnMap_LSh(CInfo,cIX,gIX,numK,anat_yx,anat_yz,anat_zx,'hsv','full');
 
 %% Save mat files
-CInfo_full = cell_info; % save in next round! not saved in current mats!!!!!!
-
+CInfo_full = cell_info; 
+tic
 temp = fullfile(datadir,['Fish' num2str(i_fish) '_full_extrainfo.mat']);
 save(temp,'cHolder_Anat','cIX_Invalid_Anat','I_v','I_v2','CInfo_full','-v7.3'); % CInfo_full not saved in mats before 4/24/15!! %% 'STD_full' saved before
 
-temp = fullfile(datadir,['Fish' num2str(i_fish) '_direct_load.mat']);
-varList = {'CR_raw','nCells','CInfo','anat_yx','anat_yz','anat_zx','ave_stack','fpsec','frame_turn'}; % used to have 'periods' handcoded
+temp = fullfile(datadir,['Fish' num2str(i_fish) '_direct_load_nodiscard.mat']);
+varList = {'CR_raw','nCells','CInfo','anat_yx','anat_yz','anat_zx','ave_stack','fpsec','frame_turn'};
 save(temp,varList{:},'-v7.3');
+toc
 
 %% (if needed)
 % save(temp,'somethingelse','-append');

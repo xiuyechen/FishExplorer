@@ -4,7 +4,7 @@
 
 clear all;close all;clc
 
-data_dir = 'C:\Janelia2014'; %[pwd '\example data']; % 'F:\Janelia2014';%
+data_dir = GetCurrentDataDir();%'C:\Janelia2014'; %[pwd '\example data']; % 'F:\Janelia2014';%
 
 global VAR;
 
