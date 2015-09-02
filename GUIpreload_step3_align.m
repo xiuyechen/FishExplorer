@@ -1,12 +1,12 @@
 %%%%%%%%%%%%%%%
 %%
-if false,
+if true,
     clear all;close all;
-    varList = {'CR_dtr','nCells','CInfo','anat_yx','anat_yz','anat_zx','ave_stack','fpsec','frame_turn'};
+    varList = {'CR_dtr','nCells','CInfo','anat_yx','anat_yz','anat_zx','ave_stack','fpsec'};%,'frame_turn'};
 else
     % or without 'CR_dtr', keeping it from previous step:
     clearvars -except 'CR_dtr';
-    varList = {'nCells','CInfo','anat_yx','anat_yz','anat_zx','ave_stack','fpsec','frame_turn'};
+    varList = {'nCells','CInfo','anat_yx','anat_yz','anat_zx','ave_stack','fpsec'};%,'frame_turn'};
 end
 
 %%
@@ -19,12 +19,13 @@ dshift = 2; % this is basically a manually chosen shift between fictive and fluo
         
 isNeedfliplr = false;
 %% MANUAL
-for i_fish = 11, %:8,
+for i_fish = 10, %:8,
     disp(num2str(i_fish));
     tic
     %% load data
     datadir = M_dir{i_fish};
     load(fullfile(datadir,['Fish' num2str(i_fish) '_direct_load_nodiscard.mat']),varList{:});
+    load(fullfile(datadir,'frame_turn.mat'),'frame_turn');
     
     if size(frame_turn,1)<size(frame_turn,2),
         frame_turn = frame_turn';
@@ -51,6 +52,17 @@ for i_fish = 11, %:8,
             CInfo(i_cell).x_minmax(2) = s2-CInfo(i_cell).x_minmax(2)+1;
         end
     end
+    
+    %% for old directloads <9/2/15
+    temp = [CInfo(:).center];
+    XY = reshape(temp',[],length(CInfo))';
+    IX_discardedge = find(XY(:,1)<15 | XY(:,1)> size(ave_stack,1)-15);
+    CInfo(IX_discardedge) = [];
+    CR_dtr(IX_discardedge,:) = [];    
+
+    temp = fullfile(datadir,['Fish' num2str(i_fish) '_direct_load_nodiscard.mat']);
+    save(temp,'IX_discardedge','-v7.3','-append');
+    
     %% Manual occasional frame corrections: ONLY RUN ONCE!!!!!!!!!
     
     if false,
@@ -206,7 +218,7 @@ for i_fish = 11, %:8,
     %     end
     
     %%% new method with partitioning of main data
-    newfishdir = fullfile(save_dir,['CONST_F' num2str(i_fish) '_fast.mat']);
+    newfishdir = fullfile(save_dir,['CONST_F' num2str(i_fish) '_fast_full.mat']);
     const = CONST;
     const = rmfield(const,'CellResp');
     dimCR = size(CONST.CellResp);

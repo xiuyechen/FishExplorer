@@ -412,7 +412,7 @@ for i_ss = 1:length(stimset),
                 % find period
                 start_s = set_start_sg{I}(J) + i_segment -1;
                 stop_s = start_s + find(singles(1,start_s+1:end)==segment(i_segment),1,'first');
-                stimset(i_ss).period = ix_singles(stop_s+1)-ix_singles(start_s+1); % shift by 1!! in case first stim is not intact
+                stimset(i_ss).period = ix_singles(stop_s+1)-ix_singles(start_s+1); % shift 
                 break;
             end
         end

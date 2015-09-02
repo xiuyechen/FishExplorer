@@ -253,7 +253,7 @@ end
 %% find extra outliers on top/bottom border of image (can't always get with polygon)
 temp = [CInfo_0(:).center];
 XY = reshape(temp',[],nCells)';
-IX = find(XY(:,1)<8 | XY(:,1)> 2040);
+IX = find(XY(:,1)<15 | XY(:,1)> s1-15);
 
 cHolder_Anat = union(cHolder_Anat,IX);
 

@@ -39,20 +39,20 @@ t_gc6=0:0.05:tlen; % sec
 %% 
 if fishset == 1,
     States = [0,1,2,3];
-    names = {'black','phototaxis left','phototaxis right','white',...
+    singleNames = {'black','phototaxis left','phototaxis right','white',...
         'right on','left on','right off','left off'};
+% elseif fishset == 2,
+%     States = [0,1,2,3,4,10,11,12];
+%     names = {'black','phototaxis left','phototaxis right','white','grey',...
+%         'OMR forward','OMR left','OMR right',...
+%         'left PT&OMR','right PT&OMR'};
 elseif fishset == 2,
-    States = [0,1,2,3,4,10,11,12];
-    names = {'black','phototaxis left','phototaxis right','white','grey',...
-        'OMR forward','OMR left','OMR right',...
-        'left PT&OMR','right PT&OMR'};
-elseif fishset == 3,
-    States = [0,1,2,3,4,9,10,11,12,13,14,15];
-    names = {'black','phototaxis left','phototaxis right','white','grey',...
+    States = [0,1,2,3,4,9,10,11,12,13,14,15,21,22,23];
+    singleNames = {'black','phototaxis R','phototaxis L','white','grey',...
         'OMR baseline', 'OMR forward','OMR right','OMR left',...
-        'Dot','blob right','blob left',...
-        'left PT&OMR','right PT&OMR','left OMR&blob','right OMR&blob',...
-        'left PT&blob','right PT&blob','left all-3','right all-3'}; 
+        'Dot','looming L','looming R',...
+        'red/blue R','red/blue L','red/red',...
+        };
 end
 tlen=length(stim);
 impulse = 6; % in frames % arbiturary at this point
@@ -96,6 +96,7 @@ if fishset == 1,
     % right off: 0 1
     % left off:  0 2
     H = {[2 3],[1 3],[0 1],[0 2]};
+    comboNames = {'right on','left on','right off','left off'};
     numCB1 = length(H);
     stimCB_on = zeros(numCB1, tlen);
     for i = 1:numCB1,
@@ -107,6 +108,8 @@ if fishset == 1,
             end
         end
     end
+    names = [singleNames, comboNames];
+    
 %     stimCB_start = zeros(numCB1, tlen);
 %     for i = 1:numCB1,
 %         for j = 1:length(H{i});
@@ -118,12 +121,57 @@ if fishset == 1,
 %         end
 %     end    
     
-elseif fishset == 2,  
-    %% PT-OMR combos
-    % left PT/OMR:  1 11
-    % right PT/OMR: 2 12
+%% elseif fishset == 2,  
+%     %% PT-OMR combos
+%     % left PT/OMR:  1 11
+%     % right PT/OMR: 2 12
+%     
+%     H = {[1 11],[2 12]};
+%     numCB1 = length(H);
+%     stimCB_on = zeros(numCB1, tlen);
+%     for i = 1:numCB1,
+%         for j = 1:length(H{i});
+%             temp = (stim==H{i}(j));
+%             ix = find(temp);
+%             if ~isempty(ix),
+%                 stimCB_on(i,ix) = 1;
+%             end
+%         end
+%     end
     
-    H = {[1 11],[2 12]};
+elseif fishset == 2,
+    %   States = [0,1,2,3,4,9,10,11,12,13,14,15,21,22,23];
+    %     names = {'black','phototaxis R','phototaxis L','white','grey',...
+    %         'OMR baseline', 'OMR forward','OMR right','OMR left',...
+    %         'Dot','looming L','looming R',...
+    %         'red/blue R','red/blue L','red/red',...
+    %         };      
+    leftstates_full = [2,12,14,22];
+    rightstates_full = [1,11,15,21];
+    comboChar_full = ['P','O','L','R','X'];
+    leftstates = [];
+    rightstates = [];
+    comboChar = [];
+    for i = 1:length(leftstates_full),
+        if ~isempty(find(stim==leftstates_full(i),1)),
+            leftstates = [leftstates,leftstates_full(i)];
+            rightstates = [rightstates,rightstates_full(i)];
+            comboChar = [comboChar,comboChar_full(i)];
+        end
+    end
+    
+    H = [];
+    comboNames = [];
+    for i = 2:length(leftstates),
+        tempL = nchoosek(leftstates,i);
+        tempR = nchoosek(rightstates,i);
+        tempN = nchoosek(comboChar,i);
+        for j = 1:size(tempL,1),
+            H = [H,{tempL(j,:)},{tempR(j,:)}];
+            comboNames = [comboNames,{[tempN(j,:),'-left']},{[tempN(j,:),'-right']}];
+        end
+    end
+    
     numCB1 = length(H);
     stimCB_on = zeros(numCB1, tlen);
     for i = 1:numCB1,
@@ -135,25 +183,8 @@ elseif fishset == 2,
             end
         end
     end
+    names = [singleNames, comboNames];
     
-elseif fishset == 3,
-%   States = [0,1,2,3,4,9,10,11,12,13,14,15];
-%     names = {'black','phototaxis left','phototaxis right','white','grey',...
-%         'OMR baseline', 'OMR forward','OMR right','OMR left',...
-%         'Dot','blob right','blob left',...  
-
-H = {[1,12],[2,11],[12,15],[11,14],[1,15],[2,14],[1,12,15],[2,11,14]};
-    numCB1 = length(H);
-    stimCB_on = zeros(numCB1, tlen);
-    for i = 1:numCB1,
-        for j = 1:length(H{i});
-            temp = (stim==H{i}(j));
-            ix = find(temp);
-            if ~isempty(ix),
-                stimCB_on(i,ix) = 1;
-            end
-        end
-    end
 end
 
 %% pool all into cell array

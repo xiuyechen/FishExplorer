@@ -1,11 +1,11 @@
 data_dir = GetCurrentDataDir();
 save_dir = GetCurrentDataDir();
-i_fish = 11;
+i_fish = 10;
 
 %% load data
 disp(['load fish ' num2str(i_fish)]);
 
-label = '_50norank';
+label = '_ds50';
 
 filename = ['CONST_F' num2str(i_fish) '_fast' label '.mat'];
 % [CellResp,const,dimCR] = LoadFileFromParts(data_dir,filename);
@@ -18,7 +18,7 @@ load(fullfile(data_dir,'VAR_current.mat'),'VAR'); % stores all clustering indice
 %% Initialize VAR
 nCells = length(const.CInfo);
 
-isFirstpair = length(VAR)<i_fish;
+isFirstpair = false;%length(VAR)<i_fish;
 
 if isFirstpair,
     i = 1;

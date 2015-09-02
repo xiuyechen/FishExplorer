@@ -1039,7 +1039,9 @@ end
 function pushbutton_popupplot_Callback(hObject,~)
 % similar as function RefreshFigure(hfig)
 hfig = getParentFigure(hObject);
-figure('Position',[50,100,1600,800],'color',[1 1 1]);
+i_fish = getappdata(hfig,'i_fish');
+figure('Position',[50,100,1600,800],'color',[1 1 1],...
+    'Name',['Fish#' num2str(i_fish)]);
 h1 = axes('Position',[0.05, 0.03, 0.53, 0.94]); % left ~subplot
 h2 = axes('Position',[0.61, 0.03, 0.35, 0.94]); % right ~subplot
 
@@ -1634,11 +1636,13 @@ else
 
     range = [];
     H_raw = [];
-    for i = stimrange,
-        if sum(stimset(i).nReps)>3,
-            range = [range,stimrange(i)];
-            tIX_ = tlists{i};
-            period = periods(i);
+    for i = 1:length(stimrange),
+        i_stim = stimrange(i);   
+        if sum(stimset(i_stim).nReps)>3,
+            range = [range,i_stim];
+            offset = length(horzcat(tlists{stimrange(1:i-1)}));% works for i=0 too
+            tIX_ = 1+offset:length(tlists{stimrange(i)})+offset;
+            period = periods(i_stim);
             C_3D_0 = reshape(C(:,tIX_),size(C,1),period,[]);
             C_3D = zscore(C_3D_0,0,2);
             H_raw = horzcat(H_raw,nanmean(nanstd(C_3D,0,3),2));
@@ -2643,6 +2647,7 @@ if isWkmeans,
         gIX = kmeans(M,numK,'distance','correlation');
     end
     toc
+    SaveClass(hfig,cIX,gIX,classheader,'k=20');
 end
 [gIX, numU] = SqueezeGroupIX(gIX);
 
