@@ -1422,6 +1422,10 @@ if ~isempty(bC.cIX{1}),
     setappdata(hfig,'rankID',0);
     M = GetTimeIndexedData(hfig);
     setappdata(hfig,'M',M);
+    
+    % FindCentroid reset:
+    setappdata(hfig,'Centroids',[]);
+    setappdata(hfig,'D_ctrd',[]);
 
     % finish
     disp('back (from cache)')
@@ -1460,6 +1464,10 @@ if ~isempty(fC.cIX{1}),
     setappdata(hfig,'rankID',0);
     M = GetTimeIndexedData(hfig);
     setappdata(hfig,'M',M);
+
+    % FindCentroid reset:
+    setappdata(hfig,'Centroids',[]);
+    setappdata(hfig,'D_ctrd',[]);
 
     % finish
     disp('forward (from cache)')
@@ -1592,13 +1600,13 @@ switch rankID,
         disp('motor');
         [gIX,rankscore] = RankByMotorStim_Direct(hfig,gIX,numU,1);
     case 6,
-        disp('motor');
+        disp('L motor');
         [gIX,rankscore] = RankByMotorStim_Direct(hfig,gIX,numU,2);
     case 7,
-        disp('motor');
+        disp('R motor');
         [gIX,rankscore] = RankByMotorStim_Direct(hfig,gIX,numU,3);
     case 8,
-        disp('motor');
+        disp('L+R motor');
         [gIX,rankscore] = RankByMotorStim_Direct(hfig,gIX,numU,4);
     case 9,
         disp('stim-motor');
@@ -1676,36 +1684,57 @@ end
 function [gIX,rankscore] = RankByMotorStim_Direct(hfig,gIX,numU,option)
 C = FindCentroid(hfig);
 fictive = getappdata(hfig,'fictive');
+regressors = GetMotorRegressor(fictive);
+% % fictive(1,:);   %weighted: right turns
+% % fictive(2,:);   %weighted: left turns
+% % fictive(3,:);   %weighted: forward swims
+% % fictive(4,:);  %analog: right channel
+% % fictive(5,:);  %analog: left channel
+% % fictive(4,:)+fictive(5,:);   %analog: average
 
-reg = zeros(3,length(fictive));
-reg(1,:) = fictive(5,:); % Left
-reg(2,:) = fictive(4,:); % Right
-reg(3,:) = mean(fictive(4:5,:));
 H = zeros(numU,1);
 shift = zeros(numU,1);
 a = zeros(1,3);
 I = zeros(1,3);
 for i = 1:numU,
     switch option,
-        case 1,
+        %         case 1, % 'motor'
+        %             for j = 1:3,
+        %                 [a(j),I(j)] = max(abs(xcorr(C(i,:),reg(j,:),'coeff')));
+        %             end
+        %             [H(i),jmax] = max(a);
+        %             shift(i) = I(jmax) - length(fictive);
+        %         case 2, % 'L motor'
+        %             [H(i),I] = max(xcorr(C(i,:),reg(1,:),'coeff'));
+        %             shift(i) = I - length(fictive);
+        %         case 3, % 'R motor'
+        %             [H(i),I] = max(xcorr(C(i,:),reg(2,:),'coeff'));
+        %             shift(i) = I - length(fictive);
+        %         case 4, % 'L+R motor'
+        %             [H(i),I] = max(xcorr(C(i,:),reg(3,:),'coeff'));
+        %             shift(i) = I - length(fictive);
+        case 1, % 'motor'
+            R = zeros(1,4);
             for j = 1:3,
-                [a(j),I(j)] = max(abs(xcorr(C(i,:),reg(j,:),'coeff')));
+                regressor = regressors(j).im;
+                R(j) = corr(regressor',C(i,:)');
             end
-            [H(i),jmax] = max(a);
-            shift(i) = I(jmax) - length(fictive);
-        case 2,
-            [H(i),I] = max(xcorr(C(i,:),reg(1,:),'coeff'));
-            shift(i) = I - length(fictive);
-        case 3,
-            [H(i),I] = max(xcorr(C(i,:),reg(2,:),'coeff'));
-            shift(i) = I - length(fictive);
-        case 4,
-            [H(i),I] = max(xcorr(C(i,:),reg(3,:),'coeff'));
-            shift(i) = I - length(fictive);
+            regressor = 0.5*(regressors(4).im+regressors(5).im);
+            H(4) = corr(regressor',C(i,:)');
+            H(i) = max(R);
+        case 2, % 'L motor'
+            regressor = regressors(1).im;
+            H(i) = corr(regressor',C(i,:)');
+        case 3, % 'R motor'
+            regressor = regressors(2).im;
+            H(i) = corr(regressor',C(i,:)');
+        case 4, % 'L+R motor'
+            regressor = 0.5*(regressors(4).im+regressors(5).im);
+            H(i) = corr(regressor',C(i,:)');
     end
 end
 [gIX,rankscore] = SortH(H,gIX,numU,'descend');
-assignin('base', 'shift', shift);
+% assignin('base', 'shift', shift);
 end
 
 function [gIX,B] = SortH(H,gIX,numU,descend) % new gIX is sorted based on H, size(H)=[numU,1];
@@ -3595,11 +3624,11 @@ end
 %{
 C = FindCentroid(hfig);
 %}
-function [C,D] = FindCentroid(hfig)
+function [C,D] = FindCentroid(hfig) % used to store C,D until reset 
 gIX = getappdata(hfig,'gIX');
-C = getappdata(hfig,'Centroids');
-D = getappdata(hfig,'D_ctrd');
-if isempty(C),
+% C = getappdata(hfig,'Centroids');
+% D = getappdata(hfig,'D_ctrd');
+% if isempty(C),
     M = getappdata(hfig,'M');
     
     U = unique(gIX);
@@ -3620,7 +3649,7 @@ if isempty(C),
     end
     setappdata(hfig,'Centroids',C);
     setappdata(hfig,'D_ctrd',D);
-end
+% end
 end
 
 function [C,D] = FindCentroid_Direct(gIX,M)

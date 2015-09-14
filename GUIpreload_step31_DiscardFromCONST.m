@@ -18,7 +18,7 @@ CellResp_full = CellResp;
 const_full = const;
 
 %% Discard cells
-isRankcells = false;
+isRankcells = true;
 
 if isRankcells,
     % Method 1: discard __% noisy cells based on std of zscore of baseline
@@ -48,11 +48,11 @@ if isRankcells,
     % gIX = (round((1:length(cIX))/1000)+1)'; % option: view sorted index
     gIX = round(cIX/1000)+1; % option: view anatomical z index
     M = CellResp_full(cIX,1:1000);
-    stim = const.stim_full;
-    CInfo = const.CInfo;
-    anat_yx = const.anat_yx;
-    anat_yz = const.anat_yz;
-    anat_zx = const.anat_zx;
+    stim = const_full.stim_full;
+    CInfo = const_full.CInfo;
+    anat_yx = const_full.anat_yx;
+    anat_yz = const_full.anat_yz;
+    anat_zx = const_full.anat_zx;
     BasicPlotMaps(cIX,gIX,M,CInfo,stim,anat_yx,anat_yz,anat_zx);
     
     % I_v: index of valid cells
@@ -73,7 +73,7 @@ if isRankcells,
     BasicPlotMaps(cIX,gIX,M,CInfo_thr,stim,anat_yx,anat_yz,anat_zx);
     
     %% update
-    CellRespAvr = const.CellRespAvr;
+    CellRespAvr = const_full.CellRespAvr;
     const = rmfield(const,{'CInfo';'CellRespAvr'});
     const.CInfo = CInfo(I_v);    
     const.CellRespAvr = CellRespAvr(I_v,:);
@@ -108,7 +108,7 @@ end
 
 %% Save new .mat - remember to rename properly!
 % with partitioning of main data
-newfishdir = fullfile(save_dir,['CONST_F' num2str(i_fish) '_fast_ds50.mat']);
+newfishdir = fullfile(save_dir,['CONST_F' num2str(i_fish) '_fast_thr50.mat']);
 dimCR = size(CellResp);
 save(newfishdir,'const','dimCR','-v6');
 SaveFileInPartsAppendv6(newfishdir,CellResp);

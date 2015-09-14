@@ -1,11 +1,11 @@
 data_dir = GetCurrentDataDir();
 save_dir = GetCurrentDataDir();
-i_fish = 10;
+i_fish = 11;
 
 %% load data
 disp(['load fish ' num2str(i_fish)]);
 
-label = '_ds50';
+label = '_thr50';
 
 filename = ['CONST_F' num2str(i_fish) '_fast' label '.mat'];
 % [CellResp,const,dimCR] = LoadFileFromParts(data_dir,filename);
@@ -44,6 +44,9 @@ VAR(i_fish).ClusGroup{1,1}(j).cIX = cIX;
 VAR(i_fish).ClusGroup{1,1}(j).gIX = ones(length(cIX),1);
 VAR(i_fish).ClusGroup{1,1}(j).numel = length(cIX);
 VAR(i_fish).ClusGroup{1,1}(j).numK = 1;
+
+%%
+save(fullfile(data_dir,'VAR_current.mat'),'VAR','-v6');
 
 %% varience/std for reps for each cell
 

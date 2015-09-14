@@ -9,6 +9,7 @@ data_dir = GetCurrentDataDir();%'C:\Janelia2014'; %[pwd '\example data']; % 'F:\
 global VAR;
 
 load(fullfile(data_dir,'VAR_current.mat'),'VAR'); % stores all clustering indices
+% save(fullfile(data_dir,'VAR_current.mat'),'VAR','-v6');
 
 name_CONSTs = 'CONSTs_current2.mat'; % stores selected data from all fish
 

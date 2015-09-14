@@ -17,9 +17,9 @@ save_dir = GetCurrentDataDir();
 
 dshift = 2; % this is basically a manually chosen shift between fictive and fluo
         
-isNeedfliplr = false;
+isNeedfliplr = true;
 %% MANUAL
-for i_fish = 10, %:8,
+for i_fish = 11, %:8,
     disp(num2str(i_fish));
     tic
     %% load data
@@ -56,7 +56,8 @@ for i_fish = 10, %:8,
     %% for old directloads <9/2/15
     temp = [CInfo(:).center];
     XY = reshape(temp',[],length(CInfo))';
-    IX_discardedge = find(XY(:,1)<15 | XY(:,1)> size(ave_stack,1)-15);
+    IX_discardedge = find(XY(:,1)<15 | XY(:,1)> size(ave_stack,1)-15 ...
+        | XY(:,2)<15 | XY(:,2)> size(ave_stack,2)-15);
     CInfo(IX_discardedge) = [];
     CR_dtr(IX_discardedge,:) = [];    
 
@@ -218,7 +219,7 @@ for i_fish = 10, %:8,
     %     end
     
     %%% new method with partitioning of main data
-    newfishdir = fullfile(save_dir,['CONST_F' num2str(i_fish) '_fast_full.mat']);
+    newfishdir = fullfile(save_dir,['CONST_F' num2str(i_fish) '_fast.mat']);
     const = CONST;
     const = rmfield(const,'CellResp');
     dimCR = size(CONST.CellResp);

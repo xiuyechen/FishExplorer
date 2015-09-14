@@ -4,7 +4,7 @@ clear all;close all;clc
 % clearvars -except 'CellResp' 'const'; clc
 
 data_dir = GetCurrentDataDir();
-save_dir = GetCurrentDataDir();
+% save_dir = GetCurrentDataDir();
 i_fish = 11;
 %% load data
 disp(['load fish ' num2str(i_fish)]);
@@ -44,7 +44,6 @@ const = [];
 for i = 1:length(names), % use loop to save variables into fields of CONST
     eval(['const.',names{i},'=', names{i},';']);
 end
-newfishdir = fullfile(save_dir,['CONST_F' num2str(i_fish) '_fast.mat']);
-save(newfishdir,'const','dimCR','-v6');
+save(fullfile(data_dir,filename),'const','dimCR','-v6');
 % custom function:
-SaveFileInPartsAppendv6(newfishdir,CellResp);
+SaveFileInPartsAppendv6(fullfile(data_dir,filename),CellResp);

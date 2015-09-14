@@ -253,8 +253,8 @@ end
 %% find extra outliers on top/bottom border of image (can't always get with polygon)
 temp = [CInfo_0(:).center];
 XY = reshape(temp',[],nCells)';
-IX = find(XY(:,1)<15 | XY(:,1)> s1-15);
-
+IX = find(XY(:,1)<15 | XY(:,1)> s1-15 ...
+        | XY(:,2)<15 | XY(:,2)> s2-15);
 cHolder_Anat = union(cHolder_Anat,IX);
 
 %% test Plot: all antomy outliers
