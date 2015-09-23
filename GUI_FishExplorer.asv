@@ -1069,8 +1069,6 @@ end
 
 function pushbutton_popupplot_Callback(hObject,~)
 % similar as function RefreshFigure(hfig)
-isPopout = 1;
-
 hfig = getParentFigure(hObject);
 i_fish = getappdata(hfig,'i_fish');
 figure('Position',[50,100,1600,800],'color',[1 1 1],...
@@ -1081,12 +1079,12 @@ h2 = axes('Position',[0.61, 0.03, 0.35, 0.94]); % right ~subplot
 isCentroid = getappdata(hfig,'isCentroid');
 isPlotLines = getappdata(hfig,'isPlotLines');
 isPlotFictive = getappdata(hfig,'isPlotFictive');
+isPopout = 1;
 
 % left subplot
 axes(h1);
 if isCentroid,
     C = FindCentroid(hfig);
-    gIX = getappdata(hfig,'gIX');
     DrawClusters(hfig,h1,C,unique(gIX),isPopout,isPlotLines,isPlotFictive);    
 else
     M = getappdata(hfig,'M');
@@ -3647,13 +3645,12 @@ end
 
 % frequently used, 2 plotting functions are outside ('DrawClusters.m' and 'DrawClustersOnMap_LSh.m')
 function RefreshFigure(hfig)
-isPopout = 0;
-
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
 isCentroid = getappdata(hfig,'isCentroid');
 isPlotLines = 0; %getappdata(hfig,'isPlotLines');
 isPlotFictive = 1; %getappdata(hfig,'isPlotFictive');
+isPopout = 0;
 
 if isempty(cIX),
     errordlg('empty set! go back!');

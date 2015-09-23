@@ -1,4 +1,15 @@
-function DrawClusters(h1,M,gIX,numK,stim,fictive,clrmap,rankscore,iswrite,isPopout,isPlotLines,isPlotFictive,nCells)
+function DrawClusters(hfig,h1,M,gIX,isPopout,isPlotLines,isPlotFictive)
+% load
+numK = getappdata(hfig,'numK');
+fictive = getappdata(hfig,'fictive');
+stim = getappdata(hfig,'stim');
+clrmap = getappdata(hfig,'clrmap');
+rankscore = getappdata(hfig,'rankscore');
+rankID = getappdata(hfig,'rankID');
+iswrite = (rankID>=2);
+cIX = getappdata(hfig,'cIX');
+nCells = length(cIX);
+
 axis off;
 pos = get(h1,'Position'); % [left, bottom, width, height]    
 

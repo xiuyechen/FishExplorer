@@ -1,4 +1,4 @@
-function  [tot_image, dim_totimage] = DrawClustersOnMap_LSh(hfig,isFull)
+function  [tot_image, dim_totimage] = DrawClustersOnMap_LSh(CInfo,cIX,gIX,numK,anat_yx,anat_yz,anat_zx,clrmap,isShowMasks,masks_raw,full)
 %% load
 CInfo = getappdata(hfig,'CInfo');
 cIX = getappdata(hfig,'cIX');
@@ -31,7 +31,7 @@ if s2>s1,
 end
 
 % down-sample
-if ~exist('isFull','var'),
+if ~exist('full','var'),
     displaymax = 8000;
     if length(cIX) > displaymax,
         skip = round(length(cIX)/displaymax);

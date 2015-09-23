@@ -18,9 +18,12 @@ name_CONSTs = 'CONSTs_current2.mat'; % stores selected data from all fish
 % i_fish = 1;
 % eval(['CONST_s = matObj.CONST',num2str(i_fish),';']); 
 
+% MASKs = load(fullfile(data_dir,'MaskDatabase.mat')); % loading this in GUI
+name_MASKs = 'MaskDatabase.mat'; % stores selected data from all fish
+
 %% Start GUI
 
-[hfig,fcns] = GUI_FishExplorer(data_dir,name_CONSTs,VAR);
+[hfig,fcns] = GUI_FishExplorer(data_dir,name_CONSTs,name_MASKs,VAR);
 
 % to push new functions to GUI, called with function 'push_cIX_gIX':
 % hfig = GUI_FishExplorer(data_dir,CONSTs,VAR,flag_script,var_script)

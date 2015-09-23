@@ -85,13 +85,13 @@ for i_fish = 11, %:8,
         
         nrep = floor(size(CR_dtr,2)/period)-1;
 
-        shift = period; % (fixed 9/23/15; before = period+dshift)
+        shift = period+dshift;
         
         IX_all = 1+shift:period*nrep+shift;
         CellResp = CR_dtr(:,IX_all); % old name: CRZt, 'Cell Responses Zscore trimmed'
         
         nCells = size(CR_dtr,1);
-        CellRespAvr = mean(reshape(CR_dtr(:,IX_all+dshift),nCells,period,[]),3); % 'Cell Response Average Zscore'
+        CellRespAvr = mean(reshape(CR_dtr(:,IX_all),nCells,period,[]),3); % 'Cell Response Average Zscore'
         
         if i_fish<6,
             stimrangenames = {'16 permut: B/W/phototaxis*2'};

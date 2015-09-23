@@ -39,8 +39,8 @@ t_gc6=0:0.05:tlen; % sec
 %% 
 if fishset == 1,
     States = [0,1,2,3];
-    singleNames = {'black','phototaxis left','phototaxis right','white',...
-        'right on','left on','right off','left off'};
+    singleNames = {'black','phototaxis R','phototaxis L','white'};%,...
+%         'L on','R on','L off','R off'};
 % elseif fishset == 2,
 %     States = [0,1,2,3,4,10,11,12];
 %     names = {'black','phototaxis left','phototaxis right','white','grey',...
@@ -91,12 +91,12 @@ end
 %% Combos
 if fishset == 1,    
     %% PT combos   
-    % right on: 2 3
-    % left on:  1 3
-    % right off: 0 1
-    % left off:  0 2
+    % left on: 2 3
+    % right on:  1 3
+    % left off: 0 1
+    % right off:  0 2
     H = {[2 3],[1 3],[0 1],[0 2]};
-    comboNames = {'right on','left on','right off','left off'};
+    comboNames = {'L on','R on','L off','R off'};
     numCB1 = length(H);
     stimCB_on = zeros(numCB1, tlen);
     for i = 1:numCB1,
