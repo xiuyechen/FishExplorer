@@ -107,7 +107,7 @@ if isPlotLines,
     
 else % ~isPlotLines, i.e. plot all traces as grayscale map
     % set size of stimulus-bar relative to whole plot
-    % each stim bar (if applicable) takes up 1 unit, and fictive bar takes up 2.
+    % each stim bar takes up 1 unit, and fictive bar takes 
     if ~isPopout,
         barratio = 0.025;
     else

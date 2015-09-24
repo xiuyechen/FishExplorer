@@ -110,7 +110,8 @@ setappdata(hfig,'isPlotReg',1); % plot regressor when selecting it
 setappdata(hfig,'hierinplace',1); % hier. partitioning, no reordering
 setappdata(hfig,'isAvr',1); % show average/full stimulus
 setappdata(hfig,'isRawtime',0); % show stimulus in original order or sorted
-setappdata(hfig,'isShowMasks',1);
+setappdata(hfig,'isShowMasks',0);
+setappdata(hfig,'isShowMskOutline',0);
 % setappdata(hfig,'stimrange',1); % range of diff stim types
 
 %% initialization
@@ -148,13 +149,15 @@ end
 % grid setup, to help align display elements
 rheight = 0.2;
 yrow = 0.7:-0.33:0;%0.97:-0.03:0.88;
+dTextHt = 0.05; % dTextHt = manual adjustment for 'text' controls: 
+% (vertical alignment is top instead of center like for all other controls)
 bwidth = 0.03;
 grid = 0:bwidth+0.001:1;
 
 %% global variables: various UI element handles
 global hback hfwd hclassname hclassmenu hclusgroupmenu hclusmenu hclusname...
     hstimrangemenu hopID hloadfish hfishnum hstimreg hmotorreg...
-    hcentroidreg hcentroid hstimrange;
+    hcentroidreg hcentroid hstimrange hmasklistbox;
 
 %% UI ----- tab one ----- (General)
 i_tab = 1;
@@ -164,7 +167,7 @@ i_row = 1;
 i = 1;n = 0;
 
 i=i+n;
-n=2; % saves 'VAR' to workspace. 'VAR' contains clustering indices (Class and Clusgroup) for all fish
+n=2; % saves 'VAR' to workspace. 'VAR' contains clustering indices (Class and Cluster) for all fish
 uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Quick save',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@pushbutton_save_Callback);
@@ -227,7 +230,7 @@ n=2; % this design is underused now... Quick-load only depends on CONSTs,
 % the program without full single-fish data. eventually can use this  
 % platform to do things across fish (like after anatomical alignment).
 uicontrol('Parent',tab{i_tab},'Style','text','String','Quick-load fish:',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=1; % loads 'CONSTs_current.mat' from current directory
@@ -239,7 +242,7 @@ hfishnum = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',temp,...
 i=i+n;
 n=2; % loads full single-fish data from CONST_F?.mat
 uicontrol('Parent',tab{i_tab},'Style','text','String','Load full fish:',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=2; % these CONST_F?.mat are now saved as uncompressed version 6 .mat, loads faster
@@ -250,9 +253,9 @@ hloadfish = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',temp,...
     'Callback',@popup_loadfullfishmenu_Callback);
 
 i=i+n;
-n=2; % load different presentations (average, all reps etc), pre-stored in CONST(s)
-uicontrol('Parent',tab{i_tab},'Style','text','String','Data type:',... 
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+n=2; % options to load different stimulus types (if applicable for this fish)
+uicontrol('Parent',tab{i_tab},'Style','text','String','Stim type:',... 
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=3; 
@@ -277,9 +280,9 @@ uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show raw-time',...
     'Callback',@checkbox_isRawtime_Callback);
 
 i=i+n;
-n=2; % can choose range in time, but can't see time axes to decide... resets when choosing stimrangemenu
-uicontrol('Parent',tab{i_tab},'Style','text','String','stim range:',... % (eg 1:2,3-5)
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+n=2; % choose stimulus range - use numbers indicated in stimrangemenu % (eg 1:2,3-5)
+uicontrol('Parent',tab{i_tab},'Style','text','String','Stim range:',... 
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=1;
@@ -315,7 +318,7 @@ hfwd = uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Forward',...
 i=i+n;
 n=3; % Choose range of clusters to keep. format: e.g. '1:2,4-6,8:end'
 uicontrol('Parent',tab{i_tab},'Style','text','String','Choose cluster range:',... 
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=1; 
@@ -326,7 +329,7 @@ uicontrol('Parent',tab{i_tab},'Style','edit',...
 i=i+n;
 n=2; % Choose range of clusters to exclude. format: e.g. '1:2,4-6,8:end'
 uicontrol('Parent',tab{i_tab},'Style','text','String','Exclude:',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=1;
@@ -337,7 +340,7 @@ uicontrol('Parent',tab{i_tab},'Style','edit',...
 i=i+n;
 n=1; % Choose range of clusters to fuse/combine into single cluster. format: e.g. '1:2,4-6,8:end'
 uicontrol('Parent',tab{i_tab},'Style','text','String','Fuse:',... % (eg 1:2,3-5)
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=1;
@@ -352,7 +355,7 @@ i = 1;n = 0;
 i=i+n;
 n=2; % operates between the current cell selection and the next (in this order). 
 uicontrol('Parent',tab{i_tab},'Style','text','String','Set operations:',... 
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n; % 'setdiff' is current minus next, 'rev setdiff' is next minus current. 
 n=2; % smartUnion = SmartUnique, cells belonging to 2 clusters goes to the more correlated one
@@ -364,7 +367,7 @@ hopID = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',menu,'Value',
 i=i+n;
 n=2; % rank clusters based on various criteria (to choose)
 uicontrol('Parent',tab{i_tab},'Style','text','String','Rank by:',... 
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n; % 'hier' is the same as default (used after every k-means);'stim-lock' uses std across reps;
 n=2; % motor stuff uses the best alignment (by cross-correlation) with the fictive trace;
@@ -400,7 +403,7 @@ i = 1;n = 0;
 i=i+n;
 n=4; % Draw a polygon on anatomy maps to select the cells within those boundaries
 uicontrol('Parent',tab{i_tab},'Style','text','String','Draw on anatomy map to crop:',... 
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n; % Draw on the yx-view (main view) 
 n=2; % Click to make new vertex, double click to connect to first vertex, 
@@ -424,7 +427,7 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Draw zx',...
 i=i+n;
 n=5; 
 uicontrol('Parent',tab{i_tab},'Style','text','String','Select all cells within boundaries:',... 
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=2; % selects ALL cells contained in dataset that are within the convex shape defined by current cells
@@ -442,7 +445,7 @@ i = 1;n = 0; % Choose one type of regressor here, choice highlighted in yellow
 i=i+n;
 n=2; % stimulus regressors, go to 'GetStimRegressor.m' to add/update
 uicontrol('Parent',tab{i_tab},'Style','text','String','Stim reg.:',... 
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=3; % (updated when loading fish)
@@ -454,7 +457,7 @@ hstimreg = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',menu,'Valu
 i=i+n; % motor regressors from fictive, not yet convolved/adjusted for time lag
 n=2; % go to 'GetMotorRegressor.m' to add/update
 uicontrol('Parent',tab{i_tab},'Style','text','String','Motor reg.:',... 
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=2; % (unlike stim regressors, names hardcoded, not importet from regressor...)
@@ -472,7 +475,7 @@ uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Plot regressor',...
 i=i+n+1;
 n=4; % Get centroid (~mean) of selected cluster as regressor
 uicontrol('Parent',tab{i_tab},'Style','text','String','Regressor from centroid #:',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=1;
@@ -493,7 +496,7 @@ i = 1;n = 0; % Choose regression, using the regressor chosen above, search in fu
 i=i+n;
 n=3;
 uicontrol('Parent',tab{i_tab},'Style','text','String','Choose regression ->',... 
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=2; % do regression, show all cells with correlation coeff (with regressor) above threshold
@@ -547,7 +550,7 @@ i = 1;n = 0;
 i=i+n;
 n=2; % k-means clustering
 uicontrol('Parent',tab{i_tab},'Style','text','String','k-means, k =',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=1;
@@ -558,7 +561,7 @@ uicontrol('Parent',tab{i_tab},'Style','edit',...
 i=i+n;
 n=4; % anatomy is added to the fluo trace as new dimensions, and (arbituarily) weighted strongly
 uicontrol('Parent',tab{i_tab},'Style','text','String','k-means with anatomy, k =',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=1;
@@ -569,7 +572,7 @@ uicontrol('Parent',tab{i_tab},'Style','edit',...
 i=i+n; % trying to use Silhouette to evaluate cluster quality, find peak to determine optimal k,
 n=3; % then display results with that k. But have not set k-means to replicate (speed concern), can be very noisy
 uicontrol('Parent',tab{i_tab},'Style','text','String','Find best k in range:',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight])
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=1;
@@ -642,7 +645,7 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Hier. plot',...
 i=i+n; % partitioning based on hier. clustering
 n=2; % choose between max cluster numbers...
 uicontrol('Parent',tab{i_tab},'Style','text','String','Hier.cut, max n:',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=1;
@@ -653,7 +656,7 @@ uicontrol('Parent',tab{i_tab},'Style','edit',...
 i=i+n; % partitioning based on hier. clustering
 n=3; % ...or set correlation value threshold
 uicontrol('Parent',tab{i_tab},'Style','text','String','Hier.cut, corr thres:',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=1;
@@ -676,7 +679,7 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Corr. plot',...
 i=i+n;
 n=2; % random plots not really worth consolidating, only for 1-click convenience
 uicontrol('Parent',tab{i_tab},'Style','text','String','temp. plots:',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight])
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=3; % e.g. this one looks at the history for the fish presented with 4 B/W stimuli
@@ -696,7 +699,7 @@ i = 1;n = 0; % I just like to have 2 layers, so I save bigger sets as Class, sma
 i=i+n;
 n=1; % 
 uicontrol('Parent',tab{i_tab},'Style','text','String','Class:',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=4;
@@ -708,7 +711,7 @@ hclassmenu = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',temp,...
 i=i+n;
 n=1; % just edit and press enter to edit current name
 uicontrol('Parent',tab{i_tab},'Style','text','String','Edit:',... 
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=3;
@@ -726,7 +729,7 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Save class',...
 i=i+n;
 n=1; % not really useful, just to help me organize the Class name
 uicontrol('Parent',tab{i_tab},'Style','text','String','Header:',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=1; 
@@ -737,7 +740,7 @@ uicontrol('Parent',tab{i_tab},'Style','edit','String','Test',...
 i=i+n;
 n=1; % write down new name for new cluster
 uicontrol('Parent',tab{i_tab},'Style','text','String','New:',... 
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=2;
@@ -765,7 +768,7 @@ i=i+n;
 i=i+n;
 n=1;
 uicontrol('Parent',tab{i_tab},'Style','text','String','Cluster (group):',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=1;
@@ -785,7 +788,7 @@ hclusmenu = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',temp,...
 i=i+n;
 n=1;
 uicontrol('Parent',tab{i_tab},'Style','text','String','Edit:',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=3;
@@ -803,7 +806,7 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Save cluster',...
 i=i+n;
 n=1;
 uicontrol('Parent',tab{i_tab},'Style','text','String','Header:',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=1;
@@ -814,7 +817,7 @@ uicontrol('Parent',tab{i_tab},'Style','edit','String','Test',...
 i=i+n;
 n=1;
 uicontrol('Parent',tab{i_tab},'Style','text','String','New:',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=2;
@@ -831,7 +834,7 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Make cluster',...
 i=i+n;
 n=2;
 uicontrol('Parent',tab{i_tab},'Style','text','String','Set rank:',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=1;
@@ -842,7 +845,7 @@ uicontrol('Parent',tab{i_tab},'Style','edit',...
 i=i+n;
 n=1;
 uicontrol('Parent',tab{i_tab},'Style','text','String','Notes:',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=2;
@@ -863,7 +866,7 @@ i = 1;n = 0; % (Cluster-group number: number menu before the Cluster-name menu)
 i=i+n;
 n=2; % Combines the chosen clusters into one view (can save as 1 class or cluster then)
 uicontrol('Parent',tab{i_tab},'Style','text','String','Union(cluster):',... % (eg 1,3-5)
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=1;
@@ -890,26 +893,47 @@ i_tab = 6;
 i_row = 1;
 i = 1;n = 0;
 
-i=i+n;
-n=2; % plot histogram of all masks, also printing thresholded mask-names
+% row-height exception! listboxes are tall
+i=i+n+4;
+n=2; 
+s = 'plot histogram of all masks, also printing thresholded mask-names';
 uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Find masks',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-    'Callback',{@pushbutton_findmasks_Callback});
+    'Callback',{@pushbutton_findmasks_Callback},'TooltipString',s);
 
 i=i+n;
 n=2; % if checked, show thresholded masks on right-side plot
 uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show masks',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',1,...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',0,...
     'Callback',@checkbox_showmasks_Callback);
 
-% uicontrol('Parent',tab{i_tab},'Style','text','String','k-means, k =',...
-%     'Position',[grid(i) yrow(i_row) bwidth*n rheight]);
-% 
-% i=i+n;
-% n=1;
-% uicontrol('Parent',tab{i_tab},'Style','edit',...
-%     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-%     'Callback',@edit_kmeans_Callback);
+i=i+n;
+n=2; % display selected mask(s)
+uicontrol('Parent',tab{i_tab},'Style','text','String','Choose mask ID:',...
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
+
+i=i+n;
+n=1; % manually input (can choose from histogram recommendation)
+uicontrol('Parent',tab{i_tab},'Style','edit',...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+    'Callback',@edit_chooseMskID_Callback);
+
+i=i+n;
+n=3; % if checked, show thresholded masks on right-side plot
+uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show outline only',...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',0,...
+    'Callback',@checkbox_showmskoutline_Callback);
+
+%% UI row 3: find masks
+i_row = 3;
+i = 1;n = 0;
+
+% row-height exception! listboxes are tall
+i=i+n;
+n=4; % manually input (can choose from histogram recommendation)
+hmasklistbox = uicontrol('Parent',tab{i_tab},'Style','listbox','Max',10,'Min',0,...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight*5],...
+    'Callback',@listbox_chooseMskID_Callback);
 
 %% Load figure
 
@@ -1078,6 +1102,7 @@ figure('Position',[50,100,1600,800],'color',[1 1 1],...
 h1 = axes('Position',[0.05, 0.03, 0.53, 0.94]); % left ~subplot
 h2 = axes('Position',[0.61, 0.03, 0.35, 0.94]); % right ~subplot
 
+gIX = getappdata(hfig,'gIX');
 isCentroid = getappdata(hfig,'isCentroid');
 isPlotLines = getappdata(hfig,'isPlotLines');
 isPlotFictive = getappdata(hfig,'isPlotFictive');
@@ -1085,12 +1110,11 @@ isPlotFictive = getappdata(hfig,'isPlotFictive');
 % left subplot
 axes(h1);
 if isCentroid,
-    C = FindCentroid(hfig);
-    gIX = getappdata(hfig,'gIX');
+    C = FindCentroid(hfig);    
     DrawClusters(hfig,h1,C,unique(gIX),isPopout,isPlotLines,isPlotFictive);    
 else
     M = getappdata(hfig,'M');
-    DrawClusters(hfig,h1,M_ds,gIX_ds,isPopout,isPlotLines,isPlotFictive);
+    DrawClusters(hfig,h1,M,gIX,isPopout,isPlotLines,isPlotFictive);
 end
 
 % right subplot
@@ -1282,23 +1306,24 @@ setappdata(hfig,'clusgroupID',clusgroupID);
 Cluster = ClusGroup{clusgroupID};% collection of clusters, 'Cluster' structurally same as 'Class'
 setappdata(hfig,'Cluster',Cluster);
 
-%% update GUI (tlists selection)
-stimrangenames = getappdata(hfig,'stimrangenames');
+%% update GUI tlists selection, if applicable
 global hstimrangemenu;
-if ~isempty(hstimrangemenu), % before GUI initialization
+if ~isempty(hstimrangemenu), % before GUI initialization,
     % 'global' remnant from previous run: hstimrangemenu is not empty but is invalid object
     if isvalid(hstimrangemenu), 
-        set(hstimrangemenu,'String',stimrangenames);
+        stimrangenames = getappdata(hfig,'stimrangenames');
+        s = cell(size(stimrangenames));
+        for i = 1:length(stimrangenames),
+            s{i} = [num2str(i),': ',stimrangenames{i}];
+        end
+        set(hstimrangemenu,'String',s);
         set(hstimrangemenu,'Value',1);
-%         set(hstimrangemenu,'Value',ID);
     end
 end
 
 %% set current tlists
 periods = getappdata(hfig,'periods');
 setappdata(hfig,'stimrange',1:length(periods));
-% global hstimrange;
-% set(hstimrange,'String','1:end');
 UpdateTimeIndex(hfig,'isSkipcIX'); % doesn't include Refresh
 
 end
@@ -3288,7 +3313,6 @@ Z = ceil(Z_raw.*((Zs-1)/(s3-1)));
 pxID = sub2ind([height,width,Zs],XY(1,:),XY(2,:),Z);
 Msk_hist = full(sum(MASKs.MaskDatabase(pxID,:),1));
 
-%%
 % choose top hits
 thres_2std = mean(Msk_hist)+2*std(Msk_hist);
 Msk_IDs = find(Msk_hist>thres_2std);
@@ -3296,24 +3320,31 @@ Msk_IDs = find(Msk_hist>thres_2std);
 % plot histogram
 figure('Position',[300,600,1000,300]);
 hold on;
-numMsk = length(Msk_hist);
-plot([1,numMsk],[thres_2std/sum(Msk_hist),thres_2std/sum(Msk_hist)],'r:');
+nMasks = length(Msk_hist);
+plot([1,nMasks],[thres_2std/sum(Msk_hist),thres_2std/sum(Msk_hist)],'r:');
 yspace = max(Msk_hist(Msk_IDs)/sum(Msk_hist))/50;
 plot(Msk_IDs,Msk_hist(Msk_IDs)/sum(Msk_hist)+yspace,'r.')
 bar(Msk_hist/sum(Msk_hist),'facecolor',[0.5 0.5 0.5],'edgecolor',[0.5 0.5 0.5]);
-xlim([-1,numMsk+2]);
+xlim([-1,nMasks+2]);
 xlabel('mask ID');
 ylabel('probability')
 
 % display names in command window
-temp = {MASKs.MaskDatabaseNames{Msk_IDs}};
+names = MASKs.MaskDatabaseNames(Msk_IDs);
+names_numbered = cell(size(names));
 disp('Regions:');
-for i = 1:length(temp),
-    disp([num2str(Msk_IDs(i)), ': ', temp{i}]);
+for i = 1:length(names),
+    names_numbered{i} = [num2str(Msk_IDs(i)), ': ', names{i}];
+    disp(names_numbered{i});
 end
 
 setappdata(hfig,'Msk_hist',Msk_hist);
 setappdata(hfig,'Msk_IDs',Msk_IDs);
+setappdata(hfig,'Msk_IDlist',Msk_IDs);
+
+global hmasklistbox;
+set(hmasklistbox,'String',names_numbered);
+
 % mask = reshape(full(MaskDatabase(:,2)), [height, width, Zs]);
 % figure;imagesc(max(mask,[],3))
 end
@@ -3321,6 +3352,36 @@ end
 function checkbox_showmasks_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 setappdata(hfig,'isShowMasks',get(hObject,'Value'));
+RefreshFigure(hfig);
+end
+
+function edit_chooseMskID_Callback(hObject,~)
+hfig = getParentFigure(hObject);
+MASKs = getappdata(hfig,'MASKs');
+nMasks = size(MASKs.MaskDatabase,2);
+% get/format range
+str = get(hObject,'String');
+if ~isempty(str),
+    str = strrep(str,'end',num2str(nMasks));
+    range = ParseRange(str);
+    
+    setappdata(hfig,'Msk_IDs',range);
+    RefreshFigure(hfig);       
+end
+end
+
+function listbox_chooseMskID_Callback(hObject,~)
+hfig = getParentFigure(hObject);
+Msk_IDlist = getappdata(hfig,'Msk_IDlist');
+% names = get(hObject,'String');
+IX = get(hObject,'Value');
+setappdata(hfig,'Msk_IDs',Msk_IDlist(IX));
+RefreshFigure(hfig);
+end
+
+function checkbox_showmskoutline_Callback(hObject,~)
+hfig = getParentFigure(hObject);
+setappdata(hfig,'isShowMskOutline',get(hObject,'Value'));
 RefreshFigure(hfig);
 end
 
@@ -3683,7 +3744,6 @@ else
     M_ds = M(1:skip:end,:);
     gIX_ds = gIX(1:skip:end,:);
     DrawClusters(hfig,h1,M_ds,gIX_ds,isPopout,isPlotLines,isPlotFictive);
-
 end
 
 % right subplot
@@ -3794,13 +3854,13 @@ if ~exist('isSkipcIX','var'),
 end
 end
 
+function [M,fictive,stim] = GetTimeIndexedData(hfig,isAllCells)
 %{
-M = getappdata(hfig,'M');
+% naming convention used:
 M = GetTimeIndexedData(hfig);
-M_0 = getappdata(hfig,'M_0');
 M_0 = GetTimeIndexedData(hfig,'isAllCells');
 %}
-function [M,fictive,stim] = GetTimeIndexedData(hfig,isAllCells)
+
 % main data input
 CellResp = getappdata(hfig,'CellResp');
 CellRespAvr = getappdata(hfig,'CellRespAvr');
@@ -3834,25 +3894,6 @@ end
 
 setappdata(hfig,'fictive',fictive);
 setappdata(hfig,'stim',stim);
-end
-
-function [M_ds,skip] = GetTimeIndexedM_Direct(hfig,cIX)
-CellResp = getappdata(hfig,'CellResp');
-CellRespAvr = getappdata(hfig,'CellRespAvr');
-isAvr = getappdata(hfig,'isAvr');
-cIX = getappdata(hfig,'cIX');
-tIX = getappdata(hfig,'tIX');
-
-% down-sample
-ds_cap = 1000;
-numcell = length(cIX);
-skip = max(1,round(numcell/ds_cap));
-ds_cIX = cIX(1:skip:end);
-if isAvr,    
-    M_ds = CellRespAvr(ds_cIX,tIX);
-else
-    M_ds = CellResp(ds_cIX,tIX);
-end
 end
 
 function closefigure_Callback(hfig,~)

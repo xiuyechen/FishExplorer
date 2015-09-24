@@ -28,6 +28,7 @@ name_MASKs = 'MaskDatabase.mat'; % stores selected data from all fish
 % to push new functions to GUI, called with function 'push_cIX_gIX':
 % hfig = GUI_FishExplorer(data_dir,CONSTs,VAR,flag_script,var_script)
 
+%%
 % to get handle of local functions from GUI to use in workspace 
 % (call by using 'f.FunctionName')
 f = [];
