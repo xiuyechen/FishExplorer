@@ -4,9 +4,12 @@
 
 clear all;close all;clc
 
-data_dir = GetCurrentDataDir();%'C:\Janelia2014'; %[pwd '\example data']; % 'F:\Janelia2014';%
+code_dir = 'C:\Users\engertlab\Dropbox\Github\FishExplorer';
+addpath(genpath(code_dir));
 
-global VAR;
+global data_dir name_CONSTs name_MASKs VAR;
+
+data_dir = GetCurrentDataDir();%'C:\Janelia2014'; %[pwd '\example data']; % 'F:\Janelia2014';%
 
 load(fullfile(data_dir,'VAR_current.mat'),'VAR'); % stores all clustering indices
 % save(fullfile(data_dir,'VAR_current.mat'),'VAR','-v6');
@@ -22,11 +25,11 @@ name_CONSTs = 'CONSTs_current2.mat'; % stores selected data from all fish
 name_MASKs = 'MaskDatabase.mat'; % stores selected data from all fish
 
 %% Start GUI
-
-[hfig,fcns] = GUI_FishExplorer(data_dir,name_CONSTs,name_MASKs,VAR);
+% Run this, or press F5 in 'GUI_FishExplorer.m'
+[hfig,fcns] = GUI_FishExplorer;
 
 % to push new functions to GUI, called with function 'push_cIX_gIX':
-% hfig = GUI_FishExplorer(data_dir,CONSTs,VAR,flag_script,var_script)
+% hfig = GUI_FishExplorer(data_dir,name_CONSTs,name_MASKs,VAR,flag_script,var_script)
 
 %%
 % to get handle of local functions from GUI to use in workspace 

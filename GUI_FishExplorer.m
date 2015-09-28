@@ -30,7 +30,10 @@ Full datasets are stored as 'CONST_F?.mat' or 'CONST_F?_fast.mat' (? = fish numb
 
 %% User Interface:
 % function hfig = GUI_FishExplorer(CONSTs,VAR,CONST,i_fish)
-function [hfig,fcns] = GUI_FishExplorer(data_dir,name_CONSTs,name_MASKs,VAR,flag_script,var_script)
+% function [hfig,fcns] = GUI_FishExplorer(data_dir,name_CONSTs,name_MASKs,VAR,flag_script,var_script)
+function [hfig,fcns] = GUI_FishExplorer(flag_script,var_script)
+global data_dir name_CONSTs name_MASKs VAR;
+
 if exist('flag_script','var')
     if ~exist('var_script','var')
         var_script={};
@@ -44,6 +47,12 @@ scrn = get(0,'Screensize');
 hfig = figure('Position',[scrn(3)*0.1 scrn(4)*0.05 scrn(3)*0.85 scrn(4)*0.86],...% [50 100 1700 900]
     'Name','GUI_LSh','DeleteFcn',@closefigure_Callback);
 hold off; axis off
+
+%% Make menu
+
+hm1 = uimenu(hfig,'Label','My File');
+hm1_1 = uimenu(hm1,'Label','Quick save to workspace');
+hm1_2 = uimenu(hm1,'Label','Save to file (default path)');
 
 %% Folder setup
 % directory for full fish data (.mat)
