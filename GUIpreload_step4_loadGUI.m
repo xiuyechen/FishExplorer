@@ -4,7 +4,7 @@
 
 clear all;close all;clc
 
-code_dir = 'C:\Users\engertlab\Dropbox\Github\FishExplorer';
+code_dir = 'C:\Users\xiuye\Dropbox\Github\FishExplorer';
 addpath(genpath(code_dir));
 
 global data_dir name_CONSTs name_MASKs VAR;

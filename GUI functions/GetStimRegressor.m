@@ -202,7 +202,7 @@ segLength = floor(tlen/80);
 s4_ = tlen-mod(tlen,segLength);
 
 % initialize/preallocate struct
-n = nRegType*numPS;
+n = length(names);% nRegType*numPS is not always filled;
 regressors(n).name = [];
 regressors(n).im = [];
 regressors(n).ctrl = [];
@@ -217,7 +217,7 @@ for j=1:nRegType, %run_StimRegType_subset,
         %         idx = (j-1)*nStimRegType + i;
         
         regressors(idx).name = names{idx};
-% %         regressor_stim(idx).name = [name_array{j} '_' num2str(i)];
+        % %         regressor_stim(idx).name = [name_array{j} '_' num2str(i)];
         % generate regressor in imaging time
         regressors(idx).im = gen_reg_im(gc6, t_gc6, t_im, reg);
         
@@ -231,7 +231,7 @@ for j=1:nRegType, %run_StimRegType_subset,
         temp(1:s4_) = shffreg;
         shffreg = temp;
         regressors(idx).ctrl = gen_reg_im(gc6, t_gc6, t_im, shffreg);
-    end
+    end    
 end
 end
 

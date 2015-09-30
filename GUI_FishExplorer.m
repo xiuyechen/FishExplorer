@@ -381,8 +381,8 @@ uicontrol('Parent',tab{i_tab},'Style','text','String','Rank by:',...
 i=i+n; % 'hier' is the same as default (used after every k-means);'stim-lock' uses std across reps;
 n=2; % motor stuff uses the best alignment (by cross-correlation) with the fictive trace;
 % L+R is average of L & R; stim-motor is combines 'stim-lock' w 'motor' with arbituary weighting.
-menu = {'(choose)','hier.','size','stim-lock','corr',...
-    'motor','L motor','R motor','L+R motor','stim-motor'}; 
+menu = {'(choose)','hier.','size','stim-lock','corr','motor','L motor','R motor','L+R motor',...
+    'multi-motor','multi-motor w/ stim-avr','multi-stim w/ stim-avr'}; 
 uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',menu,'Value',1,...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',{@popup_ranking_Callback});
@@ -548,6 +548,42 @@ n=2; % until the cluster converges, but most of the time it doesn't...
 uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','iter.reg','Enable','off',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',{@pushbutton_IterCentroidRegression_Callback});
+
+%% UI row 2: regression
+% i_row = 2; % Step 2:
+% i = 1;n = 0; % Choose regression, using the regressor chosen above, search in full dataset
+% 
+% i=i+n;
+% n=2; 
+% s = 'Motor component independent of optimal stim-reg used for regression';
+% uicontrol('Parent',tab{i_tab},'Style','text','String','Multi-regression',... 
+%     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
+% 
+% i=i+n;
+% n=2; 
+% uicontrol('Parent',tab{i_tab},'Style','text','String','Stim-reg range:',... 
+%     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
+% 
+% i=i+n;
+% n=1;
+% s = 'Choose range of stim-regressor (only optimal one will be used subsequently)';
+% uicontrol('Parent',tab{i_tab},'Style','edit','String',num2str(thres_reg),...
+%     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+%     'Callback',@edit_regthres_Callback);
+% 
+% i=i+n;
+% n=2;
+% s = 'Choose single motor-regressor';
+% uicontrol('Parent',tab{i_tab},'Style','text','String','Motor reg:',... 
+%     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
+% 
+% i=i+n;
+% n=2; % (unlike stim regressors, names hardcoded, not importet from regressor...)
+% menu = {'(choose)','left swims','right swims','forward swims','raw left','raw right','raw average'};
+% uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',menu,'Value',1,...
+%     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+%     'Callback',@popup_getmotorreg_Callback);
+
 
 %% UI ----- tab four ----- (Clustering etc.)
 i_tab = 4;
@@ -1343,8 +1379,13 @@ fishset = getappdata(hfig,'fishset');
 
 [~, names] = GetStimRegressor(stim,fishset);
 
+s = cell(size(names));
+for i = 1:length(names),
+    s{i} = [num2str(i),': ',names{i}];
+end
+
 global hstimreg;
-set(hstimreg,'String',['(choose)',(names)]);
+set(hstimreg,'String',['(choose)',s]);
 
 % update display
 UpdateClassID(hfig,1,'norefresh');
@@ -1658,10 +1699,18 @@ switch rankID,
         disp('L+R motor');
         [gIX,rankscore] = RankByMotorStim_Direct(hfig,gIX,numU,4);
     case 9,
-        disp('stim-motor');
-        [~,rankscore1] = RankByStimLock_Direct(hfig,cIX,gIX,numU);
-        [~,rankscore2] = RankByMotorStim_Direct(hfig,gIX,numU,1);
-        rankscore = rankscore1 - rankscore2;
+%         disp('stim-motor');
+%         [~,rankscore1] = RankByStimLock_Direct(hfig,cIX,gIX,numU);
+%         [~,rankscore2] = RankByMotorStim_Direct(hfig,gIX,numU,1);
+%         rankscore = rankscore1 - rankscore2;
+        disp('multi-motor');
+        [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,1);
+    case 10,
+        disp('multi-motor w/ stim-avr');
+        [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,3);
+    case 11,
+        disp('multi-stim w/ stim-avr');
+        [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,4);
 end
 if rankID>1,
     setappdata(hfig,'rankscore',round(rankscore*100)/100);
@@ -1784,6 +1833,153 @@ for i = 1:numU,
 end
 [gIX,rankscore] = SortH(H,gIX,numU,'descend');
 % assignin('base', 'shift', shift);
+end
+
+
+function [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,option)
+%% get cluster centroids (means) from GUI current selection
+fishset = getappdata(hfig,'fishset');
+stim = getappdata(hfig,'stim');
+fictive = getappdata(hfig,'fictive');
+C = FindCentroid(hfig);
+nClus = size(C,1);
+
+%% get stimulus regressor
+switch option
+    case 1;
+        [regressors, names] = GetStimRegressor(stim,fishset);
+        M_regressor = zeros(length(regressors),length(regressors(1).im));
+        for i = 1:length(regressors),
+            M_regressor(i,:) = regressors(i).im;
+        end
+        regressor_s = M_regressor;
+        
+    case 2;
+        %% get stim regressors and find best match
+        stimregset = [1:8];
+        [regressors, names] = GetStimRegressor(stim,fishset);
+        M_regressor = zeros(length(stimregset),length(regressors(1).im));
+        for i = 1:length(stimregset),
+            M_regressor(i,:) = regressors(stimregset(i)).im;
+        end
+        
+        R = corr(M_regressor',C'); % row of R: each regressor
+        [~,IX] = max(R,[],1);
+        regressor_s_allclus = M_regressor(IX,:);
+        
+    case {3,4};
+        %% alternative: using 'stim-lock' means
+        periods = getappdata(hfig,'periods');
+        
+        if fishset == 1,
+            period = periods;
+            C_3D_0 = reshape(C,size(C,1),period,[]);
+            C_period = mean(C_3D_0,3);
+            nPeriods = round(size(C,2)/period);
+            C_mean = repmat(C_period,1,nPeriods);
+        else
+            stimset = getappdata(hfig,'stimset');
+            stimrange = getappdata(hfig,'stimrange');
+            periods = getappdata(hfig,'periods');
+            tlists = getappdata(hfig,'tlists');
+            
+            C_mean = [];
+            for i = 1:length(stimrange),
+                i_stim = stimrange(i);
+                if sum(stimset(i_stim).nReps)>3,
+                    offset = length(horzcat(tlists{stimrange(1:i-1)}));% works for i=0 too
+                    tIX_ = 1+offset:length(tlists{stimrange(i)})+offset;
+                    period = periods(i_stim);
+                    C_3D_0 = reshape(C(:,tIX_),size(C,1),period,[]);
+                    C_period = mean(C_3D_0,3);
+                    nPeriods = length(tIX_)/period;
+                    C_mean = horzcat(C_mean,repmat(C_period,1,nPeriods)); %#ok<AGROW>
+                    %             C_3D = zscore(C_3D_0,0,2);
+                    %             H_raw = horzcat(H_raw,nanmean(nanstd(C_3D,0,3),2));
+                else
+                    offset = length(horzcat(tlists{stimrange(1:i-1)}));% works for i=0 too
+                    tIX_ = 1+offset:length(tlists{stimrange(i)})+offset;
+                    C_mean = horzcat(C_mean,zeros(size(C,1),length(tIX_))); %#ok<AGROW>
+                end
+            end
+        end
+        
+        regressor_s_allclus = C_mean;
+end
+
+%% get motor regressor
+regressors = GetMotorRegressor(fictive);
+motorregset = 1:3;
+M_regressor = zeros(length(motorregset),length(regressors(1).im));
+for i = 1:length(motorregset),
+    M_regressor(i,:) = regressors(motorregset(i)).im;
+end
+
+% switch option
+%     case 1;
+        regressor_m = M_regressor;
+%     case {2,3};           
+%         R = corr(M_regressor',C'); % row of R: each regressor
+%         [~,IX_m] = max(R,[],1);
+%         regressor_m_allclus = M_regressor(IX_m,:);
+% end
+
+%% multi-regression
+switch option
+    case 1;
+        regs = vertcat(regressor_s,regressor_m);
+        orthonormal_basis = Gram_Schmidt_Process(regs');
+        betas = C * orthonormal_basis;
+        H = sqrt(sum((betas(:,end-2:end)).^2,2));
+    case {2,3};
+        betas = zeros(nClus,1+length(motorregset)); %size(regressor_s,1)+1);
+        for i_clus = 1:nClus,
+            regs = vertcat(regressor_s_allclus(i_clus,:),regressor_m);
+%             regs = vertcat(regressor_s_allclus(i_clus,:),regressor_m_allclus(i_clus,:));
+
+            orthonormal_basis = Gram_Schmidt_Process(regs');
+            
+            %% check orthonormal_basis
+            % figure;imagesc(orthonormal_basis)
+            % norm(orthonormal_basis(:,1))
+            % norm(orthonormal_basis(:,2))
+            % dot(orthonormal_basis(:,1),orthonormal_basis(:,2))
+            % % compare to raw regressors
+            % figure;
+            % subplot(311);hold on;
+            % i = 1;
+            % plot(regs(i,:)/norm(regs(i,:)),'r');plot(orthonormal_basis(:,1)','k:')
+            % subplot(312);hold on;
+            % i = 2;
+            % plot(regs(i,:)/norm(regs(i,:)),'r');plot(orthonormal_basis(:,i)','k:')
+            % subplot(313);hold on;
+            % i = 3;
+            % plot(regs(i,:)/norm(regs(i,:)),'r');plot(orthonormal_basis(:,i)','k:')
+            
+            %% Get multi-regression coefficients
+            % FunctionalActivity = beta1*reg1 + beita2*reg2_orth
+            betas(i_clus,:) = C(i_clus,:) * orthonormal_basis;
+        end
+        H = sqrt(sum((betas(:,end-2:end)).^2,2));
+    case 4;
+        betas = zeros(nClus,1+length(motorregset)); %size(regressor_s,1)+1);
+        for i_clus = 1:nClus,
+            regs = vertcat(regressor_m,regressor_s_allclus(i_clus,:));
+            orthonormal_basis = Gram_Schmidt_Process(regs');
+            betas(i_clus,:) = C(i_clus,:) * orthonormal_basis;
+        end
+        H = betas(:,end);
+end
+
+        
+%% rank and plot
+[gIX,rankscore] = SortH(H,gIX,numU,'descend');
+
+figure;
+subplot(2,1,1)
+imagesc(orthonormal_basis)
+subplot(2,1,2)
+imagesc(betas)
 end
 
 function [gIX,B] = SortH(H,gIX,numU,descend) % new gIX is sorted based on H, size(H)=[numU,1];
