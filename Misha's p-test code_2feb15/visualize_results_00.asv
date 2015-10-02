@@ -18,7 +18,7 @@ VV = zeros(max(xx),max(yy),max(zz),3); % the volume in 3D + color-D
 % 9 = colL
 
 
-for i=1:size(Pvals,1) % very very manual way of coloring!
+for i=1:size(Pvals,1)
 %    VV(xx(i),yy(i),zz(i),1) =  min(1,-log10(Pvals(i,7))/10);%*min(1,-log10(Pvals(i,1))/10);
 %    VV(xx(i),yy(i),zz(i),3) = min(1,-log10(Pvals(i,2))/10)* min(1,-log10(Pvals(i,7))/10);
 %    VV(xx(i),yy(i),zz(i),1) = min(1,-log10(Pvals(i,8))/10).*(signs(i,8)>0);%* min(1,-log10(Pvals(i,9))/10);
@@ -49,7 +49,7 @@ end
 
 figure
 vv = convn(squeeze(max(VV,[],3)),ones(3,3,1)/1,'same'); % first makes z-projection; then convolves the cell-location dot into a little bigger (3x3) dot? while keeping the overall array size the 'same'.
-vv = vv.*(vv<=1) + (vv>1); % ????  
+vv = vv.*(vv<=1) + (vv>1); % ?? I thought   
 image(vv)
 
 figure

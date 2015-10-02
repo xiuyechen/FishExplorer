@@ -201,7 +201,8 @@ end
 
 Pvals = zeros(size(CR,1),length(comparisons));
 signs = zeros(size(CR,1),length(comparisons));
-parfor i = 1:size(CR,1)
+% parfor i = 1:size(CR,1)
+for i = 1:size(CR,1)
     if mod(i,1000)==0,i,end
     measurements = {};
     CRcutTemp = CR(i,:);

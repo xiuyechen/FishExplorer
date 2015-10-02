@@ -1,4 +1,4 @@
-function  [tot_image, dim_totimage] = DrawClustersOnMap_LSh(hfig,isFull)
+function  [tot_image, dim_totimage] = DrawClustersOnMap_LSh(hfig,isPopout)
 %% load
 CInfo = getappdata(hfig,'CInfo');
 cIX = getappdata(hfig,'cIX');
@@ -26,7 +26,7 @@ if s2>s1,
 end
 
 % down-sample
-if ~exist('isFull','var'),
+if ~isPopout,
     displaymax = 8000;
     if length(cIX) > displaymax,
         skip = round(length(cIX)/displaymax);

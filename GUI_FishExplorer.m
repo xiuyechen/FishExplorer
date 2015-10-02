@@ -1137,8 +1137,8 @@ end
 end
 
 function pushbutton_popupplot_Callback(hObject,~)
-% similar as function RefreshFigure(hfig)
-isPopout = 1;
+% very similar as function RefreshFigure(hfig)
+isPopout = 1; % no down-sampling in plots
 
 hfig = getParentFigure(hObject);
 i_fish = getappdata(hfig,'i_fish');
@@ -1147,36 +1147,23 @@ figure('Position',[50,100,1600,800],'color',[1 1 1],...
 h1 = axes('Position',[0.05, 0.03, 0.53, 0.94]); % left ~subplot
 h2 = axes('Position',[0.61, 0.03, 0.35, 0.94]); % right ~subplot
 
-gIX = getappdata(hfig,'gIX');
 isCentroid = getappdata(hfig,'isCentroid');
 isPlotLines = getappdata(hfig,'isPlotLines');
 isPlotFictive = getappdata(hfig,'isPlotFictive');
 
 % left subplot
 axes(h1);
-if isCentroid,
-    C = FindCentroid(hfig);    
-    DrawClusters(hfig,h1,C,unique(gIX),isPopout,isPlotLines,isPlotFictive);    
-else
-    M = getappdata(hfig,'M');
-    DrawClusters(hfig,h1,M,gIX,isPopout,isPlotLines,isPlotFictive);
-end
+DrawClusters(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotFictive);
 
 % right subplot
 axes(h2);
-DrawClustersOnMap_LSh(hfig,'isFull');
+DrawClustersOnMap_LSh(hfig,isPopout);
 end
 
 function checkbox_isPlotLines_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 value = get(hObject,'Value');
 setappdata(hfig,'isPlotLines',value);
-global hcentroid;
-if value == 1,
-    set(hcentroid,'Value',1);
-    setappdata(hfig,'isCentroid',1);
-    RefreshFigure(hfig);
-end
 end
 
 function checkbox_isPlotFictive_Callback(hObject,~)
@@ -3513,7 +3500,7 @@ Z_raw = [CInfo(cIX).slice];
 XY = zeros(size(XY_raw));
 XY(1,:) = ceil(XY_raw(1,:).*((height-1)/(s1-1)));
 XY(2,:) = ceil(XY_raw(2,:).*((width-1)/(s2-1)));
-Z = ceil(Z_raw.*((Zs-1)/(s3-1)));
+Z = ceil(1+(Z_raw-1).*((Zs-1)/(s3-1)));
 
 pxID = sub2ind([height,width,Zs],XY(1,:),XY(2,:),Z);
 Msk_hist = full(sum(MASKs.MaskDatabase(pxID,:),1));
@@ -3913,78 +3900,38 @@ end
 
 % frequently used, 2 plotting functions are outside ('DrawClusters.m' and 'DrawClustersOnMap_LSh.m')
 function RefreshFigure(hfig)
-isPopout = 0;
+isPopout = 0; % with down-sampling in plots
 
-cIX = getappdata(hfig,'cIX');
-gIX = getappdata(hfig,'gIX');
-isCentroid = getappdata(hfig,'isCentroid');
-isPlotLines = 0; %getappdata(hfig,'isPlotLines');
-isPlotFictive = 1; %getappdata(hfig,'isPlotFictive');
-
-if isempty(cIX),
-    errordlg('empty set! go back!');
-    % CODE TO GO BACK
-    
-    
-    return;
-end
-
+% clean-up canvas
 allAxesInFigure = findall(hfig,'type','axes');
 if ~isempty(allAxesInFigure)
     delete(allAxesInFigure);
 end
 
 figure(hfig);
-% left subplot
 h1 = axes('Position',[0.05, 0.04, 0.55, 0.83]);
-if isCentroid,
-    C = FindCentroid(hfig);
-    DrawClusters(hfig,h1,C,unique(gIX),isPopout,isPlotLines,isPlotFictive);
-else    
-    M = getappdata(hfig,'M');    
-    % down-sample
-    ds_cap = 1000;
-    nCells = length(cIX);
-    skip = max(1,round(nCells/ds_cap));
-    M_ds = M(1:skip:end,:);
-    gIX_ds = gIX(1:skip:end,:);
-    DrawClusters(hfig,h1,M_ds,gIX_ds,isPopout,isPlotLines,isPlotFictive);
+h2 = axes('Position',[0.61, 0.04, 0.35, 0.83]);
+
+isCentroid = getappdata(hfig,'isCentroid');
+isPlotLines = 0; %getappdata(hfig,'isPlotLines');
+isPlotFictive = 1; %getappdata(hfig,'isPlotFictive');
+
+% double-check if cIX is valid
+cIX = getappdata(hfig,'cIX');
+if isempty(cIX),
+    errordlg('empty set! go back!');
+    % GO BACK to the last step (presumably not empty)
+    pushbutton_back_Callback(h1); % using h1 instaed of the usual 'hObject'    
+    return;
 end
+
+% left subplot
+axes(h1);
+DrawClusters(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotFictive);
 
 % right subplot
-h2 = axes('Position',[0.61, 0.04, 0.35, 0.83]);
-DrawClustersOnMap_LSh(hfig);
-end
-
-%{
-C = FindCentroid(hfig);
-%}
-function [C,D] = FindCentroid(hfig) % used to store C,D until reset 
-gIX = getappdata(hfig,'gIX');
-% C = getappdata(hfig,'Centroids');
-% D = getappdata(hfig,'D_ctrd');
-% if isempty(C),
-    M = getappdata(hfig,'M');
-    
-    U = unique(gIX);
-    numU = length(U);
-    C = zeros(numU,size(M,2));
-    D = zeros(numU,1);
-    for i=1:numU,
-        IX = find(gIX == U(i));
-        if length(IX)==1,
-            C(i,:) = M(IX,:);
-            D(i) = 1;
-        else
-            M_s = M(IX,:);
-            [~,C1,~,D1] = kmeans(M_s,1,'distance','correlation');
-            C(i,:) = C1;
-            D(i) = mean(D1);
-        end
-    end
-    setappdata(hfig,'Centroids',C);
-    setappdata(hfig,'D_ctrd',D);
-% end
+axes(h2);
+DrawClustersOnMap_LSh(hfig,isPopout);
 end
 
 function [C,D] = FindCentroid_Direct(gIX,M)

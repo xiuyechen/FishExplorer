@@ -1,4 +1,4 @@
-function DrawClusters(hfig,h1,M,gIX,isPopout,isPlotLines,isPlotFictive)
+function DrawClusters(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotFictive)
 % load
 numK = getappdata(hfig,'numK');
 fictive = getappdata(hfig,'fictive');
@@ -10,6 +10,19 @@ iswrite = (rankID>=2);
 cIX = getappdata(hfig,'cIX');
 nCells = length(cIX);
 
+M = getappdata(hfig,'M');
+gIX = getappdata(hfig,'gIX');
+nFrames = size(M,2);
+
+if isPopout,
+    % down-sample
+    ds_cap = 1000;
+    nCells = length(cIX);
+    skip = max(1,round(nCells/ds_cap));
+    M = M(1:skip:end,:); % down-sized
+    gIX = gIX(1:skip:end,:); % down-sized
+end
+
 axis off;
 pos = get(h1,'Position'); % [left, bottom, width, height]    
 
@@ -17,13 +30,13 @@ pos = get(h1,'Position'); % [left, bottom, width, height]
 numK = max(max(gIX),numK);
 
 if isPlotLines,
-    if 1, % (just to collapse isPlotLines = true)
+    if 1, % (just to collapse isPlotLines = true)               
         %% settings
         len = pos(3);
         fps = 1.97;
         
         % set position grid
-        nLines = size(M,1);
+        nLines = length(unique(gIX));
         if isPlotFictive,
             nExtraRows = 3; % number of extra rows
         else
@@ -31,12 +44,7 @@ if isPlotLines,
         end        
         nRows = max(8,nLines)+nExtraRows;
         lineH = pos(4)/nRows;
-%         Lpos = [pos(1),pos(2)+pos(4)-lineH*nRows,pos(3),lineH*nRows];
-% %         Lpos = [pos(1),pos(2)+pos(4)-lineH*(nLines+nExtraRows),pos(3),lineH*(nLines+nExtraRows)];
-%         set(h1,'Position',Lpos);
-
-        %     figure('Position',[500,900-(min(nLines,15)+nDiv)*50,600,(min(nLines,15)+nDiv)*50],'color',[1 1 1]);
-        xv = 1:size(M,2);        
+        xv = 1:nFrames;        
                 
         %% Set colormap        
         if strcmp(clrmap,'jet'),
@@ -49,42 +57,41 @@ if isPlotLines,
         
         %% draw stimulus bar
         stimbar = GetStimBar(1,stim);
-        rpos = [pos(1),pos(2)+pos(4)-3/4*lineH,len,lineH/2];
-        h = axes('Position',rpos);
+        sub_pos = [pos(1),pos(2)+pos(4)-3/4*lineH,len,lineH/2];
+        h = axes('Position',sub_pos);
         
         image(stimbar);
         set(h,'Xtick',[],'Ytick',[])
         
         % draw fish icon
-        rpos = [pos(1)*0.2,pos(2)+pos(4)-3/4*lineH,pos(1)*0.7,lineH/2];
-        axes('Position',rpos);
+        sub_pos = [pos(1)*0.2,pos(2)+pos(4)-3/4*lineH,pos(1)*0.7,lineH/2];
+        axes('Position',sub_pos);
         DrawFishIcon;    
                 
         %% draw cluster means
-        Ymeans = zeros(nLines,size(M,2));
         U = unique(gIX);
         for j = 1:nLines,
             k = U(j);
-            %     ymean = Cz(k,:);
-            Ys = M(gIX==k,:);
-            ymean = mean(Ys,1);
-            Ymeans(k,:) = ymean;
-            rpos = [pos(1),pos(2)+pos(4)-lineH*(j+1),len,lineH];
-            axes('Position',rpos); hold on;
-            
-            ySTD=std(Ys); % /sqrt(size(Ys,1))
+            Ys = M(gIX==k,:);            
+            ymean = mean(Ys);
+            ySTD=std(Ys); % /sqrt(size(Ys,1))??
             ySTD_upper=ymean+ySTD;
             ySTD_lower=ymean-ySTD;
+            
+            % Draw
+            sub_pos = [pos(1),pos(2)+pos(4)-lineH*(j+1),len,lineH];
+            axes('Position',sub_pos); hold on;
+            % draw std
             h = fill([xv fliplr(xv)], [ySTD_upper fliplr(ySTD_lower)],0.5+0.3*clr(k,:));
             set(h, 'EdgeColor','none')
-            
+            % draw mean
             plot(xv,ymean,'-','Linewidth',1,'color',clr(k,:))
             axis tight;axis off
         end
         
         %% plot scale bar
         axes('Position',[pos(1),pos(2)+pos(4)-lineH*(nLines+2),len,lineH]); hold on;
-        if size(M,2)<1200, % <~10 min, plot 1min scale bar
+        if nFrames<1200, % <~10 min, plot 1min scale bar
             plot([1,60*fps],[0.75,0.75],'k-');
             text(pos(1)+60*fps/2,0.5,'1 min','HorizontalAlignment','center')
         else % >~10 min, plot 10min scale bar
@@ -106,7 +113,15 @@ if isPlotLines,
     end
     
 else % ~isPlotLines, i.e. plot all traces as grayscale map
-    % set size of stimulus-bar relative to whole plot
+    if isCentroid,
+        M_ = FindCentroid(hfig);
+        gIX_ = unique(gIX);
+    else
+        M_ = M;
+        gIX_ = gIX;
+    end
+    
+    %% set size of stimulus-bar relative to whole plot
     % each stim bar (if applicable) takes up 1 unit, and fictive bar takes up 2.
     if ~isPopout,
         barratio = 0.025;
@@ -116,9 +131,9 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
     
     %% Prepare cluster data   
     % sort traces by index
-    im = M;
+    im = M_;
     [nLines,nFrames] = size(im);
-    [~,I] = sort(gIX);
+    [~,I] = sort(gIX_);
     im = im(I,:);
     
     %% convert imagesc effect into rgb matrix 'RGB'
@@ -142,7 +157,7 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
     cmap2 = vertcat(temp(1:numK,:),[0,0,0]); % extend colormap to include black
     bwidth = max(round(nFrames/30),1);
     
-    idx = gIX(I);
+    idx = gIX_(I);
     ix_div = [find(diff(idx));length(idx)];
     
     bars = ones(nLines,bwidth);
