@@ -147,11 +147,11 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
     %% add vertical color code
     if exist('clrmap','var'),
         if strcmp(clrmap,'jet'),
-%             temp = zeros(numK,3);
-%             temp(:,1) = linspace(1,0,numK);
-%             temp(:,2) = linspace(0,0,numK);
-%             temp(:,3) = linspace(0,0,numK);
-            temp = flipud(jet(numK));
+            temp = zeros(numK,3);
+            temp(:,1) = linspace(1,0,numK/2);
+            temp(:,2) = linspace(0,0,numK/2);
+            temp(:,3) = linspace(0,0,numK/);
+            %             temp = flipud(jet(numK));
         else % 'hsv'
             temp = hsv(round(numK*1.1));
         end

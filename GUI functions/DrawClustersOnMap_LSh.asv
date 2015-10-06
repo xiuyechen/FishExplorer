@@ -14,7 +14,6 @@ if isShowMasks,
     Msk_IDs = getappdata(hfig,'Msk_IDs');   
     isShowMskOutline = getappdata(hfig,'isShowMskOutline');  
 end
-isWeighAlpha = getappdata(hfig,'isWeighAlpha');
 
 %% Setup
 [s1,s2] = size(cIX);
@@ -45,13 +44,8 @@ end
 
 % get colormap
 if strcmp(clrmap,'jet'),
-%     temp = zeros(numK,3);
-%     temp(:,1) = linspace(1,0,numK);
-%     temp(:,2) = linspace(0,0,numK);
-%     temp(:,3) = linspace(0,0,numK);
-%     cmap = temp;
 %     cmap = flipud(gray(double(numK)));
-    cmap = flipud(jet(numK));
+%     cmap = flipud(jet(numK));
 else % 'hsv'
     n = round(numK*1.1);
     cmap = hsv(max(1,n));
@@ -83,13 +77,7 @@ cix = sub2ind([dimv_yx(1),dimv_yx(2)],8,8);% 8
 circle_inds = ix - cix;
 
 % set transparancy
-alpha_max = 0.3-min(length(cIX)/1000/100,0.1);
-if isWeighAlpha,    
-    wIX = getappdata(hfig,'wIX');
-    alpha = wIX*alpha_max;
-else
-    alpha = ones(size(cIX))*alpha_max;
-end
+alpha = 0.3-min(length(cIX)/1000/100,0.1);
 
 %% Draw each cell on map (all 3 views)
 % set up specialized indices
@@ -105,35 +93,35 @@ for j=1:length(cIX)
         %     cinds = sub2ind([dim_y,dim_x],cell_info(cellsIX(j)).center(1),cell_info(cellsIX(j)).center(2));
         labelinds=find((cinds+circle_inds)>0 & (cinds+circle_inds)<=dimv_yx(1)*dimv_yx(2)); % within bounds
         ixs = cinds+circle_inds(labelinds);
-        anat_YX(ixs) = cmap(ix,1)*alpha(j) + anat_YX(ixs)*(1-alpha(j)); % R
+        anat_YX(ixs) = cmap(ix,1)*alpha + anat_YX(ixs)*(1-alpha); % R
         ixs = cinds+circle_inds(labelinds) + dimv_yx(1)*dimv_yx(2);
-        anat_YX(ixs) = cmap(ix,2)*alpha(j) + anat_YX(ixs)*(1-alpha(j)); % G
+        anat_YX(ixs) = cmap(ix,2)*alpha + anat_YX(ixs)*(1-alpha); % G
         ixs = cinds+circle_inds(labelinds) + dimv_yx(1)*dimv_yx(2)*2;
-        anat_YX(ixs) = cmap(ix,3)*alpha(j) + anat_YX(ixs)*(1-alpha(j)); % B
+        anat_YX(ixs) = cmap(ix,3)*alpha + anat_YX(ixs)*(1-alpha); % B
         
         %% Y-Z
-        z_alpha(j) = alpha(j)/2;        
+        z_alpha = alpha/2;        
         cinds=(CInfo(cIX(j)).slice-1)*dimv_yz(1)+CInfo(cIX(j)).center(1); % linear pixel index, faster equivalent of:
         %     cinds = sub2ind([dim_y,dim_z],cell_info(cellsIX(j)).center(1),cell_info(cellsIX(j)).slice);
         labelinds=find((cinds+yzplane_inds)>0 & (cinds+yzplane_inds)<=dimv_yz(1)*dimv_yz(2));
         ixs = cinds+yzplane_inds(labelinds);
-        anat_YZ(ixs) = cmap(ix,1)*z_alpha(j) + anat_YZ(ixs)*(1-z_alpha(j)); % R
+        anat_YZ(ixs) = cmap(ix,1)*z_alpha + anat_YZ(ixs)*(1-z_alpha); % R
         ixs = cinds+yzplane_inds(labelinds) + dimv_yz(1)*dimv_yz(2);
-        anat_YZ(ixs) = cmap(ix,2)*z_alpha(j) + anat_YZ(ixs)*(1-z_alpha(j)); % G
+        anat_YZ(ixs) = cmap(ix,2)*z_alpha + anat_YZ(ixs)*(1-z_alpha); % G
         ixs = cinds+yzplane_inds(labelinds) + dimv_yz(1)*dimv_yz(2)*2;
-        anat_YZ(ixs) = cmap(ix,3)*z_alpha(j) + anat_YZ(ixs)*(1-z_alpha(j)); % B
+        anat_YZ(ixs) = cmap(ix,3)*z_alpha + anat_YZ(ixs)*(1-z_alpha); % B
                 
         %% Z-X
-        z_alpha(j) = alpha(j)/2;        
+        z_alpha = alpha/2;        
         cinds=(CInfo(cIX(j)).center(2)-1)*dimv_zx(1) +(CInfo(cIX(j)).slice); % linear pixel index, faster equivalent of:
         %     cinds = sub2ind([dim_y,dim_z],cell_info(cellsIX(j)).center(1),cell_info(cellsIX(j)).slice);
         labelinds=find((cinds+zxplane_inds)>0 & (cinds+zxplane_inds)<=dimv_zx(1)*dimv_zx(2));
         ixs = cinds+zxplane_inds(labelinds);
-        anat_ZX(ixs) = cmap(ix,1)*z_alpha(j) + anat_ZX(ixs)*(1-z_alpha(j)); % R
+        anat_ZX(ixs) = cmap(ix,1)*z_alpha + anat_ZX(ixs)*(1-z_alpha); % R
         ixs = cinds+zxplane_inds(labelinds) + dimv_zx(1)*dimv_zx(2);
-        anat_ZX(ixs) = cmap(ix,2)*z_alpha(j) + anat_ZX(ixs)*(1-z_alpha(j)); % G
+        anat_ZX(ixs) = cmap(ix,2)*z_alpha + anat_ZX(ixs)*(1-z_alpha); % G
         ixs = cinds+zxplane_inds(labelinds) + dimv_zx(1)*dimv_zx(2)*2;
-        anat_ZX(ixs) = cmap(ix,3)*z_alpha(j) + anat_ZX(ixs)*(1-z_alpha(j)); % B
+        anat_ZX(ixs) = cmap(ix,3)*z_alpha + anat_ZX(ixs)*(1-z_alpha); % B
         
     end
 end
@@ -143,8 +131,8 @@ if isShowMasks,
     nMasks = length(Msk_IDs);
     % set params
     cmap2 = jet(nMasks);
-    msk_alpha(j) = 0.25;
-    white_alpha(j) = 0.05;
+    msk_alpha = 0.25;
+    white_alpha = 0.05;
     outline_radius = 5;
     
     for i = 1:nMasks,
@@ -158,11 +146,11 @@ if isShowMasks,
             masks_fit = imdilate(edge(masks_fit), strel('disk',outline_radius));
         end
         ixs = find(masks_fit);
-        anat_YX(ixs) = (cmap2(i,1)*msk_alpha(j) + anat_YX(masks_fit)*(1-msk_alpha(j)))*(1-white_alpha(j)) + white_alpha(j); % R;
+        anat_YX(ixs) = (cmap2(i,1)*msk_alpha + anat_YX(masks_fit)*(1-msk_alpha))*(1-white_alpha) + white_alpha; % R;
         ixs = find(masks_fit) + dimv_yx(1)*dimv_yx(2);
-        anat_YX(ixs) = (cmap2(i,2)*msk_alpha(j) + anat_YX(masks_fit)*(1-msk_alpha(j)))*(1-white_alpha(j)) + white_alpha(j); % G;
+        anat_YX(ixs) = (cmap2(i,2)*msk_alpha + anat_YX(masks_fit)*(1-msk_alpha))*(1-white_alpha) + white_alpha; % G;
         ixs = find(masks_fit) + dimv_yx(1)*dimv_yx(2)*2;
-        anat_YX(ixs) = (cmap2(i,3)*msk_alpha(j) + anat_YX(masks_fit)*(1-msk_alpha(j)))*(1-white_alpha(j)) + white_alpha(j); % B;
+        anat_YX(ixs) = (cmap2(i,3)*msk_alpha + anat_YX(masks_fit)*(1-msk_alpha))*(1-white_alpha) + white_alpha; % B;
         
         % Y-Z
         masks_YZ = squeeze(max(mask_3D,[],2));
@@ -172,11 +160,11 @@ if isShowMasks,
             masks_fit = imdilate(edge(masks_fit), strel('line',outline_radius,90));
         end
         ixs = find(masks_fit);
-        anat_YZ(ixs) = (cmap2(i,1)*msk_alpha(j) + anat_YZ(masks_fit)*(1-msk_alpha(j)))*(1-white_alpha(j)) + white_alpha(j); % R;
+        anat_YZ(ixs) = (cmap2(i,1)*msk_alpha + anat_YZ(masks_fit)*(1-msk_alpha))*(1-white_alpha) + white_alpha; % R;
         ixs = find(masks_fit) + dimv_yz(1)*dimv_yz(2);
-        anat_YZ(ixs) = (cmap2(i,2)*msk_alpha(j) + anat_YZ(masks_fit)*(1-msk_alpha(j)))*(1-white_alpha(j)) + white_alpha(j); % G;
+        anat_YZ(ixs) = (cmap2(i,2)*msk_alpha + anat_YZ(masks_fit)*(1-msk_alpha))*(1-white_alpha) + white_alpha; % G;
         ixs = find(masks_fit) + dimv_yz(1)*dimv_yz(2)*2;
-        anat_YZ(ixs) = (cmap2(i,3)*msk_alpha(j) + anat_YZ(masks_fit)*(1-msk_alpha(j)))*(1-white_alpha(j)) + white_alpha(j); % B;
+        anat_YZ(ixs) = (cmap2(i,3)*msk_alpha + anat_YZ(masks_fit)*(1-msk_alpha))*(1-white_alpha) + white_alpha; % B;
         
         % Z-X
         masks_ZX = squeeze(max(mask_3D,[],1))';  % notice the transpose
@@ -186,11 +174,11 @@ if isShowMasks,
             masks_fit = imdilate(edge(masks_fit), strel('line',outline_radius,0));
         end
         ixs = find(masks_fit);
-        anat_ZX(ixs) = (cmap2(i,1)*msk_alpha(j) + anat_ZX(masks_fit)*(1-msk_alpha(j)))*(1-white_alpha(j)) + white_alpha(j); % R;
+        anat_ZX(ixs) = (cmap2(i,1)*msk_alpha + anat_ZX(masks_fit)*(1-msk_alpha))*(1-white_alpha) + white_alpha; % R;
         ixs = find(masks_fit) + dimv_zx(1)*dimv_zx(2);
-        anat_ZX(ixs) = (cmap2(i,2)*msk_alpha(j) + anat_ZX(masks_fit)*(1-msk_alpha(j)))*(1-white_alpha(j)) + white_alpha(j); % G;
+        anat_ZX(ixs) = (cmap2(i,2)*msk_alpha + anat_ZX(masks_fit)*(1-msk_alpha))*(1-white_alpha) + white_alpha; % G;
         ixs = find(masks_fit) + dimv_zx(1)*dimv_zx(2)*2;
-        anat_ZX(ixs) = (cmap2(i,3)*msk_alpha(j) + anat_ZX(masks_fit)*(1-msk_alpha(j)))*(1-white_alpha(j)) + white_alpha(j); % B;
+        anat_ZX(ixs) = (cmap2(i,3)*msk_alpha + anat_ZX(masks_fit)*(1-msk_alpha))*(1-white_alpha) + white_alpha; % B;
     end
 end
 

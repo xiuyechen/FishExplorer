@@ -29,8 +29,6 @@ Full datasets are stored as 'CONST_F?.mat' or 'CONST_F?_fast.mat' (? = fish numb
 %}
 
 %% User Interface:
-% function hfig = GUI_FishExplorer(CONSTs,VAR,CONST,i_fish)
-% function [hfig,fcns] = GUI_FishExplorer(data_dir,name_CONSTs,name_MASKs,VAR,flag_script,var_script)
 function [hfig,fcns] = GUI_FishExplorer(flag_script,var_script)
 global data_dir name_CONSTs name_MASKs VAR;
 
@@ -44,7 +42,7 @@ end
 
 %% Make figure
 scrn = get(0,'Screensize');
-hfig = figure('Position',[scrn(3)*0.1 scrn(4)*0.05 scrn(3)*0.85 scrn(4)*0.86],...% [50 100 1700 900]
+hfig = figure('Position',[scrn(3)*0.2 scrn(4)*0.05 scrn(3)*0.75 scrn(4)*0.86],...% [50 100 1700 900]
     'Name','GUI_LSh','DeleteFcn',@closefigure_Callback);
 hold off; axis off
 
@@ -121,6 +119,9 @@ setappdata(hfig,'isAvr',1); % show average/full stimulus
 setappdata(hfig,'isRawtime',0); % show stimulus in original order or sorted
 setappdata(hfig,'isShowMasks',0);
 setappdata(hfig,'isShowMskOutline',0);
+setappdata(hfig,'isWeighAlpha',0);
+setappdata(hfig,'isPlotAnatomyOnly',0);
+
 % setappdata(hfig,'stimrange',1); % range of diff stim types
 
 %% initialization
@@ -166,7 +167,7 @@ grid = 0:bwidth+0.001:1;
 %% global variables: various UI element handles
 global hback hfwd hclassname hclassmenu hclusgroupmenu hclusmenu hclusname...
     hstimrangemenu hopID hloadfish hfishnum hstimreg hmotorreg...
-    hcentroidreg hcentroid hstimrange hmasklistbox;
+    hcentroidreg hcentroid hstimrange hmasklistbox h_isavr h_israwtime;
 
 %% UI ----- tab one ----- (General)
 i_tab = 1;
@@ -200,7 +201,19 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Tile Zstack',...
     'Callback',@pushbutton_tileZstack_Callback);
 
 i=i+n;
-n=2; % make new figure without the GUI components, can save manually from default menu
+n=2; % export main working variables to workspace, can customize!
+uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Export(workspace)',...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+    'Callback',@pushbutton_exporttoworkspace_Callback);
+
+i=i+n;
+n=2; % export main working variables to workspace, can customize!
+uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Import(workspace)',...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+    'Callback',@pushbutton_loadVARfromworkspace_Callback);
+
+i=i+n;
+n=2; % create popup figure without the GUI components, can save manually from default menu
 uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Popup plot',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@pushbutton_popupplot_Callback);
@@ -218,16 +231,10 @@ uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Plot fictive','Value'
     'Callback',@checkbox_isPlotFictive_Callback);
 
 i=i+n;
-n=2; % export main working variables to workspace, can customize!
-uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Export(workspace)',...
+n=2; % popupplot option: whether to only plot anatomy map (right half)
+uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Plot anatomy only',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-    'Callback',@pushbutton_exporttoworkspace_Callback);
-
-i=i+n;
-n=2; % export main working variables to workspace, can customize!
-uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Import(workspace)',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-    'Callback',@pushbutton_loadVARfromworkspace_Callback);
+    'Callback',@checkbox_isPlotAnatomyOnly_Callback);
 
 %% UI row 2: Load 
 i_row = 2;
@@ -278,13 +285,13 @@ i = 1;n = 0;
 
 i=i+n;
 n=2; % only centroids (~mean) of clusters shown on left-side plot, the rest is unchanged
-uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show stim-avr',...
+h_isavr = uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show stim-avr',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',1,...
     'Callback',@checkbox_isStimAvr_Callback);
 
 i=i+n;
 n=2; % only centroids (~mean) of clusters shown on left-side plot, the rest is unchanged
-uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show raw-time',...
+h_israwtime = uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show raw-time',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',0,...
     'Callback',@checkbox_isRawtime_Callback);
 
@@ -462,6 +469,17 @@ menu = {'(choose)',''};
 hstimreg = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',menu,'Value',1,...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@popup_getstimreg_Callback);
+
+i=i+n;
+n=2; % stimulus regressors, type range of stim-reg ID (e.g. '1-3,5',but can't use 'end') 
+uicontrol('Parent',tab{i_tab},'Style','text','String','stim combo:',... 
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
+
+i=i+n;
+n=2;
+uicontrol('Parent',tab{i_tab},'Style','edit',...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+    'Callback',@edit_getstimregcombo_Callback);
 
 i=i+n; % motor regressors from fictive, not yet convolved/adjusted for time lag
 n=2; % go to 'GetMotorRegressor.m' to add/update
@@ -1136,41 +1154,6 @@ for x=1:dim
 end
 end
 
-function pushbutton_popupplot_Callback(hObject,~)
-% very similar as function RefreshFigure(hfig)
-isPopout = 1; % no down-sampling in plots
-
-hfig = getParentFigure(hObject);
-i_fish = getappdata(hfig,'i_fish');
-figure('Position',[50,100,1600,800],'color',[1 1 1],...
-    'Name',['Fish#' num2str(i_fish)]);
-h1 = axes('Position',[0.05, 0.03, 0.53, 0.94]); % left ~subplot
-h2 = axes('Position',[0.61, 0.03, 0.35, 0.94]); % right ~subplot
-
-isCentroid = getappdata(hfig,'isCentroid');
-isPlotLines = getappdata(hfig,'isPlotLines');
-isPlotFictive = getappdata(hfig,'isPlotFictive');
-
-% left subplot
-axes(h1);
-DrawClusters(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotFictive);
-
-% right subplot
-axes(h2);
-DrawClustersOnMap_LSh(hfig,isPopout);
-end
-
-function checkbox_isPlotLines_Callback(hObject,~)
-hfig = getParentFigure(hObject);
-value = get(hObject,'Value');
-setappdata(hfig,'isPlotLines',value);
-end
-
-function checkbox_isPlotFictive_Callback(hObject,~)
-hfig = getParentFigure(hObject);
-setappdata(hfig,'isPlotFictive',get(hObject,'Value'));
-end
-
 function pushbutton_exporttoworkspace_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 M = getappdata(hfig,'M');
@@ -1211,6 +1194,59 @@ clusgroupID = 1;
 new_clusgroupID = 1;
 UpdateClusGroupID(hfig,clusgroupID,new_clusgroupID); % to display new menu
 end
+
+function pushbutton_popupplot_Callback(hObject,~)
+% very similar as function RefreshFigure(hfig)
+isPopout = 1; % no down-sampling in plots
+% load
+hfig = getParentFigure(hObject);
+i_fish = getappdata(hfig,'i_fish');
+isCentroid = getappdata(hfig,'isCentroid');
+isPlotLines = getappdata(hfig,'isPlotLines');
+isPlotFictive = getappdata(hfig,'isPlotFictive');
+isPlotAnatomyOnly = getappdata(hfig,'isPlotAnatomyOnly');
+
+if ~isPlotAnatomyOnly,
+    figure('Position',[50,100,1600,800],'color',[1 1 1],...
+        'Name',['Fish#' num2str(i_fish)]);
+    h1 = axes('Position',[0.05, 0.03, 0.53, 0.94]); % left ~subplot
+    h2 = axes('Position',[0.61, 0.03, 0.35, 0.94]); % right ~subplot
+    
+    % left subplot
+    axes(h1);
+    DrawClusters(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotFictive);
+    
+    % right subplot
+    axes(h2);
+    DrawClustersOnMap_LSh(hfig,isPopout);
+    
+else
+    figure('Position',[600,300,600,900],'color',[1 1 1],...
+        'Name',['Fish#' num2str(i_fish)]);
+    axes('Position',[0.03, 0.03, 0.94, 0.94]); % right ~subplot
+    % right subplot
+    DrawClustersOnMap_LSh(hfig,isPopout);
+end
+end
+
+function checkbox_isPlotLines_Callback(hObject,~)
+hfig = getParentFigure(hObject);
+value = get(hObject,'Value');
+setappdata(hfig,'isPlotLines',value);
+end
+
+function checkbox_isPlotFictive_Callback(hObject,~)
+hfig = getParentFigure(hObject);
+setappdata(hfig,'isPlotFictive',get(hObject,'Value'));
+end
+
+function checkbox_isPlotAnatomyOnly_Callback(hObject,~)
+hfig = getParentFigure(hObject);
+setappdata(hfig,'isPlotAnatomyOnly',get(hObject,'Value'));
+end
+
+
+
 
 %% row 2: Load
 
@@ -1583,9 +1619,9 @@ m = C{:};
 range = [];
 for i = 1:length(m),
     if m(i)>0,
-        range = [range,m(i)]; %#ok<AGROW>
+        range = [range,m(i)]; 
     else % have '-'sign,
-        range = [range,m(i-1)+1:-m(i)]; %#ok<AGROW>
+        range = [range,m(i-1)+1:-m(i)]; 
     end
 end
 end
@@ -1667,7 +1703,7 @@ switch rankID,
         [gIX,rankscore] = SortH(H,gIX,numU,'descend');
     case 3,
         disp('stim-lock');
-        [gIX,rankscore] = RankByStimLock_Direct(hfig,cIX,gIX,numU);
+        [gIX,rankscore] = RankByStimLock_Direct(hfig,gIX,numU);
     case 4,
         disp('corr');
         [~,D] = FindCentroid(hfig);
@@ -1710,9 +1746,21 @@ RefreshFigure(hfig);
 disp('ranking complete');
 end
 
-function [gIX,rankscore] = RankByStimLock_Direct(hfig,cIX,gIX,numU)
+function [gIX,rankscore] = RankByStimLock_Direct(hfig,gIX,numU)
 periods = getappdata(hfig,'periods');
 fishset = getappdata(hfig,'fishset');
+
+isAvr = getappdata(hfig,'isAvr');
+isRawtime = getappdata(hfig,'isRawtime');
+if isAvr == 1 || isRawtime == 1,
+    setappdata(hfig,'isAvr',0);
+    setappdata(hfig,'isRawtime',0);
+    global h_isavr h_israwtime; %#ok<TLEV>
+    h_isavr.Value = 0;
+    h_israwtime.Value = 0;
+    UpdateTimeIndex(hfig);
+end
+
 C = FindCentroid(hfig);
 
 if fishset == 1,
@@ -1778,9 +1826,9 @@ regressors = GetMotorRegressor(fictive);
 % % fictive(4,:)+fictive(5,:);   %analog: average
 
 H = zeros(numU,1);
-shift = zeros(numU,1);
-a = zeros(1,3);
-I = zeros(1,3);
+% shift = zeros(numU,1);
+% a = zeros(1,3);
+% I = zeros(1,3);
 for i = 1:numU,
     switch option,
         %         case 1, % 'motor'
@@ -1822,7 +1870,6 @@ end
 % assignin('base', 'shift', shift);
 end
 
-
 function [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,option)
 %% get cluster centroids (means) from GUI current selection
 fishset = getappdata(hfig,'fishset');
@@ -1834,7 +1881,7 @@ nClus = size(C,1);
 %% get stimulus regressor
 switch option
     case 1;
-        [regressors, names] = GetStimRegressor(stim,fishset);
+        regressors = GetStimRegressor(stim,fishset);
         M_regressor = zeros(length(regressors),length(regressors(1).im));
         for i = 1:length(regressors),
             M_regressor(i,:) = regressors(i).im;
@@ -1843,8 +1890,8 @@ switch option
         
     case 2;
         %% get stim regressors and find best match
-        stimregset = [1:8];
-        [regressors, names] = GetStimRegressor(stim,fishset);
+        stimregset = 1:8;
+        regressors = GetStimRegressor(stim,fishset);
         M_regressor = zeros(length(stimregset),length(regressors(1).im));
         for i = 1:length(stimregset),
             M_regressor(i,:) = regressors(stimregset(i)).im;
@@ -1880,13 +1927,13 @@ switch option
                     C_3D_0 = reshape(C(:,tIX_),size(C,1),period,[]);
                     C_period = mean(C_3D_0,3);
                     nPeriods = length(tIX_)/period;
-                    C_mean = horzcat(C_mean,repmat(C_period,1,nPeriods)); %#ok<AGROW>
+                    C_mean = horzcat(C_mean,repmat(C_period,1,nPeriods)); 
                     %             C_3D = zscore(C_3D_0,0,2);
                     %             H_raw = horzcat(H_raw,nanmean(nanstd(C_3D,0,3),2));
                 else
                     offset = length(horzcat(tlists{stimrange(1:i-1)}));% works for i=0 too
                     tIX_ = 1+offset:length(tlists{stimrange(i)})+offset;
-                    C_mean = horzcat(C_mean,zeros(size(C,1),length(tIX_))); %#ok<AGROW>
+                    C_mean = horzcat(C_mean,zeros(size(C,1),length(tIX_))); 
                 end
             end
         end
@@ -1969,7 +2016,7 @@ subplot(2,1,2)
 imagesc(betas)
 end
 
-function [gIX,B] = SortH(H,gIX,numU,descend) % new gIX is sorted based on H, size(H)=[numU,1];
+function [gIX,B] = SortH(H,gIX,numU,descend) %#ok<INUSD> % new gIX is sorted based on H, size(H)=[numU,1];
 if exist('descend','var'),
     [B,I] = sort(H,'descend');
 else
@@ -2212,6 +2259,24 @@ if isPlotReg,
 end
 end
 
+function edit_getstimregcombo_Callback(hObject,~)
+hfig = getParentFigure(hObject);
+% get/format range
+str = get(hObject,'String');
+if ~isempty(str),
+%     str = strrep(str,'end',num2str(nMasks));
+    range = ParseRange(str);
+    
+    setappdata(hfig,'regchoice',{1,range});
+    % highlight the choice (yellow)
+    global hstimreg hmotorreg hcentroidreg; %#ok<TLEV>
+    set(hstimreg,'BackgroundColor',[1,1,1]);
+%         set(hstimreg,'BackgroundColor',[1,1,0.8]); % yellow
+    set(hmotorreg,'BackgroundColor',[1,1,1]);
+    set(hcentroidreg,'BackgroundColor',[1,1,1]);
+end
+end
+
 function PlotRegWithStimMotor(hfig)
 stim = getappdata(hfig,'stim');
 fictive = getappdata(hfig,'fictive');
@@ -2251,7 +2316,7 @@ if 1, % plot all 5 lines
 %     end
     
 else % only plot top 3 lines
-    fc = vertcat(temp(1,:),temp(3,:),temp(2,:));
+    fc = vertcat(temp(1,:),temp(3,:),temp(2,:)); %#ok<UNRCH>
     imagesc(fc);colormap gray
     set(gca,'YTick',[],'XTick',[]);
     set(gcf,'color',[1 1 1]);
@@ -2339,8 +2404,15 @@ stim = getappdata(hfig,'stim');
     
 if regchoice{1}==1, % stim Regressor
     fishset = getappdata(hfig,'fishset');
-    [regressors, names] = GetStimRegressor(stim,fishset);    
-    regressor = regressors(regchoice{2}).im;
+    regressors = GetStimRegressor(stim,fishset);   
+    if length(regchoice{2})>1,
+        regressor = zeros(length(regchoice{2}),length(regressors(1).im));
+        for i = 1:length(regchoice{2}),
+            regressor(i,:) = regressors(regchoice{2}(i)).im;
+        end
+    else
+        regressor = regressors(regchoice{2}).im;
+    end
     
 elseif regchoice{1}==2, % motor Regressor
     fictive = getappdata(hfig,'fictive');
@@ -2413,29 +2485,69 @@ if isempty(regressor),
 end
 
 isPlotCorrHist = getappdata(hfig,'isPlotCorrHist');
-
-[cIX,gIX] = Regression_Direct(hfig,thres_reg,regressor,isPlotCorrHist);
+if size(regressor,1) == 1,
+    [cIX,gIX,wIX] = Regression_Direct(hfig,thres_reg,regressor,isPlotCorrHist);
+else
+    CIX = []; GIX = []; WIX = [];
+    for i = 1:size(regressor,1),
+        [cIX_,gIX_,wIX_] = Regression_Direct(hfig,thres_reg,regressor(i,:),isPlotCorrHist);
+        gIX_ = i*ones(size(gIX_));
+        CIX = [CIX;cIX_]; GIX = [GIX;gIX_]; WIX = [WIX;wIX_];
+    end
+    [cIX,gIX,wIX] = SmartUnique_weighted(CIX,GIX,WIX);
+end
 
 if ~isempty(gIX),
-    gIX = ceil((1:length(cIX))'/length(cIX)*min(20,length(cIX)));
-    UpdateIndices(hfig,cIX,gIX,40);
+%     gIX = ceil((1:length(cIX))'/length(cIX)*min(20,length(cIX)));
+    setappdata(hfig,'wIX',wIX);
+    setappdata(hfig,'isWeighAlpha',1);
+    UpdateIndices(hfig,cIX,gIX,length(unique(gIX)));
+%     UpdateIndices(hfig,cIX,gIX,40);
     RefreshFigure(hfig);
 end
 toc
 beep
 end
 
-function [cIX_,gIX_,R] = Regression_Direct(hfig,thres_reg,regressor,isPlotCorrHist) % gIX_ is just ones
-M_0 = getappdata(hfig,'M_0');
-tic
-R = corr(regressor',M_0');
-tlen = toc;
-if tlen>0.1,
-    disp(tlen);
-    beep;
+function [cIX,gIX,wIX] = SmartUnique_weighted(CIX,GIX,WIX)
+[uCIX,ia,~] = unique(CIX);
+uGIX = GIX(ia);
+uWIX = WIX(ia);
+if length(uCIX) == 1, 
+    counts = length(x);
+else counts = hist(CIX,uCIX); 
+end
+IX1 = find(counts==1);
+CIX1 = uCIX(IX1); % single occurence
+GIX1 = uGIX(IX1);
+WIX1 = uWIX(IX1);
+ia = find(~ismember(CIX,CIX1));
+C = CIX(ia); % multiple copies/occurence, keep all copies
+G = GIX(ia);
+W = WIX(ia);
+[~,I] = sort(W,'descend'); % rank by coeff, so unique ('stable') gets highest
+C = C(I); % finish sorting
+G = G(I);
+[CIX2,ia,~] = unique(C,'stable'); % keep the order!
+GIX2 = G(ia); % the chosen copy for those with multiple copies
+WIX2 = W(ia);
+cIX = vertcat(CIX1,CIX2);
+gIX = vertcat(GIX1,GIX2);
+wIX = vertcat(WIX1,WIX2);
+disp('smart union (weighted) complete');
 end
 
-if thres_reg>0,
+function [cIX_,gIX_,wIX_] = Regression_Direct(hfig,thres_reg,regressor,isPlotCorrHist) % gIX_ is just ones
+M_0 = getappdata(hfig,'M_0');
+% tic
+R = corr(regressor',M_0');
+% tlen = toc;
+% if tlen>0.1,
+%     disp(tlen);
+%     beep;
+% end
+
+if thres_reg>=0,
     cIX_ = (find(R>thres_reg))';
 elseif thres_reg<0,
     cIX_ = (find(R<thres_reg))';
@@ -2443,11 +2555,15 @@ end
 if isempty(cIX_),
     disp('result is empty!');beep;
     gIX_ = [];
+    wIX_ = [];
     return;
 end
-[~,I] = sort(R(cIX_),'descend');
+% re-order cIX_ based on corr coeff
+wIX = R(cIX_); % weight, here set to equal corr coeff
+[~,I] = sort(wIX,'descend');
 cIX_ = cIX_(I);
 gIX_ = ones(size(cIX_));
+wIX_ = wIX(I)';
 
 % option: plot histogram
 if exist('isPlotCorrHist','var'),
@@ -2535,7 +2651,7 @@ clusters(length(U)).cIX = [];
 for i = 1:length(U),
     disp(['i = ' num2str(i)]);
     IX = find(gIX == U(i));    
-    [~,regressor] = kmeans(M_0(cIX(IX),:),1,'distance','correlation'); %#ok<FNDSB>
+    [~,regressor] = kmeans(M_0(cIX(IX),:),1,'distance','correlation');
     cIX_ = Regression_Direct(hfig,thres_reg,regressor);
     clusters(i).cIX = cIX_;
 end
@@ -2543,7 +2659,7 @@ disp('union...');
 CIX = vertcat(clusters(1:end).cIX);
 GIX = [];
 for i = 1:numel(clusters),
-    GIX = [GIX; ones(length(clusters(i).cIX),1)*i]; %#ok<AGROW>
+    GIX = [GIX; ones(length(clusters(i).cIX),1)*i]; 
 end
 [cIX,gIX,numK] = SmartUnique(CIX,GIX,M_0(CIX,:));
 end
@@ -2605,12 +2721,12 @@ if ~isempty(str),
     rng('default');% default = 0, but can try different seeds if doesn't converge
     if numel(M)*numK < 10^7 && numK~=1,
         disp('Replicates = 5');
-        [gIX,C,sumd,D] = kmeans(M,numK,'distance','correlation','Replicates',5);
+        [gIX,C] = kmeans(M,numK,'distance','correlation','Replicates',5);
     elseif numel(M)*numK < 10^8 && numK~=1,
         disp('Replicates = 3');
-        [gIX,C,sumd,D] = kmeans(M,numK,'distance','correlation','Replicates',3);
+        [gIX,C] = kmeans(M,numK,'distance','correlation','Replicates',3);
     else
-        [gIX,C,sumd,D] = kmeans(M,numK,'distance','correlation');%,'Replicates',3);
+        [gIX,C] = kmeans(M,numK,'distance','correlation');%,'Replicates',3);
     end
     toc
     beep
@@ -2644,7 +2760,7 @@ if ~isempty(str),
     disp(['anat. weighted k-means k=' num2str(numK) '...']);
     tic
     rng('default');% default = 0, but can try different seeds if doesn't converge
-    [gIX,C,sumd,D] = kmeans(Combo,numK,'distance','correlation');%,'Replicates',3);
+    [gIX,C] = kmeans(Combo,numK,'distance','correlation');%,'Replicates',3);
     toc
     beep
     
@@ -2694,12 +2810,12 @@ if ~isempty(str),
     rng('default');% default = 0, but can try different seeds if doesn't converge
     if numel(M)*numK < 10^7 && numK~=1,
         disp('Replicates = 5');
-        [gIX,C,sumd,D] = kmeans(M,numK,'distance','correlation','Replicates',5);
+        [gIX,C] = kmeans(M,numK,'distance','correlation','Replicates',5);
     elseif numel(M)*numK < 10^8 && numK~=1,
         disp('Replicates = 3');
-        [gIX,C,sumd,D] = kmeans(M,numK,'distance','correlation','Replicates',3);
+        [gIX,C] = kmeans(M,numK,'distance','correlation','Replicates',3);
     else
-        [gIX,C,sumd,D] = kmeans(M,numK,'distance','correlation');%,'Replicates',3);
+        [gIX,C] = kmeans(M,numK,'distance','correlation');%,'Replicates',3);
     end       
     if numK>1,
         gIX = HierClusDirect(C,gIX,numK);
@@ -2851,7 +2967,7 @@ for i = 1:numK_s,
     if length(IX_s)>thres_size, % cluster big enough to start
         dst = Dist(IX_s);
         if mean(dst) < dthres,
-            I_clean_s = [I_clean_s; IX_s];
+            I_clean_s = [I_clean_s; IX_s]; %#ok<*AGROW>
             gIX_clean = [gIX_clean; gIX_s(IX_s)+double(numU)];
         else
             ix = find(dst<dthres); % clean
@@ -2941,7 +3057,7 @@ SaveClass(hfig,I_rest,ones(length(I_rest),1),classheader,...
 %% rank by stim-lock
 disp('stim-lock');
 UpdateIndices(hfig,cIX,gIX,numU);
-[gIX,rankscore] = RankByStimLock_Direct(hfig,cIX,gIX,numU);
+[gIX,rankscore] = RankByStimLock_Direct(hfig,gIX,numU);
 disp('ranking complete');
 % and threshold
 IX = find(rankscore<thres_stimlock);
@@ -3048,7 +3164,7 @@ while i<numU,
     c = corr(C(i,:)',C(i+1,:)');
     if c > thres_merge,
         IX = find(gIX == U(i+1));
-        gIX(IX)=U(i);
+        gIX(IX)=U(i); %#ok<*FNDSB>
         U = unique(gIX);
         numU = length(U);
         
@@ -3398,9 +3514,9 @@ if ~isempty(str),
     range = [];
     for i = 1:length(m),
         if m(i)>0,
-            range = [range,m(i)]; %#ok<AGROW>
+            range = [range,m(i)]; 
         else % have '-'sign,
-            range = [range,m(i-1)+1:-m(i)]; %#ok<AGROW>
+            range = [range,m(i-1)+1:-m(i)]; 
         end
     end
 
@@ -3408,7 +3524,7 @@ if ~isempty(str),
     CIX = vertcat(Cluster(range).cIX);
     GIX = []; % gIX to match A
     for i = 1:length(range),
-        GIX = [GIX; ones(length(Cluster(range(i)).gIX),1)*i];
+        GIX = [GIX; ones(length(Cluster(range(i)).gIX),1)*i]; 
     end    
     [cIX,gIX,numK] = SmartUnique(CIX,GIX,M_0(CIX,:));    
     UpdateIndices(hfig,cIX,gIX,numK);    
@@ -3610,7 +3726,7 @@ UpdateClassID(hfig,classID);
 disp('class saved');
 end
 
-function UpdateClassID(hfig,classID,norefresh)
+function UpdateClassID(hfig,classID,norefresh) %#ok<INUSD>
 Class = getappdata(hfig,'Class');
 numK = Class(classID).numK;
 i_fish = getappdata(hfig,'i_fish');
@@ -3633,7 +3749,7 @@ global VAR;
 VAR(i_fish).Class = getappdata(hfig,'Class');
 end
 
-function UpdateClusGroupID(hfig,clusgroupID,new_clusgroupID,norefresh)
+function UpdateClusGroupID(hfig,clusgroupID,new_clusgroupID,norefresh) %#ok<INUSD>
 % save/update old Cluster into ClusGroup before exiting, 
 % as Cluster is the variable handled in hfig but not saved elsewhere
 ClusGroup = getappdata(hfig,'ClusGroup');
@@ -3652,7 +3768,7 @@ setappdata(hfig,'clusgroupID',new_clusgroupID);
 global hclusgroupmenu;
 if ishandle(hclusgroupmenu),
     num = length(ClusGroup);
-    menu = {}; for i = 1:num, menu = [menu,{num2str(i)}];end
+    menu = {}; for i = 1:num, menu = [menu,{num2str(i)}];end 
     set(hclusgroupmenu,'String', menu,'Value',new_clusgroupID);
 end
 
@@ -3863,9 +3979,6 @@ if opID ~= 0,
     setappdata(hfig,'opID',0);
 end
 
-% tIX = getappdata(hfig,'tIX');
-% if length(cIX)*length(tIX)<5*10^8,
-
 setappdata(hfig,'bCache',bC);
 setappdata(hfig,'cIX',cIX);
 setappdata(hfig,'gIX',gIX);
@@ -3876,12 +3989,8 @@ setappdata(hfig,'M',M);
 if exist('numK','var'),
     setappdata(hfig,'numK',double(numK));
 end
-% else
-%     errordlg('dataset too large!')
-%     waitforbuttonpress;
-% end
 
-%% Resets:
+%% Resets: reset flags the NEXT time this function is called (so they only apply to this particular plot)
 % handle rankID: >=2 means write numbers as text next to colorbar
 % first UpdateIndices sets rankID to 100, second sets back to 0 
 rankID = getappdata(hfig,'rankID');
@@ -3891,6 +4000,14 @@ if rankID>=2,
     else
         setappdata(hfig,'rankID',100);
     end
+end
+
+% toggle 'isWeighAlpha'
+isWeighAlpha = getappdata(hfig,'isWeighAlpha');
+if isWeighAlpha == 1,
+    setappdata(hfig,'isWeighAlpha',100);
+elseif isWeighAlpha == 100,
+    setappdata(hfig,'isWeighAlpha',0);
 end
 
 % FindCentroid reset:
@@ -3910,7 +4027,7 @@ end
 
 figure(hfig);
 h1 = axes('Position',[0.05, 0.04, 0.55, 0.83]);
-h2 = axes('Position',[0.61, 0.04, 0.35, 0.83]);
+h2 = axes('Position',[0.63, 0.04, 0.35, 0.83]);
 
 isCentroid = getappdata(hfig,'isCentroid');
 isPlotLines = 0; %getappdata(hfig,'isPlotLines');
@@ -3919,7 +4036,7 @@ isPlotFictive = 1; %getappdata(hfig,'isPlotFictive');
 % double-check if cIX is valid
 cIX = getappdata(hfig,'cIX');
 if isempty(cIX),
-    errordlg('empty set! go back!');
+    errordlg('empty set!');
     % GO BACK to the last step (presumably not empty)
     pushbutton_back_Callback(h1); % using h1 instaed of the usual 'hObject'    
     return;
@@ -3953,7 +4070,7 @@ for i=1:numU,
 end
 end
 
-function UpdateTimeIndex(hfig,isSkipcIX)
+function UpdateTimeIndex(hfig,isSkipcIX) %#ok<INUSD>
 % input params
 isAvr = getappdata(hfig,'isAvr');
 isRawtime = getappdata(hfig,'isRawtime');
@@ -3977,11 +4094,12 @@ else % fishset>1,
         for i = 1:length(stimrange),
             ix = stimrange(i);
             i_start = sum(periods(1:ix-1)); % if ix-1<1, sum = 0
-            tIX = vertcat(tIX,(i_start+1:i_start+periods(ix))');
+            tIX = vertcat(tIX,(i_start+1:i_start+periods(ix))'); 
         end
-    else % full range      
-        tIX = cat(2, tlists{stimrange});
-        if isRawtime,
+    else % full range
+        if ~isRawtime,
+            tIX = cat(2, tlists{stimrange});
+        else
             tlists_raw = getappdata(hfig,'tlists_raw');
             tIX = cat(2, tlists_raw{stimrange});
             tIX_sorted = sort(tIX);
@@ -3991,10 +4109,11 @@ else % fishset>1,
             nTypes = length(periods);
             IX_all = tlists_raw{nTypes+1};
             [~,IX] = ismember(tIX_sorted,IX_all);
-            tIX = IX(find(IX));
+            tIX = IX(find(IX)); 
         end
-    end    
+    end
 end
+
 setappdata(hfig,'tIX',tIX);
 
 %% also set 'fictive' and 'stim' with setappdata
@@ -4006,7 +4125,7 @@ if ~exist('isSkipcIX','var'),
 end
 end
 
-function [M,fictive,stim] = GetTimeIndexedData(hfig,isAllCells)
+function [M,fictive,stim] = GetTimeIndexedData(hfig,isAllCells) %#ok<INUSD>
 %{
 % naming convention used:
 M = GetTimeIndexedData(hfig);
