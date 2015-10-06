@@ -94,10 +94,13 @@ thres_merge = 0.9;
 thres_split = 0.7;
 thres_reg = 0.7;
 thres_size = 10;
+thres_ttest = 0.001; 
 setappdata(hfig,'thres_merge',thres_merge);
 setappdata(hfig,'thres_split',thres_split); % for function 'pushbutton_iter_split'
 setappdata(hfig,'thres_reg',thres_reg); % regression threshold, ~correlation coeff
 setappdata(hfig,'thres_size',thres_size); % min size for clusters
+setappdata(hfig,'thres_ttest',thres_ttest); % min size for clusters
+
 
 % variables 
 % (not sure all these need to be initialized, probably not complete either)
@@ -567,28 +570,38 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','iter.reg','Enable',
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',{@pushbutton_IterCentroidRegression_Callback});
 
-%% UI row 2: regression
-% i_row = 2; % Step 2:
-% i = 1;n = 0; % Choose regression, using the regressor chosen above, search in full dataset
-% 
-% i=i+n;
-% n=2; 
-% s = 'Motor component independent of optimal stim-reg used for regression';
-% uicontrol('Parent',tab{i_tab},'Style','text','String','Multi-regression',... 
-%     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
-% 
-% i=i+n;
-% n=2; 
-% uicontrol('Parent',tab{i_tab},'Style','text','String','Stim-reg range:',... 
-%     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
-% 
-% i=i+n;
-% n=1;
-% s = 'Choose range of stim-regressor (only optimal one will be used subsequently)';
-% uicontrol('Parent',tab{i_tab},'Style','edit','String',num2str(thres_reg),...
-%     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-%     'Callback',@edit_regthres_Callback);
-% 
+%% UI row 3: t-tests
+i_row = 3; 
+i = 1;n = 0;
+
+i=i+n;
+n=2; 
+uicontrol('Parent',tab{i_tab},'Style','text','String','Choose stim pair:',... 
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
+
+i=i+n;
+n=1;
+uicontrol('Parent',tab{i_tab},'Style','edit','String','(blank)',...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+    'Callback',@edit_tteststimrange_Callback); % e.g. '1-3,5', but can't use 'end'
+
+i=i+n;
+n=2; 
+uicontrol('Parent',tab{i_tab},'Style','text','String','t-test thres:',... 
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
+
+i=i+n;
+n=1;
+uicontrol('Parent',tab{i_tab},'Style','edit','String',num2str(thres_ttest),...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+    'Callback',@edit_ttestthres_Callback);
+
+i=i+n;
+n=2;
+uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','t-test',... 
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+    'Callback',@pushbutton_ttest_Callback);
+
 % i=i+n;
 % n=2;
 % s = 'Choose single motor-regressor';
@@ -1245,9 +1258,6 @@ hfig = getParentFigure(hObject);
 setappdata(hfig,'isPlotAnatomyOnly',get(hObject,'Value'));
 end
 
-
-
-
 %% row 2: Load
 
 function popup_fishmenu_Callback(hObject,~)
@@ -1533,6 +1543,8 @@ if ~isempty(bC.cIX{1}),
     setappdata(hfig,'numK',numK);
     % handle rankID: >=2 means write numbers as text next to colorbar
     setappdata(hfig,'rankID',0);
+    setappdata(hfig,'isWeighAlpha',0);
+    
     M = GetTimeIndexedData(hfig);
     setappdata(hfig,'M',M);
     
@@ -1575,6 +1587,8 @@ if ~isempty(fC.cIX{1}),
     setappdata(hfig,'numK',numK);
     % handle rankID: >=2 means write numbers as text next to colorbar
     setappdata(hfig,'rankID',0);
+    setappdata(hfig,'isWeighAlpha',0);
+    
     M = GetTimeIndexedData(hfig);
     setappdata(hfig,'M',M);
 
@@ -2702,6 +2716,104 @@ if ~isempty(cIX_),
     UpdateIndices(hfig,cIX_,gIX_,40);
     RefreshFigure(hfig);
 end
+end
+
+%% row 3: t-tests
+
+function edit_tteststimrange_Callback(hObject,~)
+hfig = getParentFigure(hObject);
+str = get(hObject,'String'); 
+if ~isempty(str),
+    % e.g. '1-3,5', but can't use 'end'
+    tteststimrange = ParseRange(str);
+    setappdata(hfig,'tteststimrange',tteststimrange);
+%     UpdateTimeIndex(hfig);
+%     RefreshFigure(hfig);
+end
+end
+
+function edit_ttestthres_Callback(hObject,~)
+str = get(hObject,'String');
+if ~isempty(str),
+    temp = textscan(str,'%f');
+    thres_ttest = temp{:};
+    hfig = getParentFigure(hObject);
+    setappdata(hfig,'thres_ttest',thres_ttest);
+end
+end
+
+function pushbutton_ttest_Callback(hObject,~) 
+hfig = getParentFigure(hObject);
+M = getappdata(hfig,'M');
+cIX = getappdata(hfig,'cIX');
+stim = getappdata(hfig,'stim');
+fishset = getappdata(hfig,'fishset');
+thres_ttest = getappdata(hfig,'thres_ttest');
+tteststimrange = getappdata(hfig,'tteststimrange');
+
+[stimStateBinary_all, names] = GetStimStateBinary(stim,fishset);
+stimStateBinary = stimStateBinary_all(tteststimrange,:);
+if isempty(stimStateBinary),
+    return;
+end
+
+%% Misha's method of averaging over 5 frames;
+samples = cell(1,length(tteststimrange));
+for i = 1:length(tteststimrange),
+    IX = find(stimStateBinary(i,:));
+    len = 5*floor(length(IX)/5);
+    M_ = M(:,IX(1:len));
+    temp = reshape(M_,size(M,1),5,[]);
+    samples{i} = squeeze(mean(temp,2));
+end
+
+nCells = size(M,1);
+pvals = zeros(1,nCells);
+signs = zeros(1,nCells);
+for i_cell = 1:nCells,    
+    [~, p] = ttest2(samples{1}(i_cell,:),samples{2}(i_cell,:));
+    pvals(i_cell) = p;
+    signs(i_cell) = sign(mean(samples{1}(i_cell,:)) -  mean(samples{2}(i_cell,:)));
+end
+
+% 
+mean(pvals)
+std(pvals)
+figure;hold on;
+xv = -100:1:0;
+counts = hist(log(pvals),xv);
+bar(-100:1:0,counts);
+plot([log(thres_ttest),log(thres_ttest)],[0,max(counts)],'r--');
+
+% rank cells, and threshold if desired
+[B,I] = sort(pvals);
+cIX = cIX(I);
+if thres_ttest>0,
+    ix = find(B<thres_ttest,1,'last');
+    cIX = cIX(1:ix);
+end
+if length(cIX)>100,
+    interval = round(length(cIX)/20);
+    gIX = ceil((1:length(cIX))/interval)';
+    gIX(gIX>20) = 20;
+else
+    gIX = ones(size(cIX));
+end
+UpdateIndices(hfig,cIX,gIX);
+RefreshFigure(hfig);
+
+%%
+
+% pvals_ = zeros(1,length(comparisons));
+%     signs_ = zeros(1,length(comparisons));
+%     for comps = 1:length(comparisons)
+%         [h p] = ttest2(measurements{comparisons{comps}(1)}, measurements{comparisons{comps}(2)});
+%         pvals_(comps) = p;
+%         signs_(comps) = sign(mean(measurements{comparisons{comps}(1)}) -  mean(measurements{comparisons{comps}(2)}));
+%     end
+%     Pvals(i,:) = pvals_;
+%     signs(i,:) = signs_;
+    
 end
 
 %% ----- tab four ----- (Clustering etc.)
@@ -4080,7 +4192,6 @@ tlists = getappdata(hfig,'tlists');
 periods = getappdata(hfig,'periods');
 fishset = getappdata(hfig,'fishset');
 
-%%
 if fishset == 1,
     if isAvr,
         tIX = tlists{1};
