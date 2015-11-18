@@ -101,6 +101,7 @@ setappdata(hfig,'thres_reg',thres_reg); % regression threshold, ~correlation coe
 setappdata(hfig,'thres_size',thres_size); % min size for clusters
 setappdata(hfig,'thres_ttest',thres_ttest); % min size for clusters
 
+
 % variables 
 % (not sure all these need to be initialized, probably not complete either)
 setappdata(hfig,'clrmap','hsv');
@@ -124,6 +125,21 @@ setappdata(hfig,'isShowMasks',0);
 setappdata(hfig,'isShowMskOutline',0);
 setappdata(hfig,'isWeighAlpha',0);
 setappdata(hfig,'isPlotAnatomyOnly',0);
+
+% setappdata(hfig,'stimrange',1); % range of diff stim types
+
+%% initialization
+i_fish = 1;
+% LoadFullFish(hfig,i_fish,'init'); % QuickUpdateFish(hfig,i_fish,'init');
+% 
+% Cluster = getappdata(hfig,'Cluster');
+% clusID = 1; %numel(Cluster);
+% setappdata(hfig,'clusID',clusID);
+% % setappdata(hfig,'clusheader','Test:');
+% setappdata(hfig,'newclusname','');
+
+% % setappdata(hfig,'cIX',Cluster(clusID).cIX); % cell-IndeX
+% % setappdata(hfig,'gIX',Cluster(clusID).gIX); % group-IndeX
 
 %% Create UI controls
 set(gcf,'DefaultUicontrolUnits','normalized');
@@ -228,20 +244,20 @@ uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Plot anatomy only',..
 i_row = 2;
 i = 1;n = 0;
 
-% i=i+n;
-% n=2; % this design is underused now... Quick-load only depends on CONSTs,
-% % which is a minimum collection of clusters from all fish, so you can load
-% % the program without full single-fish data. eventually can use this  
-% % platform to do things across fish (like after anatomical alignment).
-% uicontrol('Parent',tab{i_tab},'Style','text','String','Quick-load fish:',...
-%     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
-% 
-% i=i+n;
-% n=1; % loads 'CONSTs_current.mat' from current directory
-% temp = {}; for j = 1:nFish, temp = [temp,{num2str(j)}];end
-% hfishnum = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',temp,...
-%     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-%     'Callback',@popup_quickloadfishmenu_Callback);
+i=i+n;
+n=2; % this design is underused now... Quick-load only depends on CONSTs,
+% which is a minimum collection of clusters from all fish, so you can load
+% the program without full single-fish data. eventually can use this  
+% platform to do things across fish (like after anatomical alignment).
+uicontrol('Parent',tab{i_tab},'Style','text','String','Quick-load fish:',...
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
+
+i=i+n;
+n=1; % loads 'CONSTs_current.mat' from current directory
+temp = {}; for j = 1:nFish, temp = [temp,{num2str(j)}];end
+hfishnum = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',temp,...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+    'Callback',@popup_quickloadfishmenu_Callback);
 
 i=i+n;
 n=2; % loads full single-fish data from CONST_F?.mat
@@ -762,7 +778,7 @@ i = 1;n = 0;
 
 i=i+n;
 n=2;
-uicontrol('Parent',tab{i_tab},'Style','text','String','ClusterGroup:',...
+uicontrol('Parent',tab{i_tab},'Style','text','String','Cluster-Group:',...
     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
@@ -785,13 +801,13 @@ hclusgroupname = uicontrol('Parent',tab{i_tab},'Style','edit','String','(blank)'
 
 i=i+n; % just adds a new number to the ClusterGroup-number menu, 
 n=3; % and saves current view as the first cluster in the new Clustergroup
-uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','New ClusterGroup',...
+uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','new Clustergroup',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',{@pushbutton_newclusgroup_Callback});
 
 i=i+n;
 n=3; % delete current ClusterGroup
-uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Delete ClusterGroup',...
+uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','del Clustergroup',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',{@pushbutton_delclusgroup_Callback});
 
@@ -1202,57 +1218,55 @@ hfig = getParentFigure(hObject);
 QuickUpdateFish(hfig,new_i_fish);
 end
 
-%{
-% function QuickUpdateFish(hfig,new_i_fish,init) %#ok<INUSD>
-% disp('loading...');
-% tic
-% M_fish_set = getappdata(hfig,'M_fish_set');
-% fishset = M_fish_set(new_i_fish);
-% setappdata(hfig,'fishset',fishset);
-% setappdata(hfig,'isfullfish',0);
-% % get CONST_s for this fish by loading just this piece from the .mat
-% name_CONSTs = getappdata(hfig,'name_CONSTs');
-% data_dir = getappdata(hfig,'data_dir');
-% matObj = matfile(fullfile(data_dir,name_CONSTs)); %#ok<NASGU>
-% eval(['CONST_s = matObj.CONST',num2str(new_i_fish),';']);
-% 
-% 
-% % load all fields from CONST_s.const, with names preserved
-% names = fieldnames(CONST_s.const); % cell of strings
-% for i = 1:length(names),
-%     setappdata(hfig,names{i},eval(['CONST_s.const.',names{i}]));
-% end
-% 
-% % recontruct the 3 big matrices from CIX to original size (numcell)
-% CIX = CONST_s.CIX;
-% numcell = CONST_s.numcell;
-% 
-% temp = CONST_s.CellRespAvr;
-% CellRespAvr = zeros(numcell,size(temp,2));
-% CellRespAvr(CIX,:) = temp;
-% 
-% temp = CONST_s.CellResp;
-% CellResp = zeros(numcell,size(temp,2));
-% CellResp(CIX,:) = temp;
-% 
-% temp = [CONST_s.CInfo.center];
-% XY = reshape(temp',[],length(CIX))';
-% Z = [CONST_s.CInfo.slice]';
-% CellXYZ = zeros(numcell,3);
-% CellXYZ(CIX,1:2) = XY;
-% CellXYZ(CIX,3) = Z;
-% 
-% setappdata(hfig,'CellRespAvr',CellRespAvr); 
-% setappdata(hfig,'CellResp',CellResp); 
-% setappdata(hfig,'CellXYZ',CellXYZ); 
-% toc
-% 
-% UpdateFishData(hfig,new_i_fish);
-% if ~exist('init','var'),
-%     UpdateFishDisplay(hfig);
-% end
-% end
-%}
+function QuickUpdateFish(hfig,new_i_fish,init) %#ok<INUSD>
+disp('loading...');
+tic
+M_fish_set = getappdata(hfig,'M_fish_set');
+fishset = M_fish_set(new_i_fish);
+setappdata(hfig,'fishset',fishset);
+setappdata(hfig,'isfullfish',0);
+% get CONST_s for this fish by loading just this piece from the .mat
+name_CONSTs = getappdata(hfig,'name_CONSTs');
+data_dir = getappdata(hfig,'data_dir');
+matObj = matfile(fullfile(data_dir,name_CONSTs)); %#ok<NASGU>
+eval(['CONST_s = matObj.CONST',num2str(new_i_fish),';']);
+
+
+% load all fields from CONST_s.const, with names preserved
+names = fieldnames(CONST_s.const); % cell of strings
+for i = 1:length(names),
+    setappdata(hfig,names{i},eval(['CONST_s.const.',names{i}]));
+end
+
+% recontruct the 3 big matrices from CIX to original size (numcell)
+CIX = CONST_s.CIX;
+numcell = CONST_s.numcell;
+
+temp = CONST_s.CellRespAvr;
+CellRespAvr = zeros(numcell,size(temp,2));
+CellRespAvr(CIX,:) = temp;
+
+temp = CONST_s.CellResp;
+CellResp = zeros(numcell,size(temp,2));
+CellResp(CIX,:) = temp;
+
+temp = [CONST_s.CInfo.center];
+XY = reshape(temp',[],length(CIX))';
+Z = [CONST_s.CInfo.slice]';
+CellXYZ = zeros(numcell,3);
+CellXYZ(CIX,1:2) = XY;
+CellXYZ(CIX,3) = Z;
+
+setappdata(hfig,'CellRespAvr',CellRespAvr); 
+setappdata(hfig,'CellResp',CellResp); 
+setappdata(hfig,'CellXYZ',CellXYZ); 
+toc
+
+UpdateFishData(hfig,new_i_fish);
+if ~exist('init','var'),
+    UpdateFishDisplay(hfig);
+end
+end
 
 function UpdateFishData(hfig,new_i_fish) % loading steps shared by both quick-load and full-load
 %% set Cluster display

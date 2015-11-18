@@ -24,6 +24,12 @@ name_CONSTs = 'CONSTs_current2.mat'; % stores selected data from all fish
 % MASKs = load(fullfile(data_dir,'MaskDatabase.mat')); % loading this in GUI
 name_MASKs = 'MaskDatabase.mat'; % stores selected data from all fish
 
+set(0, 'defaultUicontrolFontName', 'Arial');
+set(0, 'defaultUitableFontName', 'Arial');
+set(0, 'defaultUipanelFontName', 'Arial');
+set(0, 'defaultAxesFontName', 'Arial');
+set(0, 'defaultTextFontName', 'Arial');
+
 %% Start GUI
 % Run this, or press F5 in 'GUI_FishExplorer.m'
 [hfig,fcns] = GUI_FishExplorer;

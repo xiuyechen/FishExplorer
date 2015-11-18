@@ -31,7 +31,7 @@ toc
 beep
 
 %% Set threshold at 50%, i.e. discard 50% of all cells
-perc_keep = 75;
+perc_keep = 50;
 thr = prctile(STD_full,perc_keep); 
 
 temp = find(STD_full>thr);
@@ -63,7 +63,7 @@ M = CR_dtr(I,1:1000);
 BasicPlotMaps(cIX,gIX,M,CInfo_thr,stim,anat_yx,anat_yz,anat_zx);
 
 %% Save new 'directload.mat'
-temp = fullfile(datadir,['Fish' num2str(i_fish) '_direct_load.mat']);
+temp = fullfile(datadir,['Fish' num2str(i_fish) '_direct_load_thr50.mat']);
 varList = {'CR_dtr','nCells','CInfo','anat_yx','anat_yz','anat_zx','ave_stack','fpsec','frame_turn','perc_keep'}; 
 % NOTE! not saving CR_raw in non-'_nodiscard.mat' again!
 % should keep '_nodiscard.mat' so that this thresholding can be re-done

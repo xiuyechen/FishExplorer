@@ -89,7 +89,7 @@ indice = X(:,1);
 for i = 1:g
    Xe = find(indice==i);
    eval(['X' num2str(i) '= X(Xe,2:end);']);
-   eval(['n' num2str(i) '= length(X' num2str(i) ') ;'])
+   eval(['n' num2str(i) '= size(X' num2str(i) ',1) ;'])
    eval(['xn= n' num2str(i) ';'])
    n = [n,xn];
 end;
@@ -109,7 +109,8 @@ end;
 
 %Partition of the group covariance matrices.
 for k=1:g
-   eval(['S' num2str(k) '=cov(X(r:r1,:));';]);
+    eval(['S' num2str(k) '=cov(X(r:r1,:));';]);
+%    eval(['S' num2str(k) '=cov(X(r:r1,:));';]);
    if k<g
     r=r+n(k);
     r1=r1+n(k+1);

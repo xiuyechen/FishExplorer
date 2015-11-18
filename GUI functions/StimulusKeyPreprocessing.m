@@ -59,6 +59,10 @@ if i_fish == 8,
     stimset(2).ij = [1,2; 3,2;];
     stimset(3).name = 'Spontaneous';
     stimset(3).ij = [1,3; 2,4;3,3];
+    stimset(4).name = 'PT-shock';
+    stimset(4).ij = [2,1; 2,2;];
+    stimset(5).name = 'OMT-shock';
+    stimset(5).ij = [2,3];
     
     % M_range_raw = [2,3,4,5,12,13,14,15,99,100]; % for Fish 8
     M_range =       [3,1,3,2, 9,10,11,12, 4,16]; % standardized
@@ -67,7 +71,7 @@ elseif i_fish == 9 || i_fish == 10 || i_fish == 11,
     nBlocks = 3;
     block_raw = cell(nBlocks,1); % number of blocks
     block_raw{1} = {[2,3,4,5],[12,13,12,14,12,15],99,[23,22],[30,31,30,32],[42,43,44,45]};
-    block_raw{2} = {[2,100,2,3,4,100,4,5],[12,100,12,13,12,100,12,14,12,100,12,15],99,[23,22],[30,31,30,32],[42,100,42,43,44,100,44,45]};
+    block_raw{2} = {[2,100,2,3,4,100,4,5],99,[12,100,12,13,12,100,12,14,12,100,12,15],99,[23,22],[30,31,30,32],[42,100,42,43,44,100,44,45]};
     block_raw{3} = {[2,3,4,5],[12,13,12,14,12,15],99,[23,22],[30,31,30,32],[42,43,44,45],[2,3,4,5],[12,13,12,14,12,15]};
     
     stimset = [];
@@ -76,19 +80,19 @@ elseif i_fish == 9 || i_fish == 10 || i_fish == 11,
     stimset(2).name = 'OMR';
     stimset(2).ij = [1,2; 3,2; 3,8];
     stimset(3).name = 'Spontaneous';
-    stimset(3).ij = [1,3; 2,3; 3,3];
+    stimset(3).ij = [1,3; 2,4; 3,3];
     stimset(4).name = 'Dot/prey';
-    stimset(4).ij = [1,4; 2,4; 3,4];
+    stimset(4).ij = [1,4; 2,5; 3,4];
     stimset(5).name = 'Looming';
-    stimset(5).ij = [1,5; 2,5; 3,5];
+    stimset(5).ij = [1,5; 2,6; 3,5];
     stimset(6).name = 'Red|Blue';
     stimset(6).ij = [1,6; 3,6];
-%     stimset(7).name = 'PT+shock';
-%     stimset(7).ij = [2,1];
-%     stimset(7).name = 'OMR+shock';
-%     stimset(7).ij = [2,2];
-%     stimset(7).name = 'RB+shock';
-%     stimset(7).ij = [2,6];
+    stimset(7).name = 'PT-shock';
+    stimset(7).ij = [2,1];
+    stimset(8).name = 'OMR-shock';
+    stimset(8).ij = [2,3];
+    stimset(9).name = 'RB-shock';
+    stimset(9).ij = [2,7];
     
     % M_range_raw = [2,3,4,5,12,13,14,15,22,23,30,31,32,42,43,44,45,99,100] % for Fish 10
     M_range =       [3,1,3,2, 9,10,11,12,13, 0, 3,14,15,23,21,23,22, 4,16]; % standardized

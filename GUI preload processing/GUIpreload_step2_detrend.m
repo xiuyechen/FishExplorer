@@ -7,7 +7,7 @@ clear all;close all;clc
 
 M_dir = GetFishDirectories();
 
-poolobj=parpool(4);
+poolobj=parpool(8);
 
 range_fish = 11; %1:8
 

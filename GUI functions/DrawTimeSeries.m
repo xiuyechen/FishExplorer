@@ -1,4 +1,4 @@
-function DrawClusters(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotFictive)
+function DrawTimeSeries(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotFictive)
 % load
 numK = getappdata(hfig,'numK');
 fictive = getappdata(hfig,'fictive');

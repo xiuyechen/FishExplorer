@@ -2,11 +2,11 @@
 %%
 if true,
     clear all;close all;
-    varList = {'CR_dtr','nCells','CInfo','anat_yx','anat_yz','anat_zx','ave_stack','fpsec'};%,'frame_turn'};
+    varList = {'CR_dtr','numcell_full','CellXYZ','anat_yx','anat_yz','anat_zx','ave_stack','fpsec','frame_turn'};
 else
     % or without 'CR_dtr', keeping it from previous step:
-    clearvars -except 'CR_dtr';
-    varList = {'nCells','CInfo','anat_yx','anat_yz','anat_zx','ave_stack','fpsec'};%,'frame_turn'};
+    clearvars -except 'CR_dtr'; % 'CR_z_dtr';
+    varList = {'numcell_full','CellXYZ','anat_yx','anat_yz','anat_zx','ave_stack','fpsec','frame_turn'};
 end
 
 %%
@@ -16,53 +16,18 @@ M_stimset = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2];
 save_dir = GetCurrentDataDir();
 
 dshift = 2; % differential shift between fictive and fluo, manually chosen
-        
-isNeedfliplr = true;
+
 %% MANUAL
-for i_fish = 11, %:8,
-    disp(num2str(i_fish));
+for i_fish = 1,
+    disp(['i_fish = ', num2str(i_fish)]);
     tic
     %% load data
-    datadir = M_dir{i_fish};
-    load(fullfile(datadir,['Fish' num2str(i_fish) '_direct_load_nodiscard.mat']),varList{:});
-    load(fullfile(datadir,'frame_turn.mat'),'frame_turn');
+    load(fullfile(M_dir{i_fish},['Fish' num2str(i_fish) '_direct_load_full_v6.mat']),varList{:}); % '_direct_load_nodiscard.mat'
+%     load(fullfile(datadir,'frame_turn.mat'),'frame_turn');
     
     if size(frame_turn,1)<size(frame_turn,2),
         frame_turn = frame_turn';
     end    
-    
-    %% for old directloads (? 8/26/2015, fish#<11)Flip correction from original data
-    if isNeedfliplr,
-        ave_stack = fliplr(ave_stack);
-        anat_yx = fliplr(anat_yx);
-        anat_zx = fliplr(anat_zx);
-        
-        % CInfo = cell info, need to correct indices too
-        [s1,s2,~] = size(ave_stack);
-        for i_cell = 1:length(CInfo),
-            % fix '.center'
-            CInfo(i_cell).center(2) = s2-CInfo(i_cell).center(2)+1;
-            % fix '.inds'
-            IX = CInfo(i_cell).inds;
-            [I,J] = ind2sub([s1,s2],IX);
-            J = s2-J+1;
-            CInfo(i_cell).inds = sub2ind([s1,s2],I,J);
-            % fix '.x_minmax'
-            CInfo(i_cell).x_minmax(1) = s2-CInfo(i_cell).x_minmax(1)+1;
-            CInfo(i_cell).x_minmax(2) = s2-CInfo(i_cell).x_minmax(2)+1;
-        end
-    end
-    
-    %% for old directloads <9/2/15
-    temp = [CInfo(:).center];
-    XY = reshape(temp',[],length(CInfo))';
-    IX_discardedge = find(XY(:,1)<15 | XY(:,1)> size(ave_stack,1)-15 ...
-        | XY(:,2)<15 | XY(:,2)> size(ave_stack,2)-15);
-    CInfo(IX_discardedge) = [];
-    CR_dtr(IX_discardedge,:) = [];    
-
-    temp = fullfile(datadir,['Fish' num2str(i_fish) '_direct_load_nodiscard.mat']);
-    save(temp,'IX_discardedge','-v7.3','-append');
     
     %% Manual occasional frame corrections: ONLY RUN ONCE!!!!!!!!!
     
@@ -75,6 +40,7 @@ for i_fish = 11, %:8,
     % correction of an error in Fish #1
     if i_fish == 1,
         CR_dtr = horzcat(CR_dtr(:,1:20),CR_dtr);
+%         CR_z_dtr = horzcat(CR_z_dtr(:,1:20),CR_z_dtr);
     end
     
     %% index processing
@@ -88,10 +54,12 @@ for i_fish = 11, %:8,
         shift = period; % (fixed 9/23/15; before = period+dshift)
         
         IX_all = 1+shift:period*nrep+shift;
-        CellResp = CR_dtr(:,IX_all); % old name: CRZt, 'Cell Responses Zscore trimmed'
+        CellResp = CR_dtr(:,IX_all);
+%         CellRespZ = CR_z_dtr(:,IX_all); % z-scored
         
         nCells = size(CR_dtr,1);
-        CellRespAvr = mean(reshape(CR_dtr(:,IX_all+dshift),nCells,period,[]),3); % 'Cell Response Average Zscore'
+        CellRespAvr = mean(reshape(CR_dtr(:,IX_all+dshift),nCells,period,[]),3);
+%         CellRespAvrZ = mean(reshape(CR_z_dtr(:,IX_all+dshift),nCells,period,[]),3);
         
         if i_fish<6,
             stimrangenames = {'16 permut: B/W/phototaxis*2'};
@@ -114,7 +82,7 @@ for i_fish = 11, %:8,
         
     else % multiple protocols                
         % process raw stimulus code
-        [stimset,stim_full_raw] = StimulusKeyPreprocessing(frame_turn,i_fish);
+        [stimset,stim_full_raw] = StimulusKeyPreprocessing(frame_turn,i_fish); % StimulusKeyPreprocessing(frame_turn,i_fish,'isplotting') to show plot
                 
         %% variables to save later in struct
         periods = [stimset.period];
@@ -137,7 +105,8 @@ for i_fish = 11, %:8,
 %         tlists_raw{nTypes+2} = sort(IX_all);
         
         % This is the main data to store and load to GUI
-        CellResp = CR_dtr(:,IX_all); % old name: CRZt, 'Cell Responses Zscore trimmed'
+        CellResp = CR_dtr(:,IX_all);
+%         CellRespZ = CR_z_dtr(:,IX_all);
         stim_full = stim_full_raw(IX_all);
         
         %% get tlists corresponding to IX_all (tlists_raw ~ 1:totalframe#)
@@ -151,11 +120,13 @@ for i_fish = 11, %:8,
         numcell = size(CR_dtr,1);
         shift = -dshift; % circshift fluo left by 2 frames
         
-        CellRespAvr = []; % 'Cell Response Average Zscore'
+        CellRespAvr = [];
+        CellRespAvrZ = [];
         stimAvr = [];
         for i = 1:nTypes,
             M = circshift(CellResp(:,tlists{i}),shift,2);
             CellRespAvr = horzcat(CellRespAvr,mean(reshape(M,numcell,periods(i),[]),3));
+%             CellRespAvrZ = horzcat(CellRespAvrZ,mean(reshape(M,numcell,periods(i),[]),3));
             % stim from stim_full
             m = stim_full(tlists{i});
             stimAvr = horzcat(stimAvr,m(1:periods(i)));
@@ -195,147 +166,36 @@ for i_fish = 11, %:8,
     
     
     %% compile CONST
-    CONST = [];
-    names = {'ave_stack','anat_yx','anat_yz','anat_zx','CInfo','periods','shift','dshift',...
-        'CellResp','CellRespAvr','Fictive','FictiveAvr','stim_full','stimAvr',...
+    CellRespAvrZ = zscore(CellRespAvr')';
+    
+    data = [];
+    names = {'numcell_full','CellXYZ','anat_yx','anat_yz','anat_zx','ave_stack','fpsec','periods','shift','dshift',...
+        'CellRespAvr','CellRespAvrZ','Fictive','FictiveAvr','stim_full','stimAvr',... %'CellResp',
         'tlists','stimrangenames'};
     if M_stimset(i_fish) > 1,
         names = [names,{'tlists_raw','stimset'}];
     end
     
     for i = 1:length(names), % use loop to save variables into fields of CONST
-        eval(['CONST.',names{i},'=', names{i},';']);
+        eval(['data.',names{i},'=', names{i},';']);
     end
     
     %% and save
-    %%% old method:
-    %     temp = whos('CONST');
-    %     if [temp.bytes]<2*10^9,
-    %         save(['CONST_F' num2str(i_fish) '.mat'],'CONST');
-    %         beep;
-    %     else
-    %         save(['CONST_F' num2str(i_fish) '.mat'],'CONST','-v7.3');
-    %         beep;
-    %     end
     
     %%% new method with partitioning of main data
-    newfishdir = fullfile(save_dir,['CONST_F' num2str(i_fish) '_fast.mat']);
-    const = CONST;
-    const = rmfield(const,'CellResp');
-    dimCR = size(CONST.CellResp);
-    save(newfishdir,'const','dimCR','-v6');
+    newfishdir = fullfile(save_dir,['Data_F' num2str(i_fish) '_full.mat']);
+    dimCR = size(CellResp);
+    save(newfishdir,'data','dimCR','-v6');
     % custom function:
-    SaveFileInPartsAppendv6(newfishdir,CellResp);
+    SaveFileInPartsAppendv6(newfishdir,CellResp,'CellResp');
+%     SaveFileInPartsAppendv6(newfishdir,CellRespZ,'CellRespZ');
 
     toc; beep
     
 end
 
-%% initialize VAR (once)
 
-
-%% Initialize VARS % outdated? Clusgroup?
-
-% nCells = length(CONST.CInfo);
-% 
-% cIX = (1:nCells)';
-% i = 1;
-% VAR(i_fish).Class(i).name = 'all processed';
-% VAR(i_fish).Class(i).cIX = cIX;
-% VAR(i_fish).Class(i).gIX = ones(length(cIX),1);
-% VAR(i_fish).Class(i).numel = nCells;
-% VAR(i_fish).Class(i).numK = 1;
-% VAR(i_fish).Class(i).datatype = 'std';
-% 
-% cIX = (1:100:nCells)';
-% VAR(i_fish).ClusGroup{1,1}.name = 'test';
-% VAR(i_fish).ClusGroup{1,1}.cIX = cIX;
-% VAR(i_fish).ClusGroup{1,1}.gIX = ones(length(cIX),1);
-% VAR(i_fish).ClusGroup{1,1}.numel = length(cIX);
-% VAR(i_fish).ClusGroup{1,1}.numK = 1;
-% 
-% %%
-% cIX = (1:10:nCells)';
-% VAR(i_fish).ClusGroup{1,1}(12).name = '1/10 of all';
-% VAR(i_fish).ClusGroup{1,1}(12).cIX = cIX;
-% VAR(i_fish).ClusGroup{1,1}(12).gIX = ones(length(cIX),1);
-% VAR(i_fish).ClusGroup{1,1}(12).numel = length(cIX);
-% VAR(i_fish).ClusGroup{1,1}(12).numK = 1;
-
-%% varience/std for reps for each cell
-%     if i_fish==2 || i_fish==3 || i_fish==6,
-%         period_real = period/2;
-%     else
-%         period_real = period;
-%     end
-%     nrep_real = floor((size(CR,2)-shift)/period_real);
-%     while period_real*nrep_real+shift>size(CR,2),
-%         nrep_real = nrep_real-1;
-%     end
-%     CRZ_3D = reshape(CRZ(:,1+shift:period_real*nrep_real+shift),nCells,period_real,[]);
-%     %% updated method, weighing both std between each rep and (summed with) std of 1st half & 2nd half of experiment - 1/8/15
-%     % CRZ = CONST.M_array.CellResp;
-%     % if i_fish==2 || i_fish==3 || i_fish==6,
-%     %     period_real = CONST.M_array.period/2;
-%     % else
-%     %     period_real = CONST.M_array.period;
-%     % end
-%     % CRZ_3D = reshape(CRZ,size(CRZ,1),period_real,[]);
-%     % divide = round(size(CRZ_3D,3)/2);
-%     % CRZ_std1 = std(CRZ_3D(:,:,1:divide),0,3);
-%     % CRZ_std2 = std(CRZ_3D(:,:,divide+1:end),0,3);
-%     % temp1 = mean(CRZ_std1,2);
-%     % temp2 = mean(CRZ_std2,2);
-%     %
-%     % temp12 = horzcat(temp1,temp2);
-%     % temp = mean(temp12,2)+std(temp12,0,2);
-%     % [~,I] = sort(temp);
-%     % M = temp(I);
-%     % figure;plot(M)
-%     %
-%     % figure;imagesc(CRZ(I,:))
-%     %
-%     % nCells = size(CRZ,1);
-%
-%     %% find low variance / stimulus-locked cells
-%     CRZ_std = std(CRZ_3D,0,3);
-%     temp = mean(CRZ_std,2);
-%
-%     % find mean-std thres: 0.5
-%     [~,I] = sort(temp);
-%     M = temp(I);
-%     figure;plot(M)
-%     %%
-%     i_last = length(VAR(i_fish).Class);
-%     M_perc = [0.025,0.1,0.3];
-%     for j = 1:length(M_perc);
-%         thres = M(round(nCells*M_perc(j)));
-%         cIX = find(temp<thres);
-%         i = j+i_last;
-%         VAR(i_fish).Class(i).round = 0;
-%         VAR(i_fish).Class(i).name = ['perc < ' num2str(M_perc(j)*100) '%'];
-%         %     VAR(i_fish).Class(i).notes = ['perc < ' num2str(M_perc(j)*100) '%'];
-%         VAR(i_fish).Class(i).cIX = cIX;
-%         VAR(i_fish).Class(i).gIX = ones(length(cIX),1);
-%         VAR(i_fish).Class(i).numel = length(cIX);
-%         VAR(i_fish).Class(i).numK = 1;
-%         VAR(i_fish).Class(i).datatype = 'std';
-%     end
-%
-%     %% shift CR?
-%     % shift = 161;
-%     % nrep=floor(size(CR,2)/period)-1;
-%     %
-%     % skiplist=[];
-%     % IX_rep=setdiff(1:nrep, skiplist);
-%     % IX=zeros(period*length(IX_rep),1);
-%     %
-%     % for i=1:length(IX_rep)
-%     %     IX(period*(i-1)+1:period*i)=period*(IX_rep(i)-1)+1+shift:period*(IX_rep(i))+shift;
-%     % end
-%     %
-%     % % cell_resp=cell_resp(:,1:nrep*period);
-%     % CRA=mean(reshape(CR(:,IX),[nCells,period,length(IX_rep)]),3);
-%     % CRAZ = zscore(CRA')';
-%
+%% compute z-score
+% disp('compute z-score')
+% cell_resp_z_full = zscore(cell_resp_full')';
 

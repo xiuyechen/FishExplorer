@@ -151,12 +151,10 @@ for i_fish = range_fish,
 %     CR_z_dtr = single(CR_z_dtr);
 
     %% Save mat files
-    numcell_full = nCells;
-    
-    disp('saving mat files...');
-    temp = fullfile(datadir,['Fish' num2str(i_fish) '_direct_load_full_v6.mat']);
-    varList = {'CR_dtr','numcell_full','CellXYZ','anat_yx','anat_yz','anat_zx','ave_stack','fpsec','frame_turn'};
-    save(temp,varList{:},'-v6');
+    disp('saving
+    temp = fullfile(datadir,['Fish' num2str(i_fish) '_direct_load_full.mat']);
+    varList = {'CR_dtr','nCells','CellXYZ','anat_yx','anat_yz','anat_zx','ave_stack','fpsec','frame_turn'};
+    save(temp,varList{:},'-v7.3');
     
     %%
     toc

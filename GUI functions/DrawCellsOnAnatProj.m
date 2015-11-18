@@ -1,6 +1,6 @@
-function  [tot_image, dim_totimage] = DrawClustersOnMap_LSh(hfig,isPopout)
+function  [tot_image, dim_totimage] = DrawCellsOnAnatProj(hfig,isPopout)
 %% load
-CInfo = getappdata(hfig,'CInfo');
+CellXYZ = getappdata(hfig,'CellXYZ');
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
 numK = getappdata(hfig,'numK');
@@ -97,11 +97,11 @@ yzplane_inds = -5:5;
 zxplane_inds = -5*dimv_zx(1):dimv_zx(1):5*dimv_zx(1);
 % main loop
 for j=1:length(cIX)
-    if ~isempty(CInfo(cIX(j)).center),
+    if ~isempty(CellXYZ(cIX(j),1)),
         ix = gIX(j);
                 
         %% Y-X        
-        cinds=(CInfo(cIX(j)).center(2)-1)*dimv_yx(1)+CInfo(cIX(j)).center(1); % linear pixel index, faster equivalent of:
+        cinds=(CellXYZ(cIX(j),2)-1)*dimv_yx(1)+CellXYZ(cIX(j),1); % linear pixel index, faster equivalent of:
         %     cinds = sub2ind([dim_y,dim_x],cell_info(cellsIX(j)).center(1),cell_info(cellsIX(j)).center(2));
         labelinds=find((cinds+circle_inds)>0 & (cinds+circle_inds)<=dimv_yx(1)*dimv_yx(2)); % within bounds
         ixs = cinds+circle_inds(labelinds);
@@ -113,7 +113,7 @@ for j=1:length(cIX)
         
         %% Y-Z
         z_alpha(j) = alpha(j)/2;        
-        cinds=(CInfo(cIX(j)).slice-1)*dimv_yz(1)+CInfo(cIX(j)).center(1); % linear pixel index, faster equivalent of:
+        cinds=(CellXYZ(cIX(j),3)-1)*dimv_yz(1)+CellXYZ(cIX(j),1); % linear pixel index, faster equivalent of:
         %     cinds = sub2ind([dim_y,dim_z],cell_info(cellsIX(j)).center(1),cell_info(cellsIX(j)).slice);
         labelinds=find((cinds+yzplane_inds)>0 & (cinds+yzplane_inds)<=dimv_yz(1)*dimv_yz(2));
         ixs = cinds+yzplane_inds(labelinds);
@@ -125,7 +125,7 @@ for j=1:length(cIX)
                 
         %% Z-X
         z_alpha(j) = alpha(j)/2;        
-        cinds=(CInfo(cIX(j)).center(2)-1)*dimv_zx(1) +(CInfo(cIX(j)).slice); % linear pixel index, faster equivalent of:
+        cinds=(CellXYZ(cIX(j),2)-1)*dimv_zx(1) +(CellXYZ(cIX(j),3)); % linear pixel index, faster equivalent of:
         %     cinds = sub2ind([dim_y,dim_z],cell_info(cellsIX(j)).center(1),cell_info(cellsIX(j)).slice);
         labelinds=find((cinds+zxplane_inds)>0 & (cinds+zxplane_inds)<=dimv_zx(1)*dimv_zx(2));
         ixs = cinds+zxplane_inds(labelinds);

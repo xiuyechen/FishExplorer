@@ -1,4 +1,4 @@
-function BasicPlotMaps(cIX,gIX,M,CInfo,photostate,anat_yx,anat_yz,anat_zx) %(cIX,gIX,cIX_0,M_0,CIF,numK,M)
+function BasicPlotMaps(cIX,gIX,M,CellXYZ,photostate,anat_yx,anat_yz,anat_zx) %(cIX,gIX,cIX_0,M_0,CIF,numK,M)
 % M = M_0(cIX_0(cIX),:);
 numK = length(unique(gIX));
 %%
@@ -8,7 +8,7 @@ h1 = axes('Position',[0.05, 0.06, 0.5, 0.85]); % left ~subplot
 BasicDrawClusters(h1,M,gIX,dataFR,numK,photostate);
 
 h2 = axes('Position',[0.58, 0.06, 0.40, 0.85]); % right ~subplot
-DrawClustersOnMap_LSh(CInfo,cIX,gIX,numK,anat_yx,anat_yz,anat_zx,'hsv');
+BasicDrawCellsOnAnatProj(CellXYZ,cIX,gIX,numK,anat_yx,anat_yz);%,anat_zx,'hsv');
 % set(gcf,'PaperUnits', 'inches', 'PaperSize', [12, 6])
 
 end
