@@ -1,13 +1,13 @@
-%%% Interactive app for exploratory analysis of calcium imaging data
+%%% Interactive app for exploratory analysis of calcium imaging data 
 % (with stimulus, behavior, and anatomy)
 %{
 Input calcium data: 1 trace per cell/ROI, ~50,000 cells per fish
 load collection of cells from multiple fish, or load full data of single fish individually
 main outputs: GUI plots, clusters saved into .mat, export variables to MATLAB workspace
 
-Tip: to see the structure of this code, use '(Right click -> )Code Folding\Fold all'
+Tip: to see the structure of this code, use '(Right click -> )Code Folding\Fold all' 
 (or hotkey) to collapse all cells.
-UI controls are organized by tabs and then by rows, instructions and
+UI controls are organized by tabs and then by rows, instructions and 
 comments are where they are constructed ('User Interface:' -> function hfig... ->)
 General internal functions are at the end, some specialized .m functions are outside.
 
@@ -30,7 +30,7 @@ Full datasets are stored as 'CONST_F?.mat' or 'CONST_F?_fast.mat' (? = fish numb
 
 %% User Interface:
 function [hfig,fcns] = GUI_FishExplorer(flag_script,var_script)
-global data_masterdir name_MASKs name_ReferenceBrain VAR;
+global data_dir name_CONSTs name_MASKs VAR;
 
 if exist('flag_script','var')
     if ~exist('var_script','var')
@@ -43,35 +43,31 @@ end
 %% Make figure
 scrn = get(0,'Screensize');
 hfig = figure('Position',[scrn(3)*0.2 scrn(4)*0.05 scrn(3)*0.75 scrn(4)*0.86],...% [50 100 1700 900]
-    'Name','GUI_LSh','DeleteFcn',@closefigure_Callback,...
-    'ToolBar', 'none'); % 'MenuBar', 'none'
+    'Name','GUI_LSh','DeleteFcn',@closefigure_Callback);
 hold off; axis off
 
 %% Make menu
-global hm1;
+
 hm1 = uimenu(hfig,'Label','My File');
 hm1_1 = uimenu(hm1,'Label','Quick save to workspace');
 hm1_2 = uimenu(hm1,'Label','Save to file (default path)');
 
 %% Folder setup
 % directory for full fish data (.mat)
-setappdata(hfig,'data_masterdir',data_masterdir);
+setappdata(hfig,'data_dir',data_dir);
 
 %% Pass external variables into appdata (stored with main figure handle)
 setappdata(hfig,'VAR',VAR);
-nFish = length(VAR);
-% load masks for ZBrain Atlas
-MASKs = load(fullfile(data_masterdir,name_MASKs));
+setappdata(hfig,'name_CONSTs',name_CONSTs);
+matObj = matfile(fullfile(data_dir,name_CONSTs));
+varlist = who(matObj);
+nFish = length(varlist) + 2; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+MASKs = load(fullfile(data_dir,name_MASKs));
 setappdata(hfig,'MASKs',MASKs);
-% load reference brain image stack with the 3 projections
-load(fullfile(data_masterdir,name_ReferenceBrain));
-setappdata(hfig,'anat_stack_norm',anat_stack_norm);
-setappdata(hfig,'anat_yx_norm',anat_yx_norm);
-setappdata(hfig,'anat_yz_norm',anat_yz_norm);
-setappdata(hfig,'anat_zx_norm',anat_zx_norm);
 
 % fish protocol sets (different sets have different parameters)
-M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2]; % M = Matrix
+M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2 2]; % M = Matrix
 setappdata(hfig,'M_fish_set',M_fish_set);
 
 % parameters / constants
@@ -79,7 +75,7 @@ setappdata(hfig,'z_res',19.7); % resoltion in z, um per slice
 % fpsec = 1.97; % hard-coded in ext function 'GetStimRegressor.m'
 % approx fpsec of 2 used in ext function 'DrawCluster.m'
 
-% cache
+% cache 
 bC = []; % Cache for going b-ack (bad abbr)
 fC = []; % Cache for going f-orward
 bC.cIX = cell(1,1);
@@ -98,20 +94,20 @@ thres_merge = 0.9;
 thres_split = 0.7;
 thres_reg = 0.7;
 thres_size = 10;
-thres_ttest = 0.001;
+thres_ttest = 0.001; 
 setappdata(hfig,'thres_merge',thres_merge);
 setappdata(hfig,'thres_split',thres_split); % for function 'pushbutton_iter_split'
 setappdata(hfig,'thres_reg',thres_reg); % regression threshold, ~correlation coeff
 setappdata(hfig,'thres_size',thres_size); % min size for clusters
 setappdata(hfig,'thres_ttest',thres_ttest); % min size for clusters
 
-% variables
+% variables 
 % (not sure all these need to be initialized, probably not complete either)
 setappdata(hfig,'clrmap','hsv');
 setappdata(hfig,'opID',0);
-setappdata(hfig,'rankID',0);
-setappdata(hfig,'isPlotLines',0);
-setappdata(hfig,'isPlotBehavior',1);
+setappdata(hfig,'rankID',0); 
+setappdata(hfig,'isPlotLines',0); 
+setappdata(hfig,'isPlotFictive',1); 
 setappdata(hfig,'rankscore',[]);
 setappdata(hfig,'isCentroid',0);
 setappdata(hfig,'isWkmeans',1); % in autoclustering, with/without kmeans
@@ -128,7 +124,6 @@ setappdata(hfig,'isShowMasks',0);
 setappdata(hfig,'isShowMskOutline',0);
 setappdata(hfig,'isWeighAlpha',0);
 setappdata(hfig,'isPlotAnatomyOnly',0);
-setappdata(hfig,'isRefAnat',0);
 
 %% Create UI controls
 set(gcf,'DefaultUicontrolUnits','normalized');
@@ -146,7 +141,7 @@ end
 % grid setup, to help align display elements
 rheight = 0.2;
 yrow = 0.7:-0.33:0;%0.97:-0.03:0.88;
-dTextHt = 0.05; % dTextHt = manual adjustment for 'text' controls:
+dTextHt = 0.05; % dTextHt = manual adjustment for 'text' controls: 
 % (vertical alignment is top instead of center like for all other controls)
 bwidth = 0.03;
 grid = 0:bwidth+0.001:1;
@@ -159,7 +154,7 @@ global hback hfwd hclusgroupmenu hclusgroupname hclusmenu hclusname...
 %% UI ----- tab one ----- (General)
 i_tab = 1;
 
-%% UI row 1: File
+%% UI row 1: File 
 i_row = 1;
 i = 1;n = 0;
 
@@ -218,10 +213,10 @@ uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Plot lines',...
     'Callback',@checkbox_isPlotLines_Callback);
 
 i=i+n;
-n=2; % popupplot option: whether to plot behavior bar
-uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Plot behavior','Value',1,...
+n=2; % popupplot option: whether to plot fictive behavior bar
+uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Plot fictive','Value',1,...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-    'Callback',@checkbox_isPlotBehavior_Callback);
+    'Callback',@checkbox_isPlotFictive_Callback);
 
 i=i+n;
 n=2; % popupplot option: whether to only plot anatomy map (right half)
@@ -229,18 +224,18 @@ uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Plot anatomy only',..
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@checkbox_isPlotAnatomyOnly_Callback);
 
-%% UI row 2: Load
+%% UI row 2: Load 
 i_row = 2;
 i = 1;n = 0;
 
 % i=i+n;
 % n=2; % this design is underused now... Quick-load only depends on CONSTs,
 % % which is a minimum collection of clusters from all fish, so you can load
-% % the program without full single-fish data. eventually can use this
+% % the program without full single-fish data. eventually can use this  
 % % platform to do things across fish (like after anatomical alignment).
 % uicontrol('Parent',tab{i_tab},'Style','text','String','Quick-load fish:',...
 %     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
-%
+% 
 % i=i+n;
 % n=1; % loads 'CONSTs_current.mat' from current directory
 % temp = {}; for j = 1:nFish, temp = [temp,{num2str(j)}];end
@@ -250,11 +245,11 @@ i = 1;n = 0;
 
 i=i+n;
 n=2; % loads full single-fish data from CONST_F?.mat
-uicontrol('Parent',tab{i_tab},'Style','text','String','Load fish #:',...
+uicontrol('Parent',tab{i_tab},'Style','text','String','Load full fish:',...
     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
-n=2; %
+n=2; % these CONST_F?.mat are now saved as uncompressed version 6 .mat, loads faster
 temp = {}; for j = 1:nFish, temp = [temp,{num2str(j)}];end
 temp = [{'(choose)'},temp];
 hloadfish = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',temp,...
@@ -262,23 +257,17 @@ hloadfish = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',temp,...
     'Callback',@popup_loadfullfishmenu_Callback);
 
 i=i+n;
-n=2; %
-uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','or choose files',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-    'Callback',@pushbutton_choosefilestoload_Callback);
-
-i=i+n;
 n=2; % options to load different stimulus types (if applicable for this fish)
-uicontrol('Parent',tab{i_tab},'Style','text','String','Stim type:',...
+uicontrol('Parent',tab{i_tab},'Style','text','String','Stim type:',... 
     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
-n=3;
+n=3; 
 hstimrangemenu = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String','(empty)',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@popup_stimrangemenu_Callback);
 
-%% UI row 3: Display
+%% UI row 3: Display 
 i_row = 3;
 i = 1;n = 0;
 
@@ -302,7 +291,7 @@ h_iszscore = uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show z-s
 
 i=i+n;
 n=2; % choose stimulus range - use numbers indicated in stimrangemenu % (eg 1:2,3-5)
-uicontrol('Parent',tab{i_tab},'Style','text','String','Stim range:',...
+uicontrol('Parent',tab{i_tab},'Style','text','String','Stim range:',... 
     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
@@ -316,12 +305,6 @@ n=3; % only centroids (~mean) of clusters shown on left-side plot, the rest is u
 hcentroid = uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show cluster-centroids',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@checkbox_showcentroids_Callback);
-
-i=i+n;
-n=3; % only centroids (~mean) of clusters shown on left-side plot, the rest is unchanged
-uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show normalized anatomy',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-    'Callback',@checkbox_showrefanat_Callback);
 
 %% UI ----- tab two ----- (Operations)
 i_tab = 2;
@@ -344,11 +327,11 @@ hfwd = uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Forward',...
 
 i=i+n;
 n=3; % Choose range of clusters to keep. format: e.g. '1:2,4-6,8:end'
-uicontrol('Parent',tab{i_tab},'Style','text','String','Choose cluster range:',...
+uicontrol('Parent',tab{i_tab},'Style','text','String','Choose cluster range:',... 
     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
-n=1;
+n=1; 
 uicontrol('Parent',tab{i_tab},'Style','edit',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@edit_choose_range_Callback);
@@ -380,11 +363,11 @@ i_row = 2;
 i = 1;n = 0;
 
 i=i+n;
-n=2; % operates between the current cell selection and the next (in this order).
-uicontrol('Parent',tab{i_tab},'Style','text','String','Set operations:',...
+n=2; % operates between the current cell selection and the next (in this order). 
+uicontrol('Parent',tab{i_tab},'Style','text','String','Set operations:',... 
     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
-i=i+n; % 'setdiff' is current minus next, 'rev setdiff' is next minus current.
+i=i+n; % 'setdiff' is current minus next, 'rev setdiff' is next minus current. 
 n=2; % smartUnion = SmartUnique, cells belonging to 2 clusters goes to the more correlated one
 menu = {'(choose)','union','intersect','setdiff','rev setdiff','setxor','smartUnion'};
 hopID = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',menu,'Value',1,...
@@ -393,14 +376,14 @@ hopID = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',menu,'Value',
 
 i=i+n;
 n=2; % rank clusters based on various criteria (to choose)
-uicontrol('Parent',tab{i_tab},'Style','text','String','Rank by:',...
+uicontrol('Parent',tab{i_tab},'Style','text','String','Rank by:',... 
     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n; % 'hier' is the same as default (used after every k-means);'stim-lock' uses std across reps;
-n=2; % motor stuff uses the best alignment (by cross-correlation) with the behavior trace;
+n=2; % motor stuff uses the best alignment (by cross-correlation) with the fictive trace;
 % L+R is average of L & R; stim-motor is combines 'stim-lock' w 'motor' with arbituary weighting.
 menu = {'(choose)','hier.','size','stim-lock','corr','motor','L motor','R motor','L+R motor',...
-    'multi-motor','multi-motor w/ stim-avr','multi-stim w/ stim-avr'};
+    'multi-motor','multi-motor w/ stim-avr','multi-stim w/ stim-avr'}; 
 uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',menu,'Value',1,...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',{@popup_ranking_Callback});
@@ -429,11 +412,11 @@ i = 1;n = 0;
 
 i=i+n;
 n=4; % Draw a polygon on anatomy maps to select the cells within those boundaries
-uicontrol('Parent',tab{i_tab},'Style','text','String','Draw on anatomy map to crop:',...
+uicontrol('Parent',tab{i_tab},'Style','text','String','Draw on anatomy map to crop:',... 
     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
-i=i+n; % Draw on the yx-view (main view)
-n=2; % Click to make new vertex, double click to connect to first vertex,
+i=i+n; % Draw on the yx-view (main view) 
+n=2; % Click to make new vertex, double click to connect to first vertex, 
 % then optionally drag vertices to reposition, and finally double click again to set
 uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Draw yx',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
@@ -452,8 +435,8 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Draw zx',...
     'Callback',@pushbutton_polygon_zx_Callback);
 
 i=i+n;
-n=5;
-uicontrol('Parent',tab{i_tab},'Style','text','String','Select all cells within boundaries:',...
+n=5; 
+uicontrol('Parent',tab{i_tab},'Style','text','String','Select all cells within boundaries:',... 
     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
@@ -471,7 +454,7 @@ i = 1;n = 0; % Choose one type of regressor here, choice highlighted in yellow
 
 i=i+n;
 n=2; % stimulus regressors, go to 'GetStimRegressor.m' to add/update
-uicontrol('Parent',tab{i_tab},'Style','text','String','Stim reg.:',...
+uicontrol('Parent',tab{i_tab},'Style','text','String','Stim reg.:',... 
     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
@@ -482,8 +465,8 @@ hstimreg = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',menu,'Valu
     'Callback',@popup_getstimreg_Callback);
 
 i=i+n;
-n=2; % stimulus regressors, type range of stim-reg ID (e.g. '1-3,5',but can't use 'end')
-uicontrol('Parent',tab{i_tab},'Style','text','String','stim combo:',...
+n=2; % stimulus regressors, type range of stim-reg ID (e.g. '1-3,5',but can't use 'end') 
+uicontrol('Parent',tab{i_tab},'Style','text','String','stim combo:',... 
     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
@@ -492,9 +475,9 @@ uicontrol('Parent',tab{i_tab},'Style','edit',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@edit_getstimregcombo_Callback);
 
-i=i+n; % motor regressors from behavior, not yet convolved/adjusted for time lag
+i=i+n; % motor regressors from fictive, not yet convolved/adjusted for time lag
 n=2; % go to 'GetMotorRegressor.m' to add/update
-uicontrol('Parent',tab{i_tab},'Style','text','String','Motor reg.:',...
+uicontrol('Parent',tab{i_tab},'Style','text','String','Motor reg.:',... 
     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
@@ -533,12 +516,12 @@ i = 1;n = 0; % Choose regression, using the regressor chosen above, search in fu
 
 i=i+n;
 n=3;
-uicontrol('Parent',tab{i_tab},'Style','text','String','Choose regression ->',...
+uicontrol('Parent',tab{i_tab},'Style','text','String','Choose regression ->',... 
     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=2; % do regression, show all cells with correlation coeff (with regressor) above threshold
-uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Corr. threshold:',...
+uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Corr. threshold:',... 
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@pushbutton_thres_regression_Callback);
 
@@ -579,12 +562,12 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','iter.reg','Enable',
     'Callback',{@pushbutton_IterCentroidRegression_Callback});
 
 %% UI row 3: t-tests
-i_row = 3;
+i_row = 3; 
 i = 1;n = 0;
 
 i=i+n;
-n=2;
-uicontrol('Parent',tab{i_tab},'Style','text','String','Choose stim pair:',...
+n=2; 
+uicontrol('Parent',tab{i_tab},'Style','text','String','Choose stim pair:',... 
     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
@@ -594,8 +577,8 @@ uicontrol('Parent',tab{i_tab},'Style','edit','String','(blank)',...
     'Callback',@edit_tteststimrange_Callback); % e.g. '1-3,5', but can't use 'end'
 
 i=i+n;
-n=2;
-uicontrol('Parent',tab{i_tab},'Style','text','String','t-test thres:',...
+n=2; 
+uicontrol('Parent',tab{i_tab},'Style','text','String','t-test thres:',... 
     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
@@ -606,16 +589,16 @@ uicontrol('Parent',tab{i_tab},'Style','edit','String',num2str(thres_ttest),...
 
 i=i+n;
 n=2;
-uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','t-test',...
+uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','t-test',... 
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@pushbutton_ttest_Callback);
 
 % i=i+n;
 % n=2;
 % s = 'Choose single motor-regressor';
-% uicontrol('Parent',tab{i_tab},'Style','text','String','Motor reg:',...
+% uicontrol('Parent',tab{i_tab},'Style','text','String','Motor reg:',... 
 %     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
-%
+% 
 % i=i+n;
 % n=2; % (unlike stim regressors, names hardcoded, not importet from regressor...)
 % menu = {'(choose)','left swims','right swims','forward swims','raw left','raw right','raw average'};
@@ -686,7 +669,7 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Iter. split',...
     'Callback',{@pushbutton_iter_split});
 
 i=i+n;
-n=1;
+n=1; 
 uicontrol('Parent',tab{i_tab},'Style','edit','String',num2str(thres_split),...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',{@edit_splitthres_Callback});
@@ -748,7 +731,7 @@ uicontrol('Parent',tab{i_tab},'Style','edit',...
     'Callback',@edit_hierpartthres_Callback);
 
 i=i+n; % hier. partition in place, i.e. without rearranging order clusters
-n=3;
+n=3; 
 uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Hier.cut in place',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',1,...
     'Callback',@checkbox_hierinplace_Callback);
@@ -763,7 +746,7 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Corr. plot',...
 i_tab = 5;
 
 %% UI row 1: Cluster-Group (groups of cluster, one level above 'Clusters')
-i_row = 1;
+i_row = 1; 
 i = 1;n = 0;
 
 i=i+n;
@@ -789,7 +772,7 @@ hclusgroupname = uicontrol('Parent',tab{i_tab},'Style','edit','String','(blank)'
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@edit_clusgroupname_Callback);
 
-i=i+n; % just adds a new number to the ClusterGroup-number menu,
+i=i+n; % just adds a new number to the ClusterGroup-number menu, 
 n=3; % and saves current view as the first cluster in the new Clustergroup
 uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','New ClusterGroup',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
@@ -802,7 +785,7 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Delete ClusterGroup
     'Callback',{@pushbutton_delclusgroup_Callback});
 
 %% UI row 2: Clusters
-i_row = 2;
+i_row = 2; 
 i = 1;n = 0;
 
 i=i+n;
@@ -881,7 +864,7 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Delete Cluster!',..
     'Callback',{@pushbutton_delclus_Callback});
 
 %% UI row 3: misc
-i_row = 3; % continuation, dealing with the Cluster groups
+i_row = 3; % continuation, dealing with the Cluster groups 
 i = 1;n = 0; % (Cluster-group number: number menu before the Cluster-name menu)
 
 i=i+n;
@@ -904,7 +887,7 @@ i = 1;n = 0;
 
 % row-height exception! listboxes are tall
 i=i+n+5;
-n=2;
+n=2; 
 s = 'plot histogram of all masks, also printing thresholded mask-names';
 uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Find masks',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
@@ -934,7 +917,7 @@ uicontrol('Parent',tab{i_tab},'Style','edit',...
 i=i+n;
 n=3; % if checked, show thresholded masks on right-side plot
 uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show outline only',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',1,...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',0,...
     'Callback',@checkbox_showmskoutline_Callback);
 
 %% UI row 3: find masks
@@ -958,7 +941,7 @@ fcns = localfunctions;
 
 end
 
-%% Callback functions for UI elements:
+%% Callback functions for UI elements: 
 
 %% ----- tab one ----- (General)
 
@@ -976,12 +959,12 @@ function pushbutton_savemat_Callback(hObject,~)
 disp('saving...');
 hfig = getParentFigure(hObject);
 i_fish = getappdata(hfig,'i_fish');
-data_masterdir = getappdata(hfig,'data_masterdir');
+data_dir = getappdata(hfig,'data_dir');
 
 % copy of VAR files will be saved into this subfolder:
-arcmatfolder = fullfile(data_masterdir, 'arc mat');
+arcmatfolder = fullfile(data_dir, 'arc mat');
 if ~exist(arcmatfolder, 'dir')
-    mkdir(arcmatfolder);
+  mkdir(arcmatfolder);
 end
 
 global VAR;
@@ -991,11 +974,11 @@ matname = [timestamp '.mat'];
 save(fullfile(arcmatfolder,matname),'VAR','-v6');
 
 % also save the current VAR file
-save(fullfile(data_masterdir,'VAR_current.mat'),'VAR','-v6');
+save(fullfile(data_dir,'VAR_current.mat'),'VAR','-v6');
 disp('saved both to workspace and .mat');
 end
 
-function pushbutton_writeZstack_Callback(hObject,~)
+function pushbutton_writeZstack_Callback(hObject,~) 
 disp('preparing z-stack...');
 isMarkAllCells = 1;
 
@@ -1009,7 +992,6 @@ end
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
 CellXYZ = getappdata(hfig,'CellXYZ');
-absIX = getappdata(hfig,'absIX');
 ave_stack = getappdata(hfig,'ave_stack');
 
 timestamp = datestr(now,'mmddyy_HHMMSS');
@@ -1018,51 +1000,51 @@ tiffName = ['stack_' timestamp '.tif'];
 U = unique(gIX);
 numK = length(U);
 
-% left half: stack with cells marked;
+% left half: stack with cells marked; 
 % right half: original anatomy, or mark all cells
 
-ave_stack2 = zeros(size(ave_stack,1), size(ave_stack,2)*2, size(ave_stack,3) ,3);
-nPlanes = size(ave_stack,3);
-dimv_yxz = size(ave_stack);
-stacklen = numel(ave_stack);
+ave_stack2=zeros(size(ave_stack,1), size(ave_stack,2)*2, size(ave_stack,3) ,3);
+nPlanes=size(ave_stack,3);
+dimv_yxz=size(ave_stack);
+stacklen=numel(ave_stack);
 
-circle = makeDisk2(10,21);
-[r, v] = find(circle);
-r = r-11; v = v-11;
+circle=makeDisk2(10,21);
+[r, v]=find(circle);
+r=r-11;v=v-11;
 circle_inds  = r*dimv_yxz(1)+v;
 cmap = hsv(numK);
 weight = 0.3;
 
-for i = 1:nPlanes,
-    ave_stack2(:,:,i,:) = repmat(imNormalize99(ave_stack(:,:,i)),[1 2 1 3]);
+for i=1:nPlanes,
+    ave_stack2(:,:,i,:)=repmat(imNormalize99(ave_stack(:,:,i)),[1 2 1 3]);
 end
 
-cIX_abs = absIX(cIX);
-for j = 1:length(cIX),
-    cinds = (CellXYZ(cIX_abs(j),2)-1)*dimv_yxz(1)+CellXYZ(cIX_abs(j),1);
-    labelinds = find((cinds+circle_inds)>0 & (cinds+circle_inds)<=dimv_yxz(1)*dimv_yxz(2));
-    zinds = dimv_yxz(1)*dimv_yxz(2)*2*(CellXYZ(cIX_abs(j),3)-1);
+for j=1:length(cIX)
+    cinds=(CellXYZ(cIX(j),2)-1)*dimv_yxz(1)+CellXYZ(cIX(j),1);
+    labelinds=find((cinds+circle_inds)>0 & (cinds+circle_inds)<=dimv_yxz(1)*dimv_yxz(2));
+    zinds=dimv_yxz(1)*dimv_yxz(2)*2*(CellXYZ(cIX(j),3)-1);
     ix = find(U==gIX(j));
     ixs = cinds+circle_inds(labelinds)+zinds;
-    ave_stack2(ixs) = cmap(ix,1)*weight + ave_stack2(ixs)*(1-weight);
+    ave_stack2(ixs)=cmap(ix,1)*weight + ave_stack2(ixs)*(1-weight);
     ixs = cinds+circle_inds(labelinds)+zinds+stacklen*2;
-    ave_stack2(ixs) = cmap(ix,2)*weight + ave_stack2(ixs)*(1-weight);
+    ave_stack2(ixs)=cmap(ix,2)*weight + ave_stack2(ixs)*(1-weight);
     ixs = cinds+circle_inds(labelinds)+zinds+stacklen*4;
-    ave_stack2(ixs) = cmap(ix,3)*weight + ave_stack2(ixs)*(1-weight);
+    ave_stack2(ixs)=cmap(ix,3)*weight + ave_stack2(ixs)*(1-weight);
 end
 if isMarkAllCells,
     clr = [0,1,0];
-    for j = 1:size(CellXYZ,1),
+    numcell = getappdata(hfig,'numcell');
+    for j=1:numcell,
         shift = dimv_yxz(1)*dimv_yxz(2);
-        cinds = (CellXYZ(j,2)-1)*dimv_yxz(1)+CellXYZ(j,1);
-        labelinds = find((cinds+circle_inds)>0 & (cinds+circle_inds)<=dimv_yxz(1)*dimv_yxz(2));
-        zinds = dimv_yxz(1)*dimv_yxz(2)*2*(CellXYZ(j,3)-1);
+        cinds=(CellXYZ(j,2)-1)*dimv_yxz(1)+CellXYZ(j,1);
+        labelinds=find((cinds+circle_inds)>0 & (cinds+circle_inds)<=dimv_yxz(1)*dimv_yxz(2));
+        zinds=dimv_yxz(1)*dimv_yxz(2)*2*(CellXYZ(j,3)-1);
         ixs = cinds+circle_inds(labelinds)+zinds + shift;
-        ave_stack2(ixs) = clr(1)*weight + ave_stack2(ixs)*(1-weight);
+        ave_stack2(ixs)=clr(1)*weight + ave_stack2(ixs)*(1-weight);
         ixs = cinds+circle_inds(labelinds)+zinds+stacklen*2 + shift;
-        ave_stack2(ixs) = clr(2)*weight + ave_stack2(ixs)*(1-weight);
+        ave_stack2(ixs)=clr(2)*weight + ave_stack2(ixs)*(1-weight);
         ixs = cinds+circle_inds(labelinds)+zinds+stacklen*4 + shift;
-        ave_stack2(ixs) = clr(3)*weight + ave_stack2(ixs)*(1-weight);
+        ave_stack2(ixs)=clr(3)*weight + ave_stack2(ixs)*(1-weight);
     end
 end
 h = figure;
@@ -1120,7 +1102,7 @@ M = getappdata(hfig,'M');
 M_0_fluo = GetTimeIndexedData(hfig,'isAllCells');
 assignin('base', 'M', M);
 assignin('base', 'M_0_fluo', M_0_fluo);
-assignin('base', 'behavior', getappdata(hfig,'behavior'));
+assignin('base', 'fictive', getappdata(hfig,'fictive'));
 assignin('base', 'stim', getappdata(hfig,'stim'));
 
 assignin('base', 'cIX', getappdata(hfig,'cIX'));
@@ -1158,9 +1140,8 @@ isPopout = 1; % no down-sampling in plots
 hfig = getParentFigure(hObject);
 i_fish = getappdata(hfig,'i_fish');
 isCentroid = getappdata(hfig,'isCentroid');
-isRefAnat = getappdata(hfig,'isRefAnat');
 isPlotLines = getappdata(hfig,'isPlotLines');
-isPlotBehavior = getappdata(hfig,'isPlotBehavior');
+isPlotFictive = getappdata(hfig,'isPlotFictive');
 isPlotAnatomyOnly = getappdata(hfig,'isPlotAnatomyOnly');
 
 if ~isPlotAnatomyOnly,
@@ -1171,18 +1152,18 @@ if ~isPlotAnatomyOnly,
     
     % left subplot
     axes(h1);
-    DrawTimeSeries(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior);
+    DrawTimeSeries(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotFictive);
     
     % right subplot
     axes(h2);
-    DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
+    DrawCellsOnAnatProj(hfig,isPopout);
     
 else
     figure('Position',[600,300,600,900],'color',[1 1 1],...
         'Name',['Fish#' num2str(i_fish)]);
     axes('Position',[0.03, 0.03, 0.94, 0.94]); % right ~subplot
     % right subplot
-    DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
+    DrawCellsOnAnatProj(hfig,isPopout);
 end
 end
 
@@ -1192,9 +1173,9 @@ value = get(hObject,'Value');
 setappdata(hfig,'isPlotLines',value);
 end
 
-function checkbox_isPlotBehavior_Callback(hObject,~)
+function checkbox_isPlotFictive_Callback(hObject,~)
 hfig = getParentFigure(hObject);
-setappdata(hfig,'isPlotBehavior',get(hObject,'Value'));
+setappdata(hfig,'isPlotFictive',get(hObject,'Value'));
 end
 
 function checkbox_isPlotAnatomyOnly_Callback(hObject,~)
@@ -1204,92 +1185,65 @@ end
 
 %% row 2: Load
 
-function popup_loadfullfishmenu_Callback(hObject,~)
-new_i_fish = get(hObject,'Value')-1;
-if new_i_fish>0,
-    hfig = getParentFigure(hObject);
-    LoadFullFish(hfig,new_i_fish);
-end
-end
-
-function pushbutton_choosefilestoload_Callback(hObject,~)
+function popup_quickloadfishmenu_Callback(hObject,~)
+new_i_fish = get(hObject,'Value');
 hfig = getParentFigure(hObject);
-data_masterdir = getappdata(hfig,'data_masterdir');
-
-% get fish number
-prompt={'Enter fish number:'};
-answer = inputdlg(prompt);
-if ~isempty(answer),
-    new_i_fish = str2num(answer{:});
-    
-    [FileName1,PathName] = uigetfile('*.h5','Select the hdf5(.h5) file for TimeSeries data',data_masterdir);
-    hdf5_dir = fullfile(PathName,FileName1);
-    [FileName2,PathName] = uigetfile('*.mat','Select the .mat file for other data',PathName);
-    mat_dir = fullfile(PathName,FileName2);
-    
-    if isequal(FileName1,0) || isequal(FileName2,0),
-        disp('User selected Cancel')
-    else
-        % display fish-number in hloadfish
-        global hloadfish; %#ok<TLEV>
-        set(hloadfish,'Value',new_i_fish+1);
-        
-        LoadFullFish(hfig,new_i_fish,hdf5_dir,mat_dir);
-    end
-end
+QuickUpdateFish(hfig,new_i_fish);
 end
 
-function LoadFullFish(hfig,i_fish,hdf5_dir,mat_dir)
-disp(['loading fish #' num2str(i_fish) '...']);
+%{
+% function QuickUpdateFish(hfig,new_i_fish,init) %#ok<INUSD>
+% disp('loading...');
+% tic
+% M_fish_set = getappdata(hfig,'M_fish_set');
+% fishset = M_fish_set(new_i_fish);
+% setappdata(hfig,'fishset',fishset);
+% setappdata(hfig,'isfullfish',0);
+% % get CONST_s for this fish by loading just this piece from the .mat
+% name_CONSTs = getappdata(hfig,'name_CONSTs');
+% data_dir = getappdata(hfig,'data_dir');
+% matObj = matfile(fullfile(data_dir,name_CONSTs)); %#ok<NASGU>
+% eval(['CONST_s = matObj.CONST',num2str(new_i_fish),';']);
+% 
+% 
+% % load all fields from CONST_s.const, with names preserved
+% names = fieldnames(CONST_s.const); % cell of strings
+% for i = 1:length(names),
+%     setappdata(hfig,names{i},eval(['CONST_s.const.',names{i}]));
+% end
+% 
+% % recontruct the 3 big matrices from CIX to original size (numcell)
+% CIX = CONST_s.CIX;
+% numcell = CONST_s.numcell;
+% 
+% temp = CONST_s.CellRespAvr;
+% CellRespAvr = zeros(numcell,size(temp,2));
+% CellRespAvr(CIX,:) = temp;
+% 
+% temp = CONST_s.CellResp;
+% CellResp = zeros(numcell,size(temp,2));
+% CellResp(CIX,:) = temp;
+% 
+% temp = [CONST_s.CInfo.center];
+% XY = reshape(temp',[],length(CIX))';
+% Z = [CONST_s.CInfo.slice]';
+% CellXYZ = zeros(numcell,3);
+% CellXYZ(CIX,1:2) = XY;
+% CellXYZ(CIX,3) = Z;
+% 
+% setappdata(hfig,'CellRespAvr',CellRespAvr); 
+% setappdata(hfig,'CellResp',CellResp); 
+% setappdata(hfig,'CellXYZ',CellXYZ); 
+% toc
+% 
+% UpdateFishData(hfig,new_i_fish);
+% if ~exist('init','var'),
+%     UpdateFishDisplay(hfig);
+% end
+% end
+%}
 
-M_fish_set = getappdata(hfig,'M_fish_set');
-fishset = M_fish_set(i_fish);
-setappdata(hfig,'fishset',fishset);
-
-%% load data from file
-
-disp(['load fish ' num2str(i_fish) '...']);
-
-if ~exist('hdf5_dir','var') || ~exist('mat_dir','var'),
-    data_masterdir = getappdata(hfig,'data_masterdir');
-    data_dir = fullfile(data_masterdir,['subject_' num2str(i_fish)]);
-    hdf5_dir = fullfile(data_dir,'TimeSeries.h5');
-    mat_dir = fullfile(data_dir,'data_full.mat');
-end
-
-tic
-
-% load 'data'
-load(mat_dir,'data'); % struct with many fields
-names = fieldnames(data); % cell of strings
-for i = 1:length(names),
-    setappdata(hfig,names{i},eval(['data.',names{i}]));
-end
-%%% data.absIX obsolete!! overwritten below
-
-% load time series (hdf5 file)
-CellResp = h5read(hdf5_dir,'/CellResp');
-CellRespZ = h5read(hdf5_dir,'/CellRespZ');
-CellRespAvr = h5read(hdf5_dir,'/CellRespAvr');
-CellRespAvrZ = h5read(hdf5_dir,'/CellRespAvrZ');
-absIX = h5read(hdf5_dir,'/absIX');
-
-setappdata(hfig,'CellResp',CellResp);
-setappdata(hfig,'CellRespZ',CellRespZ);
-setappdata(hfig,'CellRespAvr',CellRespAvr);
-setappdata(hfig,'CellRespAvrZ',CellRespAvrZ);
-setappdata(hfig,'absIX',absIX);
-
-toc
-
-%%
-UpdateFishData(hfig,i_fish);
-UpdateFishDisplay(hfig);
-
-setappdata(hfig,'isfullfish',1);
-end
-
-function UpdateFishData(hfig,new_i_fish)
+function UpdateFishData(hfig,new_i_fish) % loading steps shared by both quick-load and full-load
 %% set Cluster display
 % save ClusGroup before updating, if applicable
 clusgroupID = getappdata(hfig,'clusgroupID');
@@ -1311,22 +1265,22 @@ setappdata(hfig,'clusgroupID',clusgroupID);
 Cluster = ClusGroup{clusgroupID};% collection of clusters
 setappdata(hfig,'Cluster',Cluster);
 
-%% update GUI timelists selection, if applicable
+%% update GUI tlists selection, if applicable
 global hstimrangemenu;
 if ~isempty(hstimrangemenu), % before GUI initialization,
     % 'global' remnant from previous run: hstimrangemenu is not empty but is invalid object
-    if isvalid(hstimrangemenu),
-        timelists_names = getappdata(hfig,'timelists_names');
-        s = cell(size(timelists_names));
-        for i = 1:length(timelists_names),
-            s{i} = [num2str(i),': ',timelists_names{i}];
+    if isvalid(hstimrangemenu), 
+        stimrangenames = getappdata(hfig,'stimrangenames');
+        s = cell(size(stimrangenames));
+        for i = 1:length(stimrangenames),
+            s{i} = [num2str(i),': ',stimrangenames{i}];
         end
         set(hstimrangemenu,'String',s);
         set(hstimrangemenu,'Value',1);
     end
 end
 
-%% set current timelists
+%% set current tlists
 periods = getappdata(hfig,'periods');
 setappdata(hfig,'stimrange',1:length(periods));
 UpdateTimeIndex(hfig,'isSkipcIX'); % doesn't include Refresh
@@ -1351,6 +1305,47 @@ set(hstimreg,'String',['(choose)',s]);
 clusgroupID = 1;
 new_clusgroupID = 1;
 UpdateClusGroupID(hfig,clusgroupID,new_clusgroupID); % to display new menu
+end
+
+function popup_loadfullfishmenu_Callback(hObject,~)
+new_i_fish = get(hObject,'Value')-1;
+if new_i_fish>0,
+    hfig = getParentFigure(hObject);
+    LoadFullFish(hfig,new_i_fish);
+end
+% global hfishnum;
+% set(hfishnum,'Value',new_i_fish);
+end
+
+function LoadFullFish(hfig,new_i_fish,init)
+data_dir=getappdata(hfig,'data_dir');
+disp(['loading fish #' num2str(new_i_fish) '...']);
+
+M_fish_set = getappdata(hfig,'M_fish_set');
+fishset = M_fish_set(new_i_fish);
+setappdata(hfig,'fishset',fishset);
+
+%% load data from file
+filename = ['Data_F' num2str(new_i_fish) '.mat'];
+[CellResp,data] = LoadFileFromParts(data_dir,filename,'CellResp');
+CellRespZ = LoadFileFromParts(data_dir,filename,'CellRespZ');
+setappdata(hfig,'CellResp',CellResp);
+setappdata(hfig,'CellRespZ',CellRespZ);
+
+%% load all fields from CONST, with names preserved
+tic
+names = fieldnames(data); % cell of strings
+for i = 1:length(names),
+    setappdata(hfig,names{i},eval(['data.',names{i}]));
+end
+setappdata(hfig,'numcell',data.numcell_full);%%%%%%%%%%%%%%%%%%
+
+UpdateFishData(hfig,new_i_fish);
+if ~exist('init','var'),
+    UpdateFishDisplay(hfig);
+end
+setappdata(hfig,'isfullfish',1);
+toc
 end
 
 function popup_stimrangemenu_Callback(hObject,~)
@@ -1395,7 +1390,7 @@ hfig = getParentFigure(hObject);
 periods = getappdata(hfig,'periods');
 
 % get/format range
-str = get(hObject,'String');
+str = get(hObject,'String'); 
 if ~isempty(str),
     str = strrep(str,'end',num2str(length(periods)));
     stimrange = ParseRange(str);
@@ -1408,12 +1403,6 @@ end
 function checkbox_showcentroids_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 setappdata(hfig,'isCentroid',get(hObject,'Value'));
-RefreshFigure(hfig);
-end
-
-function checkbox_showrefanat_Callback(hObject,~)
-hfig = getParentFigure(hObject);
-setappdata(hfig,'isRefAnat',get(hObject,'Value'));
 RefreshFigure(hfig);
 end
 
@@ -1455,7 +1444,7 @@ if ~isempty(bC.cIX{1}),
     % FindCentroid reset:
     setappdata(hfig,'Centroids',[]);
     setappdata(hfig,'D_ctrd',[]);
-    
+
     % finish
     disp('back (from cache)')
     RefreshFigure(hfig);
@@ -1495,11 +1484,11 @@ if ~isempty(fC.cIX{1}),
     
     M = GetTimeIndexedData(hfig);
     setappdata(hfig,'M',M);
-    
+
     % FindCentroid reset:
     setappdata(hfig,'Centroids',[]);
     setappdata(hfig,'D_ctrd',[]);
-    
+
     % finish
     disp('forward (from cache)')
     RefreshFigure(hfig);
@@ -1514,7 +1503,7 @@ hfig = getParentFigure(hObject);
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
 % get/format range
-str = get(hObject,'String');
+str = get(hObject,'String'); 
 if ~isempty(str),
     str = strrep(str,'end',num2str(max(gIX)));
     range = ParseRange(str);
@@ -1537,9 +1526,9 @@ m = C{:};
 range = [];
 for i = 1:length(m),
     if m(i)>0,
-        range = [range,m(i)];
+        range = [range,m(i)]; 
     else % have '-'sign,
-        range = [range,m(i-1)+1:-m(i)];
+        range = [range,m(i-1)+1:-m(i)]; 
     end
 end
 end
@@ -1640,10 +1629,10 @@ switch rankID,
         disp('L+R motor');
         [gIX,rankscore] = RankByMotorStim_Direct(hfig,gIX,numU,4);
     case 9,
-        %         disp('stim-motor');
-        %         [~,rankscore1] = RankByStimLock_Direct(hfig,cIX,gIX,numU);
-        %         [~,rankscore2] = RankByMotorStim_Direct(hfig,gIX,numU,1);
-        %         rankscore = rankscore1 - rankscore2;
+%         disp('stim-motor');
+%         [~,rankscore1] = RankByStimLock_Direct(hfig,cIX,gIX,numU);
+%         [~,rankscore2] = RankByMotorStim_Direct(hfig,gIX,numU,1);
+%         rankscore = rankscore1 - rankscore2;
         disp('multi-motor');
         [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,1);
     case 10,
@@ -1691,16 +1680,16 @@ else
     stimset = getappdata(hfig,'stimset');
     stimrange = getappdata(hfig,'stimrange');
     periods = getappdata(hfig,'periods');
-    timelists = getappdata(hfig,'timelists');
-    
+    tlists = getappdata(hfig,'tlists');
+
     range = [];
     H_raw = [];
     for i = 1:length(stimrange),
-        i_stim = stimrange(i);
+        i_stim = stimrange(i);   
         if sum(stimset(i_stim).nReps)>3,
             range = [range,i_stim];
-            offset = length(horzcat(timelists{stimrange(1:i-1)}));% works for i=0 too
-            tIX_ = 1+offset:length(timelists{stimrange(i)})+offset;
+            offset = length(horzcat(tlists{stimrange(1:i-1)}));% works for i=0 too
+            tIX_ = 1+offset:length(tlists{stimrange(i)})+offset;
             period = periods(i_stim);
             C_3D_0 = reshape(C(:,tIX_),size(C,1),period,[]);
             C_3D = zscore(C_3D_0,0,2);
@@ -1717,15 +1706,15 @@ else
         H(i) = min(H_raw(i,:));
     end
     
-    %     % instead of algebraic average along 2nd dimension, use
-    %     % inverse of geometric average... large value~low variation. geometric
-    %     % mean biases towards large values, i.e. good stim-lock of any stimulus
-    %     % is emphasized.
-    %     H = zeros(size(H_raw,1),1);
-    %     for i = 1:size(H_raw,1),
-    %         temp = sum((1./H_raw(i,:)).^2);
-    %         H(i) = 1./sqrt(temp);
-    %     end
+%     % instead of algebraic average along 2nd dimension, use
+%     % inverse of geometric average... large value~low variation. geometric
+%     % mean biases towards large values, i.e. good stim-lock of any stimulus
+%     % is emphasized. 
+%     H = zeros(size(H_raw,1),1);
+%     for i = 1:size(H_raw,1),
+%         temp = sum((1./H_raw(i,:)).^2);
+%         H(i) = 1./sqrt(temp);
+%     end
     
 end
 
@@ -1734,14 +1723,14 @@ end
 
 function [gIX,rankscore] = RankByMotorStim_Direct(hfig,gIX,numU,option)
 C = FindCentroid(hfig);
-behavior = getappdata(hfig,'behavior');
-regressors = GetMotorRegressor(behavior);
-% % behavior(1,:);   %weighted: right turns
-% % behavior(2,:);   %weighted: left turns
-% % behavior(3,:);   %weighted: forward swims
-% % behavior(4,:);  %analog: right channel
-% % behavior(5,:);  %analog: left channel
-% % behavior(4,:)+behavior(5,:);   %analog: average
+fictive = getappdata(hfig,'fictive');
+regressors = GetMotorRegressor(fictive);
+% % fictive(1,:);   %weighted: right turns
+% % fictive(2,:);   %weighted: left turns
+% % fictive(3,:);   %weighted: forward swims
+% % fictive(4,:);  %analog: right channel
+% % fictive(5,:);  %analog: left channel
+% % fictive(4,:)+fictive(5,:);   %analog: average
 
 H = zeros(numU,1);
 % shift = zeros(numU,1);
@@ -1754,16 +1743,16 @@ for i = 1:numU,
         %                 [a(j),I(j)] = max(abs(xcorr(C(i,:),reg(j,:),'coeff')));
         %             end
         %             [H(i),jmax] = max(a);
-        %             shift(i) = I(jmax) - length(behavior);
+        %             shift(i) = I(jmax) - length(fictive);
         %         case 2, % 'L motor'
         %             [H(i),I] = max(xcorr(C(i,:),reg(1,:),'coeff'));
-        %             shift(i) = I - length(behavior);
+        %             shift(i) = I - length(fictive);
         %         case 3, % 'R motor'
         %             [H(i),I] = max(xcorr(C(i,:),reg(2,:),'coeff'));
-        %             shift(i) = I - length(behavior);
+        %             shift(i) = I - length(fictive);
         %         case 4, % 'L+R motor'
         %             [H(i),I] = max(xcorr(C(i,:),reg(3,:),'coeff'));
-        %             shift(i) = I - length(behavior);
+        %             shift(i) = I - length(fictive);
         case 1, % 'motor'
             R = zeros(1,4);
             for j = 1:3,
@@ -1792,7 +1781,7 @@ function [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,option)
 %% get cluster centroids (means) from GUI current selection
 fishset = getappdata(hfig,'fishset');
 stim = getappdata(hfig,'stim');
-behavior = getappdata(hfig,'behavior');
+fictive = getappdata(hfig,'fictive');
 C = FindCentroid(hfig);
 nClus = size(C,1);
 
@@ -1831,25 +1820,25 @@ switch option
             stimset = getappdata(hfig,'stimset');
             stimrange = getappdata(hfig,'stimrange');
             periods = getappdata(hfig,'periods');
-            timelists = getappdata(hfig,'timelists');
+            tlists = getappdata(hfig,'tlists');
             
             C_mean = [];
             for i = 1:length(stimrange),
                 i_stim = stimrange(i);
                 if sum(stimset(i_stim).nReps)>3,
-                    offset = length(horzcat(timelists{stimrange(1:i-1)}));% works for i=0 too
-                    tIX_ = 1+offset:length(timelists{stimrange(i)})+offset;
+                    offset = length(horzcat(tlists{stimrange(1:i-1)}));% works for i=0 too
+                    tIX_ = 1+offset:length(tlists{stimrange(i)})+offset;
                     period = periods(i_stim);
                     C_3D_0 = reshape(C(:,tIX_),size(C,1),period,[]);
                     C_period = mean(C_3D_0,3);
                     nPeriods = length(tIX_)/period;
-                    C_mean = horzcat(C_mean,repmat(C_period,1,nPeriods));
+                    C_mean = horzcat(C_mean,repmat(C_period,1,nPeriods)); 
                     %             C_3D = zscore(C_3D_0,0,2);
                     %             H_raw = horzcat(H_raw,nanmean(nanstd(C_3D,0,3),2));
                 else
-                    offset = length(horzcat(timelists{stimrange(1:i-1)}));% works for i=0 too
-                    tIX_ = 1+offset:length(timelists{stimrange(i)})+offset;
-                    C_mean = horzcat(C_mean,zeros(size(C,1),length(tIX_)));
+                    offset = length(horzcat(tlists{stimrange(1:i-1)}));% works for i=0 too
+                    tIX_ = 1+offset:length(tlists{stimrange(i)})+offset;
+                    C_mean = horzcat(C_mean,zeros(size(C,1),length(tIX_))); 
                 end
             end
         end
@@ -1858,7 +1847,7 @@ switch option
 end
 
 %% get motor regressor
-regressors = GetMotorRegressor(behavior);
+regressors = GetMotorRegressor(fictive);
 motorregset = 1:3;
 M_regressor = zeros(length(motorregset),length(regressors(1).im));
 for i = 1:length(motorregset),
@@ -1867,8 +1856,8 @@ end
 
 % switch option
 %     case 1;
-regressor_m = M_regressor;
-%     case {2,3};
+        regressor_m = M_regressor;
+%     case {2,3};           
 %         R = corr(M_regressor',C'); % row of R: each regressor
 %         [~,IX_m] = max(R,[],1);
 %         regressor_m_allclus = M_regressor(IX_m,:);
@@ -1881,13 +1870,13 @@ switch option
         orthonormal_basis = Gram_Schmidt_Process(regs'); % actually is transposed?
         betas = C * orthonormal_basis; % to reconstitute: betas(i,:)*orthonormal_basis'
         % get ranking score: combined of motor coeffs
-        H = sqrt(sum((betas(:,end-2:end)).^2,2));
+        H = sqrt(sum((betas(:,end-2:end)).^2,2)); 
     case {2,3}; % regression with stim-avr reg before motor regs
         betas = zeros(nClus,1+length(motorregset)); %size(regressor_s,1)+1);
         for i_clus = 1:nClus,
             regs = vertcat(regressor_s_allclus(i_clus,:),regressor_m);
-            %             regs = vertcat(regressor_s_allclus(i_clus,:),regressor_m_allclus(i_clus,:));
-            
+%             regs = vertcat(regressor_s_allclus(i_clus,:),regressor_m_allclus(i_clus,:));
+
             orthonormal_basis = Gram_Schmidt_Process(regs');
             
             %% check orthonormal_basis
@@ -1923,7 +1912,7 @@ switch option
         % get ranking score: coeffs of (the single) stim-avr reg
         H = betas(:,end);
 end
-
+        
 %% rank and plot
 [gIX,rankscore] = SortH(H,gIX,numU,'descend');
 
@@ -2009,34 +1998,33 @@ end
 %% row 3: Anatomy
 
 function pushbutton_polygon_yx_Callback(hObject,~)
+k_zres = 20;
+
 hfig = getParentFigure(hObject);
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
-absIX = getappdata(hfig,'absIX');
-isRefAnat = getappdata(hfig,'isRefAnat');
-if ~isRefAnat,
-    CellXYZ = getappdata(hfig,'CellXYZ');
-    anat_yx = getappdata(hfig,'anat_yx');
-    anat_yz = getappdata(hfig,'anat_yz');
-    anat_zx = getappdata(hfig,'anat_zx');
-    k_zres = 20;
-else
-    CellXYZ = getappdata(hfig,'CellXYZ_norm');
-    anat_yx = getappdata(hfig,'anat_yx_norm');
-    anat_yz = getappdata(hfig,'anat_yz_norm');
-    anat_zx = getappdata(hfig,'anat_zx_norm');
-    k_zres = 2.5;
-end
+CellXYZ = getappdata(hfig,'CellXYZ');
+numcell = getappdata(hfig,'numcell');
+anat_yx = getappdata(hfig,'anat_yx');
+anat_zx = getappdata(hfig,'anat_zx');
 dimv_yx = size(anat_yx);
 dimv_zx = size(anat_zx);
+isfullfish = getappdata(hfig,'isfullfish');
 
 h_poly_yx = impoly;
 wait(h_poly_yx); % double click to finalize position!
 % update finalized polygon in bright color
 setColor(h_poly_yx,[0 1 1]);
 
-A = sub2ind(dimv_yx(1:2),CellXYZ(absIX,1),CellXYZ(absIX,2));
-
+if isfullfish,
+    IJs = CellXYZ(:,1:2); %reshape([CInfo.center],2,[])';
+else % Matlab can't handle CInfo with all the empty entries -> manual padding
+    IJs = CellXYZ(cIX,1:2);
+%     IJs_ = reshape([CInfo(cIX).center],2,[])';
+%     IJs = ones(numcell,2);
+%     IJs(cIX,:) = IJs_;
+end
+A = sub2ind(dimv_yx(1:2),IJs(:,1),IJs(:,2));
 MaskArray = createMask(h_poly_yx);
 MaskArray(1:dimv_zx*k_zres+10,:) = [];
 B = find(MaskArray); % find indices of pixels within ROI
@@ -2052,34 +2040,40 @@ RefreshFigure(hfig);
 end
 
 function pushbutton_polygon_yz_Callback(hObject,~)
+k_zres = 20;
+
 hfig = getParentFigure(hObject);
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
-absIX = getappdata(hfig,'absIX');
-isRefAnat = getappdata(hfig,'isRefAnat');
-if ~isRefAnat,
-    CellXYZ = getappdata(hfig,'CellXYZ');
-    anat_yx = getappdata(hfig,'anat_yx');
-    anat_yz = getappdata(hfig,'anat_yz');
-    anat_zx = getappdata(hfig,'anat_zx');
-    k_zres = 20;
-else
-    CellXYZ = getappdata(hfig,'CellXYZ_norm');
-    anat_yx = getappdata(hfig,'anat_yx_norm');
-    anat_yz = getappdata(hfig,'anat_yz_norm');
-    anat_zx = getappdata(hfig,'anat_zx_norm');
-    k_zres = 2.5;
-end
+CellXYZ = getappdata(hfig,'CellXYZ');
+numcell = getappdata(hfig,'numcell');
+anat_yx = getappdata(hfig,'anat_yx');
+anat_yz = getappdata(hfig,'anat_yz');
+anat_zx = getappdata(hfig,'anat_zx');
 dimv_yx = size(anat_yx);
 dimv_yz = size(anat_yz);
 dimv_zx = size(anat_zx);
+isfullfish = getappdata(hfig,'isfullfish');
 
 h_poly_z = impoly;
 wait(h_poly_z); % double click to finalize position!
 % update finalized polygon in bright color
 setColor(h_poly_z,[0 1 1]);
 
-A = sub2ind(dimv_yz(1:2),CellXYZ(absIX,1),CellXYZ(absIX,3));
+if isfullfish,
+        IJs = CellXYZ(:,1:2);% reshape([CInfo.center],2,[])';
+        Zs = CellXYZ(:,3);% [CInfo.slice]';
+else % Matlab can't handle CInfo with all the empty entries -> manual padding
+    IJs = CellXYZ(cIX,1:2);
+    Zs = CellXYZ(cIX,3);
+%     IJs_ = reshape([CInfo(cIX).center],2,[])';
+%     IJs = ones(numcell,2);
+%     IJs(cIX,:) = IJs_;
+%     Zs_ = [CInfo(cIX).slice]';
+%     Zs = ones(numcell,1);
+%     Zs(cIX) = Zs_;
+end
+A = sub2ind(dimv_yz(1:2),IJs(:,1),Zs);
 
 MaskArray = createMask(h_poly_z);
 MaskArray(1:dimv_zx*k_zres+10,:) = [];
@@ -2098,34 +2092,41 @@ RefreshFigure(hfig);
 end
 
 function pushbutton_polygon_zx_Callback(hObject,~)
+k_zres = 20;
+
 hfig = getParentFigure(hObject);
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
-absIX = getappdata(hfig,'absIX');
-isRefAnat = getappdata(hfig,'isRefAnat');
-if ~isRefAnat,
-    CellXYZ = getappdata(hfig,'CellXYZ');
-    anat_yx = getappdata(hfig,'anat_yx');
-    anat_yz = getappdata(hfig,'anat_yz');
-    anat_zx = getappdata(hfig,'anat_zx');
-    k_zres = 20;
-else
-    CellXYZ = getappdata(hfig,'CellXYZ_norm');
-    anat_yx = getappdata(hfig,'anat_yx_norm');
-    anat_yz = getappdata(hfig,'anat_yz_norm');
-    anat_zx = getappdata(hfig,'anat_zx_norm');
-    k_zres = 2.5;
-end
+CellXYZ = getappdata(hfig,'CellXYZ');
+numcell = getappdata(hfig,'numcell');
+% anat_yx = getappdata(hfig,'anat_yx');
+anat_zx = getappdata(hfig,'anat_zx');
+% dimv_yx = size(anat_yx);
 dimv_zx = size(anat_zx);
+isfullfish = getappdata(hfig,'isfullfish');
 
 h_poly_z = impoly;
 wait(h_poly_z); % double click to finalize position!
 % update finalized polygon in bright color
 setColor(h_poly_z,[0 1 1]);
 
-A = sub2ind(dimv_zx(1:2),CellXYZ(absIX,3),CellXYZ(absIX,2));
+if isfullfish,
+        IJs = CellXYZ(:,1:2);% reshape([CInfo.center],2,[])';
+        Zs = CellXYZ(:,3);% [CInfo.slice]';
+else % Matlab can't handle CInfo with all the empty entries -> manual padding
+    IJs = CellXYZ(cIX,1:2);
+    Zs = CellXYZ(cIX,3);
+%     IJs_ = reshape([CInfo(cIX).center],2,[])';
+%     IJs = ones(numcell,2);
+%     IJs(cIX,:) = IJs_;
+%     Zs_ = [CInfo(cIX).slice]';
+%     Zs = ones(numcell,1);
+%     Zs(cIX) = Zs_;
+end
+A = sub2ind(dimv_zx(1:2),Zs,IJs(:,2));
 
 MaskArray = createMask(h_poly_z);
+
 MaskArray(dimv_zx(1)*k_zres+1:end,:) = [];
 MaskArray(:,dimv_zx(2)+1:end) = [];
 zMaskArray = imresize(MaskArray,[dimv_zx(1),dimv_zx(2)]);
@@ -2148,11 +2149,14 @@ hfig = getParentFigure(hObject);
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
 CellXYZ = getappdata(hfig,'CellXYZ');
-absIX = getappdata(hfig,'absIX');
-cIX_abs = absIX(cIX);
+XYs = CellXYZ(:,1:2);
+Zs = CellXYZ(:,3);
+% point sets
+xyz_all = horzcat(XYs, Zs);
+xyz_cIX = horzcat(XYs(cIX,:), Zs(cIX));
 
-tri = delaunayn(CellXYZ(cIX_abs,:)); % Generate delaunay triangulization
-t = tsearchn(CellXYZ(cIX_abs,:), tri, CellXYZ(absIX,:)); % Determine which triangle point is within
+tri = delaunayn(xyz_cIX); % Generate delaunay triangulization
+t = tsearchn(xyz_cIX, tri, xyz_all); % Determine which triangle point is within
 I_inside = ~isnan(t);
 
 cIX_1 = cIX;
@@ -2195,14 +2199,14 @@ hfig = getParentFigure(hObject);
 % get/format range
 str = get(hObject,'String');
 if ~isempty(str),
-    %     str = strrep(str,'end',num2str(nMasks));
+%     str = strrep(str,'end',num2str(nMasks));
     range = ParseRange(str);
     
     setappdata(hfig,'regchoice',{1,range});
     % highlight the choice (yellow)
     global hstimreg hmotorreg hcentroidreg; %#ok<TLEV>
     set(hstimreg,'BackgroundColor',[1,1,1]);
-    %         set(hstimreg,'BackgroundColor',[1,1,0.8]); % yellow
+%         set(hstimreg,'BackgroundColor',[1,1,0.8]); % yellow
     set(hmotorreg,'BackgroundColor',[1,1,1]);
     set(hcentroidreg,'BackgroundColor',[1,1,1]);
 end
@@ -2210,7 +2214,7 @@ end
 
 function PlotRegWithStimMotor(hfig)
 stim = getappdata(hfig,'stim');
-behavior = getappdata(hfig,'behavior');
+fictive = getappdata(hfig,'fictive');
 regressor = GetRegressor(hfig);
 % plot regressor
 figure;
@@ -2223,7 +2227,7 @@ h = subplot(3,1,1);image(stimbar);set(h,'box','on','xtick',[],'ytick',[]); title
 h = subplot(3,1,2);image(regbar); set(h,'box','on','xtick',[],'ytick',[]); title('regressor');
 subplot(3,1,3);
 
-temp = behavior;
+temp = fictive;
 if 1, % plot all 5 lines
     fc = vertcat(temp(1,:),temp(3,:),temp(2,:),temp(4,:),temp(5,:));
     
@@ -2234,17 +2238,17 @@ if 1, % plot all 5 lines
     hold on;axis ij;
     
     % plot division lines
-    %     for i = 0:3,
-    %         y = i+0.5;
-    %         plot([0.5,length(behavior)+0.5],[y,y],'w','Linewidth',0.5);
-    %     end
-    %     % labels
-    %     names = {'Left','Right','Forward','Raw L','Raw R'};
-    %     x = -s2*0.05;
-    %     for i = 1:5,
-    %         y = i;
-    %         text(x,y,names{i},'Fontsize',7);
-    %     end
+%     for i = 0:3,
+%         y = i+0.5;
+%         plot([0.5,length(fictive)+0.5],[y,y],'w','Linewidth',0.5);
+%     end
+%     % labels
+%     names = {'Left','Right','Forward','Raw L','Raw R'};
+%     x = -s2*0.05;
+%     for i = 1:5,
+%         y = i;
+%         text(x,y,names{i},'Fontsize',7);
+%     end
     
 else % only plot top 3 lines
     fc = vertcat(temp(1,:),temp(3,:),temp(2,:)); %#ok<UNRCH>
@@ -2257,7 +2261,7 @@ else % only plot top 3 lines
     % plot division lines
     for i = 0:2,
         y = i+0.5;
-        plot([0.5,length(behavior)+0.5],[y,y],'w','Linewidth',0.5);
+        plot([0.5,length(fictive)+0.5],[y,y],'w','Linewidth',0.5);
     end
     % labels
     names = {'Left','Forward','Right'};
@@ -2269,7 +2273,7 @@ else % only plot top 3 lines
     
 end
 
-imagesc(behavior);colormap hot; axis off; title('motor');
+imagesc(fictive);colormap hot; axis off; title('motor');
 end
 
 function out=imNormalize99(im)
@@ -2332,10 +2336,10 @@ function regressor = GetRegressor(hObject)
 hfig = getParentFigure(hObject);
 regchoice = getappdata(hfig,'regchoice');
 stim = getappdata(hfig,'stim');
-
+    
 if regchoice{1}==1, % stim Regressor
     fishset = getappdata(hfig,'fishset');
-    regressors = GetStimRegressor(stim,fishset);
+    regressors = GetStimRegressor(stim,fishset);   
     if length(regchoice{2})>1,
         regressor = zeros(length(regchoice{2}),length(regressors(1).im));
         for i = 1:length(regchoice{2}),
@@ -2346,8 +2350,8 @@ if regchoice{1}==1, % stim Regressor
     end
     
 elseif regchoice{1}==2, % motor Regressor
-    behavior = getappdata(hfig,'behavior');
-    regressors = GetMotorRegressor(behavior);
+    fictive = getappdata(hfig,'fictive');
+    regressors = GetMotorRegressor(fictive);
     regressor = regressors(regchoice{2}).im;
     
 else % regchoice{1}==3, from Centroid
@@ -2400,12 +2404,12 @@ else % regchoice{1}==3, from Centroid
         %     else
         regressor = regressor(IX);
         %     end
-    end
+    end    
 end
 
 end
 
-function pushbutton_thres_regression_Callback(hObject,~)
+function pushbutton_thres_regression_Callback(hObject,~) 
 disp('regression...');
 tic
 hfig = getParentFigure(hObject);
@@ -2429,11 +2433,11 @@ else
 end
 
 if ~isempty(gIX),
-    %     gIX = ceil((1:length(cIX))'/length(cIX)*min(20,length(cIX)));
+%     gIX = ceil((1:length(cIX))'/length(cIX)*min(20,length(cIX)));
     setappdata(hfig,'wIX',wIX);
     setappdata(hfig,'isWeighAlpha',1);
     UpdateIndices(hfig,cIX,gIX,length(unique(gIX)));
-    %     UpdateIndices(hfig,cIX,gIX,40);
+%     UpdateIndices(hfig,cIX,gIX,40);
     RefreshFigure(hfig);
 end
 toc
@@ -2444,9 +2448,9 @@ function [cIX,gIX,wIX] = SmartUnique_weighted(CIX,GIX,WIX)
 [uCIX,ia,~] = unique(CIX);
 uGIX = GIX(ia);
 uWIX = WIX(ia);
-if length(uCIX) == 1,
+if length(uCIX) == 1, 
     counts = length(x);
-else counts = hist(CIX,uCIX);
+else counts = hist(CIX,uCIX); 
 end
 IX1 = find(counts==1);
 CIX1 = uCIX(IX1); % single occurence
@@ -2581,7 +2585,7 @@ U = unique(gIX);
 clusters(length(U)).cIX = [];
 for i = 1:length(U),
     disp(['i = ' num2str(i)]);
-    IX = find(gIX == U(i));
+    IX = find(gIX == U(i));    
     [~,regressor] = kmeans(M_0(cIX(IX),:),1,'distance','correlation');
     cIX_ = Regression_Direct(hfig,thres_reg,regressor);
     clusters(i).cIX = cIX_;
@@ -2590,7 +2594,7 @@ disp('union...');
 CIX = vertcat(clusters(1:end).cIX);
 GIX = [];
 for i = 1:numel(clusters),
-    GIX = [GIX; ones(length(clusters(i).cIX),1)*i];
+    GIX = [GIX; ones(length(clusters(i).cIX),1)*i]; 
 end
 [cIX,gIX,numK] = SmartUnique(CIX,GIX,M_0(CIX,:));
 end
@@ -2639,13 +2643,13 @@ end
 
 function edit_tteststimrange_Callback(hObject,~)
 hfig = getParentFigure(hObject);
-str = get(hObject,'String');
+str = get(hObject,'String'); 
 if ~isempty(str),
     % e.g. '1-3,5', but can't use 'end'
     tteststimrange = ParseRange(str);
     setappdata(hfig,'tteststimrange',tteststimrange);
-    %     UpdateTimeIndex(hfig);
-    %     RefreshFigure(hfig);
+%     UpdateTimeIndex(hfig);
+%     RefreshFigure(hfig);
 end
 end
 
@@ -2659,7 +2663,7 @@ if ~isempty(str),
 end
 end
 
-function pushbutton_ttest_Callback(hObject,~)
+function pushbutton_ttest_Callback(hObject,~) 
 hfig = getParentFigure(hObject);
 M = getappdata(hfig,'M');
 cIX = getappdata(hfig,'cIX');
@@ -2675,7 +2679,7 @@ if isempty(stimStateBinary),
 end
 
 %% Misha's method of averaging over 5 frames;
-if 1,
+if 0,
     samples = cell(1,length(tteststimrange));
     for i = 1:length(tteststimrange),
         IX = find(stimStateBinary(i,:));
@@ -2692,7 +2696,7 @@ if 1,
         [~, p] = ttest2(samples{1}(i_cell,:),samples{2}(i_cell,:));
         pvals(i_cell) = p;
         signs(i_cell) = sign(mean(samples{1}(i_cell,:)) -  mean(samples{2}(i_cell,:)));
-    end
+    end    
 else
     %% Linear Discrimination Analysis with HotellingT2 test
     disp('t-test with HotellingT2...');
@@ -2729,12 +2733,12 @@ else
         M_1 = squeeze(M_3D{1}(i_cell,:,:))'; % rows ~ observations; col ~ dimensions
         M_2 = squeeze(M_3D{2}(i_cell,:,:))'; % rows ~ observations; col ~ dimensions
         
-        %         Miu1 = mean(M_1,1)';
-        %         Covar1 = cov(M_1);
-        %         Miu2 = mean(M_2,1)';
-        %         Covar2 = cov(M_2);
-        %         Sigma_inv = inv(0.5*(Covar1+Covar2));
-        %         w = Sigma_inv * (Miu1 - Miu2);
+%         Miu1 = mean(M_1,1)';
+%         Covar1 = cov(M_1);
+%         Miu2 = mean(M_2,1)';
+%         Covar2 = cov(M_2);
+%         Sigma_inv = inv(0.5*(Covar1+Covar2));
+%         w = Sigma_inv * (Miu1 - Miu2);
         
         % format input matrix for HotellingT2
         X1 = horzcat(ones(size(M_1,1),1),M_1);
@@ -2817,13 +2821,12 @@ end
 
 function edit_kmeans2_Callback(hObject,~) % based on anatomical distance
 hfig = getParentFigure(hObject);
-M = getappdata(hfig,'M');
-% z_res = getappdata(hfig,'z_res');
+z_res = getappdata(hfig,'z_res');
 cIX = getappdata(hfig,'cIX');
 CellXYZ = getappdata(hfig,'CellXYZ');
-absIX = getappdata(hfig,'absIX');
-cIX_abs = absIX(cIX);
-Combo = horzcat(CellXYZ(cIX_abs,:)/50,M);% how to weight????????????????
+M = getappdata(hfig,'M');
+
+Combo = horzcat(CellXYZ(cIX,:)/50,M);% how to weight????????????????
 
 str = get(hObject,'String');
 if ~isempty(str),
@@ -2839,7 +2842,7 @@ if ~isempty(str),
     if numK>1,
         gIX = HierClusDirect(C,gIX,numK);
     end
-    
+
     cIX = getappdata(hfig,'cIX');
     UpdateIndices(hfig,cIX,gIX,numK);
     RefreshFigure(hfig);
@@ -2855,15 +2858,15 @@ str = get(hObject,'String');
 if ~isempty(str),
     str = strrep(str,'end',num2str(max(gIX)));
     range = ParseRange(str);
-    
+
     Silh_mean = zeros(1,length(range));
     for i = 1:length(range),
         disp(['k-means k=' num2str(range(i))]);
-        gIX = kmeans(M,range(i),'distance','correlation');
+        gIX = kmeans(M,range(i),'distance','correlation');        
         silh = silhouette(M,gIX,'correlation');
         Silh_mean(i) = mean(silh);
     end
-    [~,ix] = max(Silh_mean);
+    [~,ix] = max(Silh_mean);    
     numK = range(ix);
     
     figure;hold on
@@ -2888,11 +2891,11 @@ if ~isempty(str),
         [gIX,C] = kmeans(M,numK,'distance','correlation','Replicates',3);
     else
         [gIX,C] = kmeans(M,numK,'distance','correlation');%,'Replicates',3);
-    end
+    end       
     if numK>1,
         gIX = HierClusDirect(C,gIX,numK);
-    end
-    cIX = getappdata(hfig,'cIX');
+    end    
+    cIX = getappdata(hfig,'cIX');    
     UpdateIndices(hfig,cIX,gIX,numK);
     RefreshFigure(hfig);
     beep;
@@ -2914,7 +2917,7 @@ numU = length(U);
 thres_merge = getappdata(hfig,'thres_merge');
 
 i = 1;
-while i<numU,
+while i<numU,    
     c = corr(C(i,:)',C(i+1,:)');
     if c > thres_merge,
         IX = find(gIX == U(i+1));
@@ -2960,7 +2963,7 @@ M_0 = getappdata(hfig,'M_0');
 
 disp('iter. split all, beep when done...');
 thres_size = 10;
-thres_H = thres_split;
+thres_H = thres_split; 
 % thres_H = [0.2;0.15;0.1;0.05]; % could have more rounds...
 
 % initialization
@@ -2977,16 +2980,16 @@ for round = 1:length(thres_H),
     for i = 1:numU,
         disp(['i = ' num2str(i)]);
         ix = find(gIX_last == i);
-        %         IX = ix;
+%         IX = ix;
         IX = I_clean_last(ix);
         M_s = M_0(IX,:);
         [I_rest,cIX,gIX,numU] = CleanClus(M_s,IX,I_rest,cIX,gIX,numU,dthres,thres_size);
-        %         cIX = I_clean_last(I_clean);
+%         cIX = I_clean_last(I_clean);
     end
-    
+
     [gIX, numU] = SqueezeGroupIX(gIX);
     SaveCluster_Direct(hfig,cIX,gIX,['clean_round' num2str(round)]);
-    
+
     SaveCluster_Direct(hfig,I_rest,ones(length(I_rest),1),['rest_round' num2str(round)]);
 end
 toc
@@ -3169,7 +3172,7 @@ end
 % ix = ismember(gIX,IX);
 % gIX = gIX(ix);
 % cIX = cIX(ix);
-%
+% 
 % [gIX, ~] = Merge_direct(thres_merge,M_0,cIX,gIX);
 
 % size threshold
@@ -3228,7 +3231,7 @@ U = unique(gIX);
 M = M_0(cIX,:);
 [C,D] = FindCentroid_Direct(gIX,M);
 i = 1;
-while i<numU,
+while i<numU,    
     c = corr(C(i,:)',C(i+1,:)');
     if c > thres_merge,
         IX = find(gIX == U(i+1));
@@ -3284,8 +3287,8 @@ if ~isempty(str),
     temp = textscan(str,'%d',1);
     numCuts = temp{:};
     
-    %     tree = linkage(C,'average','correlation');
-    %     IX_tree = cluster(tree,'maxclust',numCuts);
+%     tree = linkage(C,'average','correlation');
+%     IX_tree = cluster(tree,'maxclust',numCuts);
     IX_tree = clusterdata(C,'criterion','distance','distance','correlation','maxclust',numCuts);
     
     if hierinplace,
@@ -3304,7 +3307,7 @@ if ~isempty(str),
         temp(gIX==i) = IX_tree(i);
     end
     gIX = temp;
-    
+
     cIX = getappdata(hfig,'cIX');
     UpdateIndices(hfig,cIX,gIX,length(unique(IX_tree)));
     RefreshFigure(hfig);
@@ -3326,7 +3329,7 @@ if ~isempty(str),
     
     IX_tree = clusterdata(C,'criterion','distance',...
         'distance','correlation','cutoff',thres);
-    
+        
     if hierinplace,
         % sort to keep clusters in place
         U = unique(IX_tree,'stable');
@@ -3343,7 +3346,7 @@ if ~isempty(str),
         temp(gIX==i) = IX_tree(i);
     end
     gIX = temp;
-    
+
     cIX = getappdata(hfig,'cIX');
     UpdateIndices(hfig,cIX,gIX,length(unique(IX_tree)));
     RefreshFigure(hfig);
@@ -3496,7 +3499,7 @@ if rank > 1,
     temp = Cluster(clusID);
     Cluster(clusID) = [];
     Cluster = [Cluster(1:rank-1),temp,Cluster(rank:end)];
-else
+else 
     temp = Cluster(clusID);
     Cluster(clusID) = [];
     Cluster = [temp,Cluster(rank:end)];
@@ -3518,14 +3521,14 @@ end
 
 function pushbutton_delclus_Callback(hObject,~)
 choice = questdlg('Delete current cluster?','','Cancel','Yes','Yes');
-if strcmp(choice,'Yes'),
+if strcmp(choice,'Yes'), 
     hfig = getParentFigure(hObject);
     Cluster = getappdata(hfig,'Cluster');
     clusID = getappdata(hfig,'clusID');
     disp(['delete ' num2str(clusID)]);
     Cluster(clusID) = [];
     setappdata(hfig,'Cluster',Cluster);
-    
+        
     clusID = max(1,clusID-1);
     disp(['new clusID: ' num2str(clusID)]);
     UpdateClusID(hfig,clusID);
@@ -3548,37 +3551,37 @@ if ~isempty(str),
     range = [];
     for i = 1:length(m),
         if m(i)>0,
-            range = [range,m(i)];
+            range = [range,m(i)]; 
         else % have '-'sign,
-            range = [range,m(i-1)+1:-m(i)];
+            range = [range,m(i-1)+1:-m(i)]; 
         end
     end
-    
+
     % combine
     CIX = vertcat(Cluster(range).cIX);
     GIX = []; % gIX to match A
     for i = 1:length(range),
-        GIX = [GIX; ones(length(Cluster(range(i)).gIX),1)*i];
-    end
-    [cIX,gIX,numK] = SmartUnique(CIX,GIX,M_0(CIX,:));
-    UpdateIndices(hfig,cIX,gIX,numK);
+        GIX = [GIX; ones(length(Cluster(range(i)).gIX),1)*i]; 
+    end    
+    [cIX,gIX,numK] = SmartUnique(CIX,GIX,M_0(CIX,:));    
+    UpdateIndices(hfig,cIX,gIX,numK);    
     RefreshFigure(hfig);
 end
 disp('union complete');
 end
 
-function [cIX,gIX,numK] = SmartUnique(CIX,GIX,M)
+function [cIX,gIX,numK] = SmartUnique(CIX,GIX,M) 
 % input: simply concatenated groups
 % output: every cell only appears once - in group with the highest
 % correlation to group mean/centroid
 disp('unique based on corr coeff...');
-CTRD = FindCentroid_Direct(GIX,M);
+CTRD = FindCentroid_Direct(GIX,M); 
 
 [uCIX,ia,~] = unique(CIX);
 uGIX = GIX(ia);
-if length(uCIX) == 1,
+if length(uCIX) == 1, 
     counts = length(x);
-else counts = hist(CIX,uCIX);
+else counts = hist(CIX,uCIX); 
 end
 IX1 = find(counts==1);
 CIX1 = uCIX(IX1); % single occurence
@@ -3609,39 +3612,28 @@ function pushbutton_findmasks_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 MASKs = getappdata(hfig,'MASKs');
 % load to shorter variable names
+% MskD = MASKs.MaskDatabase;
 height = MASKs.height; % 1406;
 width = MASKs.width; % 621;
 Zs = MASKs.Zs; % 138;
 
 cIX = getappdata(hfig,'cIX');
-absIX = getappdata(hfig,'absIX');
-% isRefAnat = getappdata(hfig,'isRefAnat');
-setappdata(hfig,'isRefAnat',1);
 
-%% load normalized data:
-% if ~isRefAnat, % make fake data...
-%     errordlg('not using normalized cell coordinates!')
-%     CellXYZ = getappdata(hfig,'CellXYZ');
-%     anat_stack = getappdata(hfig,'anat_stack');
-%     [s1,s2,s3] = size(anat_stack);
-%     
-%     % fake
-%     X_raw = CellXYZ(absIX(cIX),1);
-%     Y_raw = CellXYZ(absIX(cIX),2);
-%     Z_raw =  CellXYZ(absIX(cIX),3);
-% 
-%     X = ceil(X_raw.*((height-1)/(s1-1)));
-%     Y = ceil(Y_raw.*((width-1)/(s2-1)));
-%     Z = ceil(1+(Z_raw-1).*((Zs-1)/(s3-1)));
-% else
-    CellXYZ = getappdata(hfig,'CellXYZ_norm');
-    X = CellXYZ(absIX(cIX),1);
-    Y = CellXYZ(absIX(cIX),2);
-    Z = CellXYZ(absIX(cIX),3);
-% end
+% CInfo_n = getappdata(hfig,'CInfo_n');
+% make fake CInfo_n data:
+CellXYZ = getappdata(hfig,'CellXYZ');
+ave_stack = getappdata(hfig,'ave_stack');
+[s1,s2,s3] = size(ave_stack);
 
-%%
-pxID = sub2ind([height,width,Zs],X',Y',Z');
+XY_raw = CellXYZ(cIX,1:2);%reshape([CInfo(cIX).center],2,[]);
+Z_raw =  CellXYZ(cIX,3);%[CInfo(cIX).slice];
+
+XY = zeros(size(XY_raw));
+XY(1,:) = ceil(XY_raw(1,:).*((height-1)/(s1-1)));
+XY(2,:) = ceil(XY_raw(2,:).*((width-1)/(s2-1)));
+Z = ceil(1+(Z_raw-1).*((Zs-1)/(s3-1)));
+
+pxID = sub2ind([height,width,Zs],XY(1,:),XY(2,:),Z);
 Msk_hist = full(sum(MASKs.MaskDatabase(pxID,:),1));
 
 % choose top hits
@@ -3676,7 +3668,8 @@ setappdata(hfig,'Msk_IDlist',Msk_IDs);
 global hmasklistbox;
 set(hmasklistbox,'String',names_numbered);
 
-RefreshFigure(hfig);
+% mask = reshape(full(MaskDatabase(:,2)), [height, width, Zs]);
+% figure;imagesc(max(mask,[],3))
 end
 
 function checkbox_showmasks_Callback(hObject,~)
@@ -3696,7 +3689,7 @@ if ~isempty(str),
     range = ParseRange(str);
     
     setappdata(hfig,'Msk_IDs',range);
-    RefreshFigure(hfig);
+    RefreshFigure(hfig);       
 end
 end
 
@@ -3718,7 +3711,7 @@ end
 %% Internal functions
 
 function UpdateClusGroupID(hfig,clusgroupID,new_clusgroupID,norefresh) %#ok<INUSD>
-% save/update old Cluster into ClusGroup before exiting,
+% save/update old Cluster into ClusGroup before exiting, 
 % as Cluster is the variable handled in hfig but not saved elsewhere
 ClusGroup = getappdata(hfig,'ClusGroup');
 Cluster = getappdata(hfig,'Cluster');
@@ -3743,7 +3736,7 @@ if ishandle(hclusgroupmenu),
     set(hclusgroupname,'String',VAR(i_fish).ClusGroupName(new_clusgroupID));
 end
 
-if ~exist('norefresh','var'),
+if ~exist('norefresh','var'),    
     if numel(Cluster) == 0, % i.e. for newly created ClusGroup
         SaveCluster(hfig,'new');
     else % load this ClusGroup
@@ -3790,13 +3783,12 @@ numU = length(U);
 Cluster(clusID).numK = numU;
 
 setappdata(hfig,'Cluster',Cluster);
-UpdateClusID(hfig,clusID);
+UpdateClusID(hfig,clusID); 
 disp('cluster saved');
 end
 
 function [Cluster,clusID] = SaveCluster_Direct(hfig,cIX,gIX,name) %,clusheader,name)
 new_clusgroupID = 1;
-clusgroupID = getappdata(hfig,'clusgroupID');
 UpdateClusGroupID(hfig,clusgroupID,new_clusgroupID);
 
 if ~exist('cIX','var'),
@@ -3807,9 +3799,6 @@ if ~exist('gIX','var'),
 end
 
 Cluster = getappdata(hfig,'Cluster');
-absIX = getappdata(hfig,'absIX');
-cIX_abs = absIX(cIX);
-
 clusID = numel(Cluster)+1;
 % if ~exist('name','var'),
 %     name = getappdata(hfig,'newclusname');
@@ -3818,19 +3807,19 @@ clusID = numel(Cluster)+1;
 %     clusheader = getappdata(hfig,'clusheader');
 % end
 Cluster(clusID).name = name; %[clusheader name];
-Cluster(clusID).cIX_abs = cIX_abs;
+Cluster(clusID).cIX = cIX;
 Cluster(clusID).gIX = gIX;
 Cluster(clusID).numel = length(cIX);
 Cluster(clusID).numK = length(unique(gIX));
 
 setappdata(hfig,'Cluster',Cluster);
-UpdateClusID(hfig,clusID);
+UpdateClusID(hfig,clusID); 
 disp('cluster saved');
 end
 
 function UpdateClusID(hfig,clusID)
 Cluster = getappdata(hfig,'Cluster');
-
+    
 % save
 setappdata(hfig,'clusID',clusID);
 % update GUI
@@ -3871,20 +3860,20 @@ leafOrder = optimalleaforder(tree,D);
 
 if numU>1,
     if exist('isplotfig','var'),
-        figure('Position',[100 400 600 600]);
-        %             subplot(1,3,1);
-        %             CORR = corr(C');
-        %             CorrPlot(CORR);
-        %
-        %             subplot(1,3,2);
-        dendrogram(tree,numU,'orientation','right','reorder',leafOrder);
-        set(gca,'YDir','reverse');
-        set(gca,'XTick',[]);
-        
-        %             subplot(1,3,3);
-        %             C2 = C(leafOrder,:);
-        %             CORR2 = corr(C2');
-        %             CorrPlot(CORR2);
+            figure('Position',[100 400 600 600]);
+%             subplot(1,3,1);
+%             CORR = corr(C');
+%             CorrPlot(CORR);
+%             
+%             subplot(1,3,2);
+            dendrogram(tree,numU,'orientation','right','reorder',leafOrder);
+            set(gca,'YDir','reverse');
+            set(gca,'XTick',[]);
+
+%             subplot(1,3,3);
+%             C2 = C(leafOrder,:);
+%             CORR2 = corr(C2');
+%             CorrPlot(CORR2);
     end
     % sort for uniform colorscale
     temp = zeros(size(gIX));
@@ -3978,7 +3967,7 @@ if opID ~= 0,
             CIX = vertcat(cIX_last,cIX);
             GIX = [gIX_last;gIX+max(gIX_last)]; % gIX to match
             M_0 = getappdata(hfig,'M_0');
-            [cIX,gIX,numK] = SmartUnique(CIX,GIX,M_0(CIX,:));
+            [cIX,gIX,numK] = SmartUnique(CIX,GIX,M_0(CIX,:));              
     end
     if opID<6,
         if ~isempty(IX),
@@ -4008,7 +3997,7 @@ end
 
 %% Resets: reset flags the NEXT time this function is called (so they only apply to this particular plot)
 % handle rankID: >=2 means write numbers as text next to colorbar
-% first UpdateIndices sets rankID to 100, second sets back to 0
+% first UpdateIndices sets rankID to 100, second sets back to 0 
 rankID = getappdata(hfig,'rankID');
 if rankID>=2,
     if rankID==100,
@@ -4046,27 +4035,25 @@ h1 = axes('Position',[0.05, 0.04, 0.55, 0.83]);
 h2 = axes('Position',[0.63, 0.04, 0.35, 0.83]);
 
 isCentroid = getappdata(hfig,'isCentroid');
-isRefAnat = getappdata(hfig,'isRefAnat');
-
 isPlotLines = 0; %getappdata(hfig,'isPlotLines');
-isPlotBehavior = 1; %getappdata(hfig,'isPlotBehavior');
+isPlotFictive = 1; %getappdata(hfig,'isPlotFictive');
 
 % double-check if cIX is valid
 cIX = getappdata(hfig,'cIX');
 if isempty(cIX),
     errordlg('empty set!');
     % GO BACK to the last step (presumably not empty)
-    pushbutton_back_Callback(h1); % using h1 instaed of the usual 'hObject'
+    pushbutton_back_Callback(h1); % using h1 instaed of the usual 'hObject'    
     return;
 end
 
 % left subplot
 axes(h1);
-DrawTimeSeries(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior);
+DrawTimeSeries(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotFictive);
 
 % right subplot
 axes(h2);
-DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
+DrawCellsOnAnatProj(hfig,isPopout);
 end
 
 function [C,D] = FindCentroid_Direct(gIX,M)
@@ -4094,15 +4081,15 @@ isAvr = getappdata(hfig,'isAvr');
 isRawtime = getappdata(hfig,'isRawtime');
 stimrange = getappdata(hfig,'stimrange');
 % load
-timelists = getappdata(hfig,'timelists');
+tlists = getappdata(hfig,'tlists');
 periods = getappdata(hfig,'periods');
 fishset = getappdata(hfig,'fishset');
 
 if fishset == 1,
     if isAvr,
-        tIX = 1:periods;
+        tIX = tlists{1};
     else
-        tIX = timelists{1};
+        tIX = tlists{2};
     end
     
 else % fishset>1,
@@ -4111,21 +4098,29 @@ else % fishset>1,
         for i = 1:length(stimrange),
             ix = stimrange(i);
             i_start = sum(periods(1:ix-1)); % if ix-1<1, sum = 0
-            tIX = horzcat(tIX,(i_start+1:i_start+periods(ix)));
-            %             tIX = vertcat(tIX,(i_start+1:i_start+periods(ix))');
+            tIX = vertcat(tIX,(i_start+1:i_start+periods(ix))'); 
         end
     else % full range
         if ~isRawtime,
-            tIX = cat(2, timelists{stimrange});
+            tIX = cat(2, tlists{stimrange});
         else
-            tIX = sort(cat(2, timelists{stimrange}));
+            tlists_raw = getappdata(hfig,'tlists_raw');
+            tIX = cat(2, tlists_raw{stimrange});
+            tIX_sorted = sort(tIX);
+            % this may not be the smartest way
+            % to get the sorted index in reference to IX_all
+            % (same code as in 'GUIpreload_step3_align.m'
+            nTypes = length(periods);
+            IX_all = tlists_raw{nTypes+1};
+            [~,IX] = ismember(tIX_sorted,IX_all);
+            tIX = IX(find(IX)); 
         end
     end
 end
 
 setappdata(hfig,'tIX',tIX);
 
-% set Matrices to hold time-series
+%% also set 'fictive' and 'stim' with setappdata
 M_0 = GetTimeIndexedData(hfig,'isAllCells');
 setappdata(hfig,'M_0',M_0);
 if ~exist('isSkipcIX','var'),
@@ -4134,7 +4129,7 @@ if ~exist('isSkipcIX','var'),
 end
 end
 
-function [M,behavior,stim] = GetTimeIndexedData(hfig,isAllCells) %#ok<INUSD>
+function [M,fictive,stim] = GetTimeIndexedData(hfig,isAllCells) %#ok<INUSD>
 %{
 % naming convention used:
 M = GetTimeIndexedData(hfig);
@@ -4150,8 +4145,8 @@ else
     cellResp = getappdata(hfig,'CellRespZ');
     cellRespAvr = getappdata(hfig,'CellRespAvrZ');
 end
-Behavior_full = getappdata(hfig,'Behavior_full');
-BehaviorAvr = getappdata(hfig,'BehaviorAvr');
+Fictive = getappdata(hfig,'Fictive');
+FictiveAvr = getappdata(hfig,'FictiveAvr');
 stim_full = getappdata(hfig,'stim_full');
 stimAvr = getappdata(hfig,'stimAvr');
 % other params
@@ -4166,7 +4161,7 @@ if isAvr,
     else
         M = cellRespAvr(cIX,tIX);
     end
-    behavior = BehaviorAvr(:,tIX);
+    fictive = FictiveAvr(:,tIX);
     stim = stimAvr(:,tIX);
 else
     if exist('isAllCells','var'),
@@ -4174,11 +4169,11 @@ else
     else
         M = cellResp(cIX,tIX);
     end
-    behavior = Behavior_full(:,tIX);
+    fictive = Fictive(:,tIX);
     stim = stim_full(:,tIX);
 end
 
-setappdata(hfig,'behavior',behavior);
+setappdata(hfig,'fictive',fictive);
 setappdata(hfig,'stim',stim);
 end
 
@@ -4190,7 +4185,7 @@ end
 function fig = getParentFigure(fig)
 % if the object is a figure or figure descendent, return the figure. Otherwise return [].
 while ~isempty(fig) && ~strcmp('figure', get(fig,'type'))
-    fig = get(fig,'parent');
+  fig = get(fig,'parent');
 end
 end
 
@@ -4198,7 +4193,7 @@ function runscript(flag_script,var_script)
 switch flag_script
     case 'push_cIX_gIX'
         UpdateIndices(var_script{:});
-        RefreshFigure(var_script{1});
+        RefreshFigure(var_script{1});        
 end
 end
 % end
