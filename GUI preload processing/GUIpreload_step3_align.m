@@ -45,7 +45,7 @@ for i_fish = 1,
     
     %% index processing
     if M_stimset(i_fish)==1, % fish 1-7
-        M_period = {480,160,160,320,480,280,300}; %,{120,150,360}};
+        M_period = {480,160,160,320,480,140,150}; %,{120,150,360}};
         periods = M_period{i_fish};
         period = periods;
         

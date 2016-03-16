@@ -18,7 +18,7 @@ st = frame_turn(:,17)'; % from raw file
 
 % cap abnormally high values in raw values
 temp = sort(st,'descend');
-thr = temp(round(length(st)/10)); % arb. thr
+thr = temp(round(length(st)/100)); % arb. thr % used /10 up till 1/27/16 for all fish except Fish12
 st(st>thr) = thr+1; % assign cap value to be thr+1
 
 xv = 0:thr+1; % x-vector for histogram bins
@@ -65,9 +65,10 @@ if i_fish == 8,
     stimset(5).ij = [2,3];
     
     % M_range_raw = [2,3,4,5,12,13,14,15,99,100]; % for Fish 8
-    M_range =       [3,1,3,2, 9,10,11,12, 4,16]; % standardized
+    M_range =       [3,1,3,2, 3,10,11,12, 0,16]; % standardized
+%     M_range =       [3,1,3,2, 9,10,11,12, 4,16]; % standardized
     
-elseif i_fish == 9 || i_fish == 10 || i_fish == 11,
+elseif i_fish >=9 && i_fish <=11,
     nBlocks = 3;
     block_raw = cell(nBlocks,1); % number of blocks
     block_raw{1} = {[2,3,4,5],[12,13,12,14,12,15],99,[23,22],[30,31,30,32],[42,43,44,45]};
@@ -95,24 +96,47 @@ elseif i_fish == 9 || i_fish == 10 || i_fish == 11,
     stimset(9).ij = [2,7];
     
     % M_range_raw = [2,3,4,5,12,13,14,15,22,23,30,31,32,42,43,44,45,99,100] % for Fish 10
-    M_range =       [3,1,3,2, 9,10,11,12,13, 0, 3,14,15,23,21,23,22, 4,16]; % standardized
+    M_range =       [3,1,3,2, 3,10,11,12,13, 0, 3,14,15,23,21,23,22, 0,16]; % standardized
+%     M_range =       [3,1,3,2, 9,10,11,12,13, 0, 3,14,15,23,21,23,22, 4,16]; % standardized
     
-elseif i_fish == 12 || i_fish == 13 || i_fish == 14,
-    nBlocks = 1;
+elseif i_fish >=12 && i_fish <=13,
+    nBlocks = 2;
     block_raw = cell(nBlocks,1); % number of blocks
-    
-    block_raw{1} = {[0],[3],[4]};
-    
+    block_raw{1} = {[2,3,4,5],[12,13,12,14,12,15,12,16],[0,12],99,[30,31,30,32]};
+    block_raw{2} = {[2,3,4,5],[12,13,12,14,12,15,12,16],[0,12],99,[30,31,30,32]};
+        
     stimset = [];
-    stimset(1).name = 'pre-para';
-    stimset(1).ij = [1,1];
-    stimset(2).name = 'add para';
-    stimset(2).ij = [1,2];
-    stimset(3).name = 'post-para';
-    stimset(3).ij = [1,3];
+    stimset(1).name = 'PT';
+    stimset(1).ij = [1,1; 2,1];
+    stimset(2).name = 'OMR';
+    stimset(2).ij = [1,2; 2,2];
+    stimset(3).name = 'DF';
+    stimset(3).ij = [1,3; 2,3];
+    stimset(4).name = 'Spontaneous';
+    stimset(4).ij = [1,4; 2,4];
+    stimset(5).name = 'Looming';
+    stimset(5).ij = [1,5; 2,5];
+
+    % M_range_raw = [0,2,3,4,5,12,13,14,15,16,30,31,32,99] % for Fish 12
+    M_range =       [0,3,1,3,2, 3,10, 9,11,12, 3,14,15, 4]; % standardized
+%     M_range =       [3,1,3,2, 9, 0,10,11,12, 3,14,15, 4]; % standardized
     
-    % M_range_raw = [1,3,4] % for Fish 10
-    M_range =       [0,3,4]; % standardized
+% elseif i_fish == 12 || i_fish == 13 || i_fish == 14,
+%     nBlocks = 1;
+%     block_raw = cell(nBlocks,1); % number of blocks
+%     
+%     block_raw{1} = {[0],[3],[4]};
+%     
+%     stimset = [];
+%     stimset(1).name = 'pre-para';
+%     stimset(1).ij = [1,1];
+%     stimset(2).name = 'add para';
+%     stimset(2).ij = [1,2];
+%     stimset(3).name = 'post-para';
+%     stimset(3).ij = [1,3];
+%     
+%     % M_range_raw = [1,3,4] % for Fish 10
+%     M_range =       [0,3,4]; % standardized
     
 else % inspect manually to set these manual params
     % set M_range here after first inspection of M_range_raw:
@@ -153,7 +177,8 @@ end
 % 13: OMR F
 % 14: OMR R
 % 15: OMR L
-%
+% 16: OMR?
+
 % Spont
 % 99: same as black
 %
@@ -171,7 +196,7 @@ end
 
 % 0 = all black; 1 = black/white; 2 = white/black; 3 = all white; 4 = all gray;
 % 5 = gray/black; 6 = white/gray; 7 = black/gray; 8 = gray/white.
-% 9 = OMR baseline = not moving?? grey??
+% 9 = backward grating... %%OMR baseline = not moving?? grey??
 % 10 = forward grating (very slow, more for calibration)
 % 11 = rightward grating
 % 12 = leftward grating
@@ -253,6 +278,7 @@ jump = 1; % searching for 'jumps' in 'singles'
 % as 'block_change(_sg)' and 'set_start(_sg)'.
 block_change = cell(nBlocks,1);
 block_change_sg = cell(nBlocks,1);
+flag_isbreakagain = false;
 for I = 1:nBlocks,
     nSets = length(block{I});
     block_change{I} = zeros(1,nSets);
@@ -312,28 +338,36 @@ for I = 1:nBlocks,
             
         end
         %% save
-        if isempty(jump), % reached end of experiment
-            %%
-            % NOTE END OF
-            % EXPERIMENT????????????????????????????????????????????????????????????????????????
+        if isempty(jump), % reached end of experiment!
+            flag_isbreakagain = true;
             break;
         end
         block_change_sg{I}(J) = jump;
         block_change{I}(J) = ix_singles(jump);
+    end
+    if flag_isbreakagain,
+        break;
     end
 end
 
 % eliminate empty sets
 for I = 1:nBlocks,
     nSets = length(block_change{I});
-    for J = 1:nSets,
-        if block_change{I}(J) == 0,
-            block_change{I}(J:end) = [];
-            block_change_sg{I}(J:end) = [];
-            if length(block{I})>= J,
-                block{I}(J:end) = [];
+    if nSets == 0,
+        block_change{I} = [];
+        block_change_sg{I} = [];
+        block{I} = [];
+        nBlocks = I-1;
+    else
+        for J = 1:nSets,
+            if block_change{I}(J) == 0,
+                block_change{I}(J:end) = [];
+                block_change_sg{I}(J:end) = [];
+                if length(block{I})>= J,
+                    block{I}(J:end) = [];
+                end
+                break;
             end
-            break;
         end
     end
 end
@@ -388,6 +422,10 @@ for i_ss = 1:length(stimset),
         end
     end
     nSetReps = size(stimset(i_ss).ij,1);
+    if nSetReps == 0,
+       stimset(i_ss) = [];
+       break;
+    end
     
     %% get period from first set of block
     I = stimset(i_ss).ij(1,1);
@@ -440,14 +478,16 @@ for i_ss = 1:length(stimset),
             stimset(i_ss).starts(i_SetRep) = stimset(i_ss).rawstarts(i_SetRep);
             % length of following occurences need to match period
             % (period primitively extracted from first occurence)
-            i_start = stimset(i_ss).rawstarts(i_SetRep);
+%             i_start = stimset(i_ss).rawstarts(i_SetRep);
             i_stop = stimset(i_ss).rawstops(i_SetRep);
-            %             if (i_stop-i_start+1)<stimset(i_ss).period,
-            %                 % ????????????????????????????discard this chunk??????????????????????
-            %             else
+
             stimset(i_ss).nReps(i_SetRep) = 1;
-            stimset(i_ss).stops(i_SetRep) = stimset(i_ss).starts(i_SetRep) + stimset(i_ss).period - 1;
-            %             end
+            ix = stimset(i_ss).starts(i_SetRep) + stimset(i_ss).period - 1;
+            if ix < i_stop,
+                stimset(i_ss).stops(i_SetRep) = ix;
+            else
+                stimset(i_ss).stops(i_SetRep) = i_stop;
+            end
             
         else
             % circshift to find intact periods

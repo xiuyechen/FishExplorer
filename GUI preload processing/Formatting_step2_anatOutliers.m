@@ -1,16 +1,33 @@
 clear all;close all;clc
-% clearvars -except 'CellResp' 'const'; clc
 
-data_dir = GetCurrentDataDir();
-% save_dir = GetCurrentDataDir();
-i_fish = 1;
-
-%% load data
-disp(['load fish ' num2str(i_fish)]);
+i_fish = 12;
+disp(['i_fish = ' num2str(i_fish)]);
 
 M_dir = GetFishDirectories();
-varList = {'numcell_full','CellXYZ','anat_yx','anat_yz','anat_zx','ave_stack','fpsec','frame_turn'};
-load(fullfile(M_dir{i_fish},['Fish' num2str(i_fish) '_direct_load_full_v6.mat']),varList{:}); 
+data_dir = M_dir{i_fish};
+save_masterdir = GetNestedDataDir();
+
+%% init
+save_dir = fullfile(save_masterdir,['subject_' num2str(i_fish)]);
+load(fullfile(save_dir,'CoreInfo.mat'));
+load(fullfile(save_dir,'OptionalInfo.mat'));
+
+%% get anatomy projections
+% x-y view
+im = max(anat_stack,[],3);
+out=imNormalize99(im);
+anat_yx = repmat(out,[1 1 3]);
+
+% y-z view
+im = squeeze(max(anat_stack,[],2));
+out=imNormalize99(im);
+anat_yz = repmat(out,[1 1 3]);
+
+% x-z view
+im = squeeze(max(anat_stack,[],1));
+out=imNormalize99(im);
+out = flipud(out'); %%%% empirically necessary...
+anat_zx = repmat(out,[1 1 3]);
 
 %% [Next 2 cells] delete anatomically out-of-bound cells by hand
 % only execute once (manual choice 1):
@@ -20,7 +37,7 @@ cHolder_Anat = []; % collect cIX of all out-of-bound cells
 % draw cells first
 % (choose start and stop index to draw; low numbers ~ ventral)
 I_start = 1;
-I_stop = round(numcell_full/10);
+I_stop = 1*round(numcell_full/10);
 
 % plot those cells
 cIX = I_start:I_stop;
@@ -34,19 +51,14 @@ numK = round(cIX(end)/1000)+1;
 % then click again to start drawing the next one
 % and when finished, break loop with Ctrl+C...
 
-% MaskArray = zeros(dim_totimage(1), dim_totimage(2));
-% k_zres = 20;
-% draw polygon around outliers on Y-X view
 for i = 1:100, % NOMINAL LOOP, break manually (with Ctrl+C, somehow the design didn't work)
     h_poly_yx = impoly;
     wait(h_poly_yx); % double click to finalize position!
     % update finalized polygon in bright color
     setColor(h_poly_yx,[0 1 1]);
-
-    IJs = reshape([cell_info(I_start:I_stop).center],2,[])';    
-    A = sub2ind(dimv_yx(1:2),IJs(:,1),IJs(:,2));
+    
+    A = sub2ind(size(anat_yx),CellXYZ(I_start:I_stop,1),CellXYZ(I_start:I_stop,2));
     MaskArray = createMask(h_poly_yx);
-%     MaskArray(1:dimv_zx*k_zres+10,:) = [];
     B = find(MaskArray); % find indices of pixels within ROI
     cIX2 = find(ismember(A,B));
     cHolder_Anat = union(cHolder_Anat,cIX2);
@@ -56,8 +68,8 @@ for i = 1:100, % NOMINAL LOOP, break manually (with Ctrl+C, somehow the design d
     end
 end
 
-%% step 2: plot all cells (including the ones in the ventral layer, don't 
-I_start = 1;
+%% step 2: plot all cells
+I_start = 1; % needs to be 1 for correct indexing
 I_stop = numcell_full; 
 
 % ...here until the end of the cell is the exact dupliate of the last cell...
@@ -71,19 +83,15 @@ numK = round(cIX(end)/1000)+1;
 % Double click to connect last vertex to first vertex, then double click again within polygon to fix.
 % then click again to start drawing the next one
 % and when finished, break loop with Ctrl+C...
-MaskArray = zeros(dim_totimage(1), dim_totimage(2));
-k_zres = 20;
-% draw polygon around outliers on Y-X view
+
 for i = 1:100, % NOMINAL LOOP, break manually (with Ctrl+C, somehow the design didn't work)
     h_poly_yx = impoly;
     wait(h_poly_yx); % double click to finalize position!
     % update finalized polygon in bright color
     setColor(h_poly_yx,[0 1 1]);
 
-    IJs = reshape([cell_info(I_start:I_stop).center],2,[])';    
-    A = sub2ind(dimv_yx(1:2),IJs(:,1),IJs(:,2));
+    A = sub2ind(size(anat_yx),CellXYZ(I_start:I_stop,1),CellXYZ(I_start:I_stop,2));
     MaskArray = createMask(h_poly_yx);
-%     MaskArray(1:dimv_zx*k_zres+10,:) = [];
     B = find(MaskArray); % find indices of pixels within ROI
     cIX2 = find(ismember(A,B));
     cHolder_Anat = union(cHolder_Anat,cIX2);
@@ -94,11 +102,9 @@ for i = 1:100, % NOMINAL LOOP, break manually (with Ctrl+C, somehow the design d
 end
 
 %% find extra outliers on borders of image (can't always get with polygon)
-% temp = [cell_info(:).center];
-% XY = reshape(temp',[],numcell_full)';
-[s1,s2,~] = size(anat_yx);
-IX = find(XY(:,1)<15 | XY(:,1)> s1-15 ...
-        | XY(:,2)<15 | XY(:,2)> s2-15);
+IX = find(CellXYZ(:,1)<15 | CellXYZ(:,1)> size(anat_stack,1)-15 ...
+        | CellXYZ(:,2)<15 | CellXYZ(:,2)> size(anat_stack,2)-15);
+        % for fish 9, eliminating bad plans: | CellXYZ(:,3)<4 | CellXYZ(:,3)> size(anat_stack,3)-3);
 cHolder_Anat = union(cHolder_Anat,IX);
 
 %% test Plot: all antomy outliers
@@ -108,10 +114,6 @@ gIX = (1:length(cIX))';
 figure;
 BasicDrawCellsOnAnatProj(CellXYZ,cIX,gIX,numK,anat_yx,anat_yz);
 
-%% ...and save
-temp = fullfile(datadir,['Fish' num2str(i_fish) '_extrainfo_anat.mat']);
-save(temp,'IX_inval_anat');
-
 %% test Plot: all remaining cells
 I_v_Holder = ones(1,numcell_full);
 I_v_Holder(IX_inval_anat) = 0;
@@ -119,3 +121,21 @@ cIX = find(I_v_Holder);
 gIX = (1:length(cIX))';
 figure;
 BasicDrawCellsOnAnatProj(CellXYZ,cIX,gIX,numK,anat_yx,anat_yz);
+
+%% ...and save
+temp = fullfile(data_dir,['Fish' num2str(i_fish) '_extrainfo_anat.mat']);
+save(temp,'IX_inval_anat');
+
+%%
+
+% save_masterdir = GetNestedDataDir();
+% save_dir = fullfile(save_masterdir,['subject_' num2str(i_fish)]);
+
+IX_inval = IX_inval_anat;
+filename = fullfile(save_dir,'OptionalInfo.mat');
+save(filename,'IX_inval','-append');
+
+filename = fullfile(save_dir,'AdditionalInfo.mat');
+save(filename,'IX_inval_anat','-append');
+
+

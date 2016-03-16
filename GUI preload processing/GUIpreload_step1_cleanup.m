@@ -19,14 +19,14 @@ addpath(genpath(code_dir));
 
 M_dir = GetFishDirectories();
 
-M_tcutoff = {[],[],[],3000,3600,4000,1800,... % F1-7
+M_tcutoff = {3500,[],[],3500,3600,4000,1800,[],... % F1-8
     };
 
 fpsec = 1.97; % Hz
 %%
 poolobj=parpool(8);
 %%
-range_fish = 1; %1:8
+range_fish = 2; %1:8
 
 for i_fish = range_fish,
     tic

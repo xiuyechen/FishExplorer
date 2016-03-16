@@ -1,7 +1,7 @@
-function DrawTimeSeries(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotFictive)
+function DrawTimeSeries(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior)
 % load
 numK = getappdata(hfig,'numK');
-fictive = getappdata(hfig,'fictive');
+behavior = getappdata(hfig,'behavior');
 stim = getappdata(hfig,'stim');
 clrmap = getappdata(hfig,'clrmap');
 rankscore = getappdata(hfig,'rankscore');
@@ -14,14 +14,14 @@ M = getappdata(hfig,'M');
 gIX = getappdata(hfig,'gIX');
 nFrames = size(M,2);
 
-if isPopout,
+% if isPopout,
     % down-sample
     ds_cap = 1000;
     nCells = length(cIX);
     skip = max(1,round(nCells/ds_cap));
     M = M(1:skip:end,:); % down-sized
     gIX = gIX(1:skip:end,:); % down-sized
-end
+% end
 
 axis off;
 pos = get(h1,'Position'); % [left, bottom, width, height]    
@@ -37,7 +37,7 @@ if isPlotLines,
         
         % set position grid
         nLines = length(unique(gIX));
-        if isPlotFictive,
+        if isPlotBehavior,
             nExtraRows = 3; % number of extra rows
         else
             nExtraRows = 2;
@@ -101,10 +101,10 @@ if isPlotLines,
         xlim([xv(1),xv(end)]);ylim([0,1]);
         axis off
                 
-        %% draw fictive behavior bar
-        if isPlotFictive,
+        %% draw behavior bar
+        if isPlotBehavior,
             h = axes('Position',[pos(1),pos(2)+pos(4)-lineH*(nLines+3),len,0.7/(nLines+nExtraRows)]);
-            DrawFictiveBar(h,fictive);
+            DrawBehaviorBar(h,behavior);
             
             axes('Position',[0.02,pos(2)+pos(4)-lineH*(nLines+3),pos(1)-0.02,0.7/(nLines+nExtraRows)]);
             DrawArrowsIcon(isPopout);
@@ -122,7 +122,7 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
     end
     
     %% set size of stimulus-bar relative to whole plot
-    % each stim bar (if applicable) takes up 1 unit, and fictive bar takes up 2.
+    % each stim bar (if applicable) takes up 1 unit, and behavior bar takes up 2.
     if ~isPopout,
         barratio = 0.025;
     else
@@ -184,12 +184,12 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
     % plot 'im'
     hold off;
     if isPopout,
-        if ~isPlotFictive,
+        if ~isPlotBehavior,
             set(h1,'Position',[pos(1),pos(2),pos(3),pos(4)*(1-barratio)]);
         else
             set(h1,'Position',[pos(1),pos(2)+pos(4)*barratio*2,pos(3),pos(4)*(1-barratio*3)]);
         end
-    else % in main window, isPlotFictive is always true
+    else % in main window, isPlotBehavior is always true
         % but need to leave extra space for the bottom axis (compared to isPopout)
         set(h1,'Position',[pos(1),pos(2)+pos(4)*barratio*3,pos(3),pos(4)*(1-barratio*4)]);
     end
@@ -280,10 +280,10 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
         plot([length(stim),length(stim)],[0,size(stimbar,1)],'k','Linewidth',0.5); % plot right border
     end
     
-    %% Draw fictive
-    if isPlotFictive,
+    %% Draw behavior
+    if isPlotBehavior,
         h = axes('Position',[pos(1),pos(2),pos(3),pos(4)*barratio*2]);        
-        DrawFictiveBar(h,fictive,barlength);        
+        DrawBehaviorBar(h,behavior,barlength);        
         axes('Position',[0.015,pos(2),0.03,pos(4)*barratio*2]);
         DrawArrowsIcon(isPopout);
     else
@@ -350,29 +350,36 @@ else
 end
 end
 
-function DrawFictiveBar(h,fictive,barlength)
-regressors = GetMotorRegressor(fictive);
-fc = reshape([regressors(1:5).im],length(fictive),[])';
-fc = AutoScaleImage0to1(fc);
+function DrawBehaviorBar(h,behavior,barlength)
+regressors = GetMotorRegressor(behavior);
+m = reshape([regressors(1:5).im],length(behavior),[])';
+m = AutoScaleImage0to1(m);
+
+% additional line-by-line normalization! (optional)
+for i = 1:5,
+    temp = m(i,:);
+    m(i,:) = (temp-min(temp))/(max(temp)-min(temp));
+end
+
 if exist('barlength','var'),
-    temp = ones(size(fc,1),barlength);
-    temp(:,1:length(fc)) = fc;
+    temp = ones(size(m,1),barlength);
+    temp(:,1:length(m)) = m;
 else
-    temp = fc;
+    temp = m;
 end
 if 0, % plot all 5 lines
-%     imagesc(temp);colormap gray
-%     set(h,'YTick',[],'XTick',[]);
-%     %     set(gcf,'color',[1 1 1]);
-%     set(h, 'box', 'off')
-%     hold on;axis ij;
-%     
-%     % plot division lines
-%     for i = 0:3,
-%         y = i+0.5;
-%         plot([0.5,length(fictive)+0.5],[y,y],'w','Linewidth',0.5);
-%     end
-%     % labels
+    imagesc(temp);colormap gray
+    set(h,'YTick',[],'XTick',[]);
+    %     set(gcf,'color',[1 1 1]);
+    set(h, 'box', 'off')
+    hold on;axis ij;
+    
+    % plot division lines
+    for i = 0:3,
+        y = i+0.5;
+        plot([0.5,length(behavior)+0.5],[y,y],'w','Linewidth',0.5);
+    end
+    % labels
 %     names = {'Left','Right','Forward','Raw L','Raw R'};
 %     x = -s2*0.05;
 %     for i = 1:5,
@@ -381,8 +388,8 @@ if 0, % plot all 5 lines
 %     end
     
 else % only plot top 3 lines
-    fc = vertcat(temp(1,:),temp(3,:),temp(2,:));
-    imagesc(fc);colormap gray
+    m = vertcat(temp(1,:),temp(3,:),temp(2,:));    
+    imagesc(m);colormap gray
     set(h,'YTick',[],'XTick',[]);
     %     set(gcf,'color',[1 1 1]);
     set(h, 'box', 'off')
@@ -391,7 +398,7 @@ else % only plot top 3 lines
     % plot division lines
     for i = 0:2,
         y = i+0.5;
-        plot([0.5,length(fictive)+0.5],[y,y],'w','Linewidth',0.5);
+        plot([0.5,length(behavior)+0.5],[y,y],'w','Linewidth',0.5);
     end    
 end
 end

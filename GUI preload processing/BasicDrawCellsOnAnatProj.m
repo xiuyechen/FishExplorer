@@ -24,7 +24,7 @@ anat_YZ = anat_yz;
 dimv_yx = size(anat_YX);
 dimv_yz = size(anat_YZ);
 
-k_zres = 20;
+k_zres = 3;
 anat_yz2=zeros(dimv_yz(1),dimv_yz(2)*k_zres,3);
 % anat_yz2_ori=anat_yz2;
 dim_totimage = [dimv_yx(1),dimv_yx(2)+dimv_yz(2)*k_zres+10,3];
@@ -32,11 +32,13 @@ tot_image=zeros(dim_totimage);
 tot_image(:,dimv_yx(2)+(1:10),:)=1;
 
 % find index manipulation vector to darw circle
-circle=makeDisk2(7,15); % make mask of filled circle % (7,15)
+% circle=makeDisk2(7,15); % make mask of filled circle % (7,15)
+rad = 3;
+circle=makeDisk2(rad,rad*2+1);
 mask = zeros(dimv_yx(1),dimv_yx(2));
-mask(1:15,1:15) = circle;
+mask(1:rad*2+1,1:rad*2+1) = circle;
 ix = find(mask);
-cix = sub2ind([dimv_yx(1),dimv_yx(2)],8,8);% 8
+cix = sub2ind([dimv_yx(1),dimv_yx(2)],rad+1,rad+1);% 8
 circle_inds = ix - cix;
 
 yzplane_inds = -5:5;
@@ -79,7 +81,7 @@ tot_image(tot_image(:)>1)=1;
 tot_image(tot_image(:)<0)=0;
 
 image(tot_image);
-axis equal;axis off
+axis equal;axis off;axis ij
 
 end
 

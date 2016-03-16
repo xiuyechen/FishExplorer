@@ -1,30 +1,26 @@
-function  [tot_image, dim_totimage] = DrawCellsOnAnatProj(hfig,isRefAnat,isPopout)
-%% load
-if ~isRefAnat,
-    CellXYZ = getappdata(hfig,'CellXYZ');
-    anat_yx = getappdata(hfig,'anat_yx');
-    anat_yz = getappdata(hfig,'anat_yz');
-    anat_zx = getappdata(hfig,'anat_zx');
-    k_zres = 20;
-    radius_xy = 7;
-    width_z = 10;
-    thickness_z = 1;
-else
-    CellXYZ = getappdata(hfig,'CellXYZ_norm');
-    anat_yx = getappdata(hfig,'anat_yx_norm');
-    anat_yz = getappdata(hfig,'anat_yz_norm');
-    anat_zx = getappdata(hfig,'anat_zx_norm');
-    k_zres = 2.5;
-    radius_xy = 3;
-    width_z = 5;
-    thickness_z = 3;
+function  [tot_image, dim_totimage] = DrawCellsOnAnatProj_MultipleFish(hfig,C,isPopout)
+anat_yx = getappdata(hfig,'anat_yx_norm');
+anat_yz = getappdata(hfig,'anat_yz_norm');
+anat_zx = getappdata(hfig,'anat_zx_norm');
+k_zres = 2.5;
+radius_xy = 3;
+width_z = 5;
+thickness_z = 3;
+
+%%
+CellXYZ = [];
+gIX = [];
+
+range_fish = [8,9,11];
+for i = 1:length(range_fish), 
+    i_fish = range_fish(i);
+    CellXYZ = vertcat(CellXYZ,C(i_fish).CellXYZ_norm(C(i_fish).cIX_abs,:));
+    gIX = vertcat(gIX,i*ones(size(C(i_fish).cIX_abs)));
 end
+cIX = (1:length(gIX))';
+numK = length(range_fish);
 
-absIX = getappdata(hfig,'absIX');
-cIX = getappdata(hfig,'cIX');
-gIX = getappdata(hfig,'gIX');
-numK = getappdata(hfig,'numK');
-
+%% load
 clrmap = getappdata(hfig,'clrmap');
 isShowMasks = getappdata(hfig,'isShowMasks');
 if isShowMasks,
@@ -44,15 +40,15 @@ if s2>s1,
     gIX = gIX';
 end
 
-% down-sample
-if ~isPopout,
-    displaymax = 8000;
-    if length(cIX) > displaymax,
-        skip = round(length(cIX)/displaymax);
-        cIX = cIX(1:skip:end,:);
-        gIX = gIX(1:skip:end,:);
-    end
-end
+% % down-sample
+% if ~isPopout,
+%     displaymax = 8000;
+%     if length(cIX_abs) > displaymax,
+%         skip = round(length(cIX_abs)/displaymax);
+%         cIX_abs = cIX_abs(1:skip:end,:);
+%         gIX = gIX(1:skip:end,:);
+%     end
+% end
 
 % get numK
 if exist('numK','var'),
@@ -86,7 +82,6 @@ dimv_zx = size(anat_ZX);
 
 % adjust size for YZ and ZX view, and combine all 3 view into total-image
 % (including white borders as indicated in dim_totimage)
-
 anat_yz2=zeros(dimv_yz(1),dimv_yz(2)*k_zres,3);
 anat_zx2=zeros(dimv_zx(1)*k_zres,dimv_zx(2),3);
 dim_totimage = [dimv_yx(1)+dimv_zx(1)*k_zres+10,dimv_yx(2)+dimv_yz(2)*k_zres+10,3];
@@ -110,7 +105,7 @@ else
 end
 
 %% Draw each cell on map (all 3 views)
-
+% set up specialized indices
 square=ones(width_z,thickness_z); % make mask of filled circle % (7,15)
 mask = zeros(dimv_yz(1),dimv_yz(2));
 mask(1:width_z,1:thickness_z) = square;
@@ -128,45 +123,54 @@ zxplane_inds = ix - cix;
 % zxplane_inds = -width_z*dimv_zx(1):dimv_zx(1):width_z*dimv_zx(1);
 
 % main loop
-cIX_abs = absIX(cIX);
+% cIX_abs = absIX(cIX_abs);
 for j=1:length(cIX)        
-    if ~isempty(CellXYZ(cIX_abs(j),1)),
+    if ~isempty(CellXYZ(cIX(j),1)),
         ix = gIX(j);
                 
         %% Y-X        
-        cinds=(CellXYZ(cIX_abs(j),2)-1)*dimv_yx(1)+CellXYZ(cIX_abs(j),1); % linear pixel index, faster equivalent of:
+        cinds=(CellXYZ(cIX(j),2)-1)*dimv_yx(1)+CellXYZ(cIX(j),1); % linear pixel index, faster equivalent of:
         %     cinds = sub2ind([dim_y,dim_x],cell_info(cellsIX(j)).center(1),cell_info(cellsIX(j)).center(2));
         labelinds=find((cinds+circle_inds)>0 & (cinds+circle_inds)<=dimv_yx(1)*dimv_yx(2)); % within bounds
         ixs = cinds+circle_inds(labelinds);
-        anat_YX(ixs) = cmap(ix,1)*alpha(j) + anat_YX(ixs)*(1-alpha(j)); % R
+        anat_YX(ixs) = min(1,(anat_YX(ixs)+cmap(ix,1)*alpha(j)))*0.8 + anat_YX(ixs)*0.2; % R
+%         anat_YX(ixs) = cmap(ix,1)*alpha(j) + anat_YX(ixs)*(1-alpha(j)); % R
         ixs = cinds+circle_inds(labelinds) + dimv_yx(1)*dimv_yx(2);
-        anat_YX(ixs) = cmap(ix,2)*alpha(j) + anat_YX(ixs)*(1-alpha(j)); % G
+        anat_YX(ixs) = min(1,(anat_YX(ixs)+cmap(ix,2)*alpha(j)))*0.8 + anat_YX(ixs)*0.2; % G
+%         anat_YX(ixs) = cmap(ix,2)*alpha(j) + anat_YX(ixs)*(1-alpha(j)); % G
         ixs = cinds+circle_inds(labelinds) + dimv_yx(1)*dimv_yx(2)*2;
-        anat_YX(ixs) = cmap(ix,3)*alpha(j) + anat_YX(ixs)*(1-alpha(j)); % B
-        
+        anat_YX(ixs) = min(1,(anat_YX(ixs)+cmap(ix,3)*alpha(j)))*0.8 + anat_YX(ixs)*0.2; % B
+%         anat_YX(ixs) = cmap(ix,3)*alpha(j) + anat_YX(ixs)*(1-alpha(j)); % B
+
         %% Y-Z
-        z_alpha(j) = alpha(j)/2;        
-        cinds=(CellXYZ(cIX_abs(j),3)-1)*dimv_yz(1)+CellXYZ(cIX_abs(j),1); % linear pixel index, faster equivalent of:
+        z_alpha(j) = alpha(j);%/2;        
+        cinds=(CellXYZ(cIX(j),3)-1)*dimv_yz(1)+CellXYZ(cIX(j),1); % linear pixel index, faster equivalent of:
         %     cinds = sub2ind([dim_y,dim_z],cell_info(cellsIX(j)).center(1),cell_info(cellsIX(j)).slice);
         labelinds=find((cinds+yzplane_inds)>0 & (cinds+yzplane_inds)<=dimv_yz(1)*dimv_yz(2));
         ixs = cinds+yzplane_inds(labelinds);
-        anat_YZ(ixs) = cmap(ix,1)*z_alpha(j) + anat_YZ(ixs)*(1-z_alpha(j)); % R
+        anat_YZ(ixs) = min(1,(anat_YZ(ixs)+cmap(ix,1)*z_alpha(j)))*0.8 + anat_YZ(ixs)*0.2; % R
+%         anat_YZ(ixs) = cmap(ix,1)*z_alpha(j) + anat_YZ(ixs)*(1-z_alpha(j)); % R
         ixs = cinds+yzplane_inds(labelinds) + dimv_yz(1)*dimv_yz(2);
-        anat_YZ(ixs) = cmap(ix,2)*z_alpha(j) + anat_YZ(ixs)*(1-z_alpha(j)); % G
+        anat_YZ(ixs) = min(1,(anat_YZ(ixs)+cmap(ix,2)*z_alpha(j)))*0.8 + anat_YZ(ixs)*0.2; % G
+%         anat_YZ(ixs) = cmap(ix,2)*z_alpha(j) + anat_YZ(ixs)*(1-z_alpha(j)); % G
         ixs = cinds+yzplane_inds(labelinds) + dimv_yz(1)*dimv_yz(2)*2;
-        anat_YZ(ixs) = cmap(ix,3)*z_alpha(j) + anat_YZ(ixs)*(1-z_alpha(j)); % B
+        anat_YZ(ixs) = min(1,(anat_YZ(ixs)+cmap(ix,3)*z_alpha(j)))*0.8 + anat_YZ(ixs)*0.2; % B
+%         anat_YZ(ixs) = cmap(ix,3)*z_alpha(j) + anat_YZ(ixs)*(1-z_alpha(j)); % B
                 
         %% Z-X
-        z_alpha(j) = alpha(j)/2;        
-        cinds=(CellXYZ(cIX_abs(j),2)-1)*dimv_zx(1) +(CellXYZ(cIX_abs(j),3)); % linear pixel index, faster equivalent of:
+        z_alpha(j) = alpha(j);%/2;        
+        cinds=(CellXYZ(cIX(j),2)-1)*dimv_zx(1) +(CellXYZ(cIX(j),3)); % linear pixel index, faster equivalent of:
         %     cinds = sub2ind([dim_y,dim_z],cell_info(cellsIX(j)).center(1),cell_info(cellsIX(j)).slice);
         labelinds=find((cinds+zxplane_inds)>0 & (cinds+zxplane_inds)<=dimv_zx(1)*dimv_zx(2));
         ixs = cinds+zxplane_inds(labelinds);
-        anat_ZX(ixs) = cmap(ix,1)*z_alpha(j) + anat_ZX(ixs)*(1-z_alpha(j)); % R
+        anat_ZX(ixs) = min(1,(anat_ZX(ixs)+cmap(ix,1)*z_alpha(j)))*0.8 + anat_ZX(ixs)*0.2; % R
+%         anat_ZX(ixs) = cmap(ix,1)*z_alpha(j) + anat_ZX(ixs)*(1-z_alpha(j)); % R
         ixs = cinds+zxplane_inds(labelinds) + dimv_zx(1)*dimv_zx(2);
-        anat_ZX(ixs) = cmap(ix,2)*z_alpha(j) + anat_ZX(ixs)*(1-z_alpha(j)); % G
+        anat_ZX(ixs) = min(1,(anat_ZX(ixs)+cmap(ix,2)*z_alpha(j)))*0.8 + anat_ZX(ixs)*0.2; % G
+%         anat_ZX(ixs) = cmap(ix,2)*z_alpha(j) + anat_ZX(ixs)*(1-z_alpha(j)); % G
         ixs = cinds+zxplane_inds(labelinds) + dimv_zx(1)*dimv_zx(2)*2;
-        anat_ZX(ixs) = cmap(ix,3)*z_alpha(j) + anat_ZX(ixs)*(1-z_alpha(j)); % B
+        anat_ZX(ixs) = min(1,(anat_ZX(ixs)+cmap(ix,3)*z_alpha(j)))*0.8 + anat_ZX(ixs)*0.2; % B
+%         anat_ZX(ixs) = cmap(ix,3)*z_alpha(j) + anat_ZX(ixs)*(1-z_alpha(j)); % B
         
     end
 end
@@ -178,7 +182,7 @@ if isShowMasks,
     cmap2 = jet(nMasks);
     msk_alpha(j) = 0.25;
     white_alpha(j) = 0.05;
-    outline_radius = 3;
+    outline_radius = 5;
     
     for i = 1:nMasks,
         msk = full(MASKs.MaskDatabase(:,Msk_IDs(i)));
