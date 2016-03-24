@@ -4,7 +4,7 @@
 
 clear all;close all;clc
 %%
-code_dir = 'C:\Users\Xiu\Dropbox\Github\FishExplorer';
+code_dir = 'C:\Users\Xiu\Dropbox\FishExplorer';
 addpath(genpath(code_dir));
 
 global data_masterdir name_MASKs name_ReferenceBrain VAR;
