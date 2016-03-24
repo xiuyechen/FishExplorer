@@ -60,17 +60,23 @@ setappdata(hfig,'data_masterdir',data_masterdir);
 %% Pass external variables into appdata (stored with main figure handle)
 setappdata(hfig,'VAR',VAR);
 nFish = length(VAR);
-% load masks for ZBrain Atlas
-MASKs = load(fullfile(data_masterdir,name_MASKs));
-setappdata(hfig,'MASKs',MASKs);
-% load reference brain image stack with the 3 projections
-load(fullfile(data_masterdir,name_ReferenceBrain));
-setappdata(hfig,'anat_stack_norm',anat_stack_norm);
-setappdata(hfig,'anat_yx_norm',anat_yx_norm);
-setappdata(hfig,'anat_yz_norm',anat_yz_norm);
-setappdata(hfig,'anat_zx_norm',anat_zx_norm);
 
-% fish protocol sets (different sets have different parameters)
+%% Load ZBrain Atlas  
+if exist(fullfile(data_masterdir),name_MASKs) > 0 ... 
+    && exist(fullfile(data_masterdir),name_ReferenceBrain) > 0
+
+    % load masks for ZBrain Atlas
+    MASKs = load(fullfile(data_masterdir,name_MASKs));
+    setappdata(hfig,'MASKs',MASKs);
+    % load reference brain image stack with the 3 projections
+    load(fullfile(data_masterdir,name_ReferenceBrain));
+    setappdata(hfig,'anat_stack_norm',anat_stack_norm);
+    setappdata(hfig,'anat_yx_norm',anat_yx_norm);
+    setappdata(hfig,'anat_yz_norm',anat_yz_norm);
+    setappdata(hfig,'anat_zx_norm',anat_zx_norm);
+end
+
+%% fish protocol sets (different sets have different parameters)
 M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2]; % M = Matrix
 setappdata(hfig,'M_fish_set',M_fish_set);
 
