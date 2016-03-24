@@ -1271,7 +1271,6 @@ names = fieldnames(data); % cell of strings
 for i = 1:length(names),
     setappdata(hfig,names{i},eval(['data.',names{i}]));
 end
-%%% data.absIX obsolete!! overwritten below
 
 % load time series (hdf5 file)
 CellResp = h5read(hdf5_dir,'/CellResp');
