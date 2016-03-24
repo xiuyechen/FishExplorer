@@ -2412,7 +2412,6 @@ end
 
 function pushbutton_thres_regression_Callback(hObject,~)
 disp('regression...');
-tic
 hfig = getParentFigure(hObject);
 thres_reg = getappdata(hfig,'thres_reg');
 regressor = GetRegressor(hfig);
@@ -2420,13 +2419,16 @@ if isempty(regressor),
     return;
 end
 
+isCentroid = getappdata(hfig,'isCentroid');
+
+tic
 isPlotCorrHist = getappdata(hfig,'isPlotCorrHist');
 if size(regressor,1) == 1,
-    [cIX,gIX,wIX] = Regression_Direct(hfig,thres_reg,regressor,isPlotCorrHist);
+    [cIX,gIX,wIX] = Regression_Direct(hfig,thres_reg,regressor,isCentroid,isPlotCorrHist);
 else
     CIX = []; GIX = []; WIX = [];
     for i = 1:size(regressor,1),
-        [cIX_,gIX_,wIX_] = Regression_Direct(hfig,thres_reg,regressor(i,:),isPlotCorrHist);
+        [cIX_,gIX_,wIX_] = Regression_Direct(hfig,thres_reg,regressor(i,:),isCentroid,isPlotCorrHist);
         gIX_ = i*ones(size(gIX_));
         CIX = [CIX;cIX_]; GIX = [GIX;gIX_]; WIX = [WIX;wIX_];
     end
@@ -2443,6 +2445,7 @@ if ~isempty(gIX),
 end
 toc
 beep
+
 end
 
 function [cIX,gIX,wIX] = SmartUnique_weighted(CIX,GIX,WIX)
@@ -2473,15 +2476,13 @@ wIX = vertcat(WIX1,WIX2);
 disp('smart union (weighted) complete');
 end
 
-function [cIX_,gIX_,wIX_] = Regression_Direct(hfig,thres_reg,regressor,isPlotCorrHist) % gIX_ is just ones
-M_0 = getappdata(hfig,'M_0');
-% tic
-R = corr(regressor',M_0');
-% tlen = toc;
-% if tlen>0.1,
-%     disp(tlen);
-%     beep;
-% end
+function [cIX_,gIX_,wIX_] = Regression_Direct(hfig,thres_reg,regressor,isCentroid,isPlotCorrHist) % gIX_ is just ones
+if ~isCentroid,
+    M_ = getappdata(hfig,'M_0');
+else
+    M_ = FindCentroid(hfig);
+end
+R = corr(regressor',M_');
 
 if thres_reg>=0,
     cIX_ = (find(R>thres_reg))';
@@ -2496,10 +2497,31 @@ if isempty(cIX_),
 end
 % re-order cIX_ based on corr coeff
 wIX = R(cIX_); % weight, here set to equal corr coeff
-[~,I] = sort(wIX,'descend');
-cIX_ = cIX_(I);
-gIX_ = ones(size(cIX_));
-wIX_ = wIX(I)';
+
+
+if isCentroid,
+    % cIX_ is actually the selection of clusters
+    clusterIX = cIX_;
+    weightIX = wIX;
+    
+%     M = getappdata(hfig,'M');
+    cIX = getappdata(hfig,'cIX');
+    gIX = getappdata(hfig,'gIX');
+    cIX_ = [];
+    gIX_ = [];
+    wIX_ = [];
+    for i=1:length(clusterIX),
+        IX = find(gIX == clusterIX(i));
+        cIX_ = [cIX_; cIX(IX)];
+        gIX_ = [gIX_; i*ones(length(IX),1)];
+        wIX_ = [wIX_; weightIX(i)*ones(length(IX),1)];
+    end
+else
+    [~,I] = sort(wIX,'descend');
+    cIX_ = cIX_(I);
+    gIX_ = ones(size(cIX_));
+    wIX_ = wIX(I)';
+end
 
 % option: plot histogram
 if exist('isPlotCorrHist','var'),
@@ -2588,7 +2610,7 @@ for i = 1:length(U),
     disp(['i = ' num2str(i)]);
     IX = find(gIX == U(i));
     [~,regressor] = kmeans(M_0(cIX(IX),:),1,'distance','correlation');
-    cIX_ = Regression_Direct(hfig,thres_reg,regressor);
+    cIX_ = Regression_Direct(hfig,thres_reg,regressor,0);
     clusters(i).cIX = cIX_;
 end
 disp('union...');
@@ -2617,12 +2639,12 @@ if isempty(i),
 end
 C = FindCentroid(hfig);
 regressor = C(i,:);
-cIX_= Regression_Direct(hfig,thres_reg,regressor);
+cIX_= Regression_Direct(hfig,thres_reg,regressor,0);
 regressor_last = regressor;
 
 if ~isempty(cIX_),
     for itr = 1:20,
-        [cIX_,gIX_] = Regression_Direct(hfig,thres_reg,regressor_last);
+        [cIX_,gIX_] = Regression_Direct(hfig,thres_reg,regressor_last,0);
         numC = length(cIX_);
         disp(num2str(numC));
         M = M_0(cIX_,:);
