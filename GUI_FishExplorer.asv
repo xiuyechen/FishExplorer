@@ -62,8 +62,8 @@ setappdata(hfig,'VAR',VAR);
 nFish = length(VAR);
 
 %% Load ZBrain Atlas  
-if exist(fullfile(data_masterdir),name_MASKs) > 0 ... 
-    && exist(fullfile(data_masterdir),name_ReferenceBrain) > 0
+if exist(fullfile(data_masterdir,name_MASKs),'file') ... 
+    && exist(fullfile(data_masterdir,name_ReferenceBrain),'file'),
 
     % load masks for ZBrain Atlas
     MASKs = load(fullfile(data_masterdir,name_MASKs));
@@ -86,16 +86,16 @@ setappdata(hfig,'z_res',19.7); % resoltion in z, um per slice
 % approx fpsec of 2 used in ext function 'DrawCluster.m'
 
 % cache
-bC = []; % Cache for going b-ack (bad abbr)
-fC = []; % Cache for going f-orward
-bC.cIX = cell(1,1);
-bC.gIX = cell(1,1);
-bC.numK = cell(1,1);
-fC.cIX = cell(1,1);
-fC.gIX = cell(1,1);
-fC.numK = cell(1,1);
-setappdata(hfig,'bCache',bC);
-setappdata(hfig,'fCache',fC);
+bCache = []; % Cache for going b-ack (bad abbr)
+fCache = []; % Cache for going f-orward
+bCache.cIX = cell(1,1);
+bCache.gIX = cell(1,1);
+bCache.numK = cell(1,1);
+fCache.cIX = cell(1,1);
+fCache.gIX = cell(1,1);
+fCache.numK = cell(1,1);
+setappdata(hfig,'bCache',bCache);
+setappdata(hfig,'fCache',fCache);
 
 %% Initialize internal params into appdata
 
@@ -206,10 +206,16 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Export(workspace)',
     'Callback',@pushbutton_exporttoworkspace_Callback);
 
 i=i+n;
-n=2; % export main working variables to workspace, can customize!
-uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Import(workspace)',...
+n=2; % 
+uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Import(VAR)',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@pushbutton_loadVARfromworkspace_Callback);
+
+i=i+n;
+n=2; % 
+uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Import(current)',...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+    'Callback',@pushbutton_loadCurrentClustersfromworkspace_Callback);
 
 i=i+n;
 n=2; % create popup figure without the GUI components, can save manually from default menu
@@ -1155,6 +1161,22 @@ setappdata(hfig,'Cluster',Cluster);
 clusgroupID = 1;
 new_clusgroupID = 1;
 UpdateClusGroupID(hfig,clusgroupID,new_clusgroupID); % to display new menu
+end
+
+function pushbutton_loadCurrentClustersfromworkspace_Callback(hObject,~)
+disp('import current clusters from workspace');
+hfig = getParentFigure(hObject);
+
+% in base:
+% MyStruct.Data      = [1 2 3 4 5];
+% MyStruct.OtherData = 0;
+
+% in GUI
+% MyStructHere = evalin('base','MyStruct');
+% DataHere     = MyStructHere.Data;
+cIX = evalin('base','cIX');
+gIX = evalin('base','MyStruct');
+cIX = evalin('base','MyStruct');
 end
 
 function pushbutton_popupplot_Callback(hObject,~)
@@ -2439,7 +2461,7 @@ if ~isempty(gIX),
     %     gIX = ceil((1:length(cIX))'/length(cIX)*min(20,length(cIX)));
     setappdata(hfig,'wIX',wIX);
     setappdata(hfig,'isWeighAlpha',1);
-    UpdateIndices(hfig,,gIX,length(unique(gIX)));
+    UpdateIndices(hfig,cIX,gIX,length(unique(gIX)));
     %     UpdateIndices(hfig,cIX,gIX,40);
     RefreshFigure(hfig);
 end
@@ -2497,33 +2519,30 @@ if isempty(cIX_),
 end
 % re-order cIX_ based on corr coeff
 wIX = R(cIX_); % weight, here set to equal corr coeff
-[~,I] = sort(wIX,'descend');
-if ~isCentroid,
+
+
+if isCentroid,
+    % cIX_ is actually the selection of clusters
+    clusterIX = cIX_;
+    weightIX = wIX;
+    
+%     M = getappdata(hfig,'M');
+    cIX = getappdata(hfig,'cIX');
+    gIX = getappdata(hfig,'gIX');
+    cIX_ = [];
+    gIX_ = [];
+    wIX_ = [];
+    for i=1:length(clusterIX),
+        IX = find(gIX == clusterIX(i));
+        cIX_ = [cIX_; cIX(IX)];
+        gIX_ = [gIX_; i*ones(length(IX),1)];
+        wIX_ = [wIX_; weightIX(i)*ones(length(IX),1)];
+    end
+else
+    [~,I] = sort(wIX,'descend');
     cIX_ = cIX_(I);
     gIX_ = ones(size(cIX_));
     wIX_ = wIX(I)';
-else
-    % cIX_ is actually the selection of clusters
-    clusterIX = cIX_;
-    
-    M = getappdata(hfig,'M');
-    gIX = getappdata(hfig,'gIX');
-    U = unique(gIX);
-    cIX_
-    
-    for i=1:length(cIX_),
-        IX = find(gIX == cIX_(i));
-        if length(IX)==1,
-            C(i,:) = M(IX,:);
-            D(i) = 1;
-        else
-            M_s = M(IX,:);
-            [~,C1,~,D1] = kmeans(M_s,1,'distance','correlation');
-            C(i,:) = C1;
-            D(i) = mean(D1);
-        end
-    end
-    
 end
 
 % option: plot histogram

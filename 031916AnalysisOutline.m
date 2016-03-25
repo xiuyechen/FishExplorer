@@ -23,6 +23,12 @@ range_fish = [8,9,10,11];
 % stim: use regressor and data for given stimlus range only
 % (use stimset or manually code matching reg across fish??)
 
+% e.g.:
+% stim_range = [2,3];
+% regchoice = {1,stim_range};
+
+regchoice = {2,1};
+
 if regchoice{1}==1, % stim Regressor
 %     fishset = getappdata(hfig,'fishset');
     fishset = 2;
@@ -42,7 +48,21 @@ elseif regchoice{1}==2, % motor Regressor
     regressor = regressors(regchoice{2}).im;
 end
     
-    
+% regression
+thres_reg = 0.4;
+isCentroid = 1;
+[cIX,gIX,wIX] = f.Regression_Direct(hfig,thres_reg,regressor,isCentroid);
+  
+%%
+figure(hfig)
+f.pushbutton_loadCurrentClustersfromworkspace_Callback(hObject);
+
+%% 
+M = getappdata(hfig,'M');
+CellXYZ = getappdata(hfig,'CellXYZ');
+M = getappdata(hfig,'M');
+BasicPlotMaps(cIX,gIX,M,CellXYZ,photostate,anat_yx,anat_yz)
+
 % screen clusters for given regressor
 % need to pass 2 thres: corr coeff and top percentage?? (need to hand-tune)
 

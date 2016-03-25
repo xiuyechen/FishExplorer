@@ -4,7 +4,6 @@
 
 global hm1;
 hObject = hm1;
-global hclusmenu;
 
 data_masterdir = GetCurrentDataDir();
 
