@@ -14,7 +14,7 @@ M = getappdata(hfig,'M');
 gIX = getappdata(hfig,'gIX');
 nFrames = size(M,2);
 
-if isPopout, % ...for isCentroid, skipping before getting Centroid causes trouble...
+if isPopout, % e.g. for isCentroid, skipping before getting Centroid causes trouble
 %     down-sample
     ds_cap = 1000;
     nCells = length(cIX);

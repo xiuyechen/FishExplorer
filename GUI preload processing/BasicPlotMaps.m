@@ -1,4 +1,4 @@
-function BasicPlotMaps(cIX,gIX,M,CellXYZ,photostate,anat_yx,anat_yz,anat_zx) %(cIX,gIX,cIX_0,M_0,CIF,numK,M)
+function BasicPlotMaps(cIX,gIX,M,CellXYZ,photostate,anat_yx,anat_yz)%,anat_zx) %(cIX,gIX,cIX_0,M_0,CIF,numK,M)
 % M = M_0(cIX_0(cIX),:);
 numK = length(unique(gIX));
 %%
