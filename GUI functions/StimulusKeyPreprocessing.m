@@ -99,7 +99,7 @@ elseif i_fish >=9 && i_fish <=11,
     M_range =       [3,1,3,2, 3,10,11,12,13, 0, 3,14,15,23,21,23,22, 0,16]; % standardized
 %     M_range =       [3,1,3,2, 9,10,11,12,13, 0, 3,14,15,23,21,23,22, 4,16]; % standardized
     
-elseif i_fish >=12 && i_fish <=13,
+elseif i_fish >=12 && i_fish <=15,
     nBlocks = 2;
     block_raw = cell(nBlocks,1); % number of blocks
     block_raw{1} = {[2,3,4,5],[12,13,12,14,12,15,12,16],[0,12],99,[30,31,30,32]};

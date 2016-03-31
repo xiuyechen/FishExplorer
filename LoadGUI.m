@@ -4,7 +4,9 @@
 
 clear all;close all;clc
 %%
-code_dir = 'C:\Users\Xiu\Dropbox\FishExplorer';
+scriptName = mfilename('fullpath');
+[currentpath, filename, fileextension]= fileparts(scriptName);
+code_dir = currentpath;
 addpath(genpath(code_dir));
 
 global data_masterdir name_MASKs name_ReferenceBrain VAR;
