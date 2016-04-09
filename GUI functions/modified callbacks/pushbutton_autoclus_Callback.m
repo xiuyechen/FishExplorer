@@ -62,8 +62,8 @@ if isempty(gIX),
     errordlg('nothing to display!');
     return;
 end
-SaveCluster_Direct(hfig,cIX,gIX,['clean_round' num2str(iter)]);
-SaveCluster_Direct(hfig,I_rest,ones(length(I_rest),1),['rest_round' num2str(iter)]);
+% SaveCluster_Direct(hfig,cIX,gIX,['clean_round' num2str(iter)]);
+% SaveCluster_Direct(hfig,I_rest,ones(length(I_rest),1),['rest_round' num2str(iter)]);
 
 [gIX, numU] = f.Merge_direct(thres_merge,M_0,cIX,gIX);
 
@@ -77,13 +77,14 @@ IX = find(rankscore<thres_stimlock);
 ix = ismember(gIX,IX);
 gIX = gIX(ix);
 cIX = cIX(ix);
+f.UpdateIndices(hfig,cIX,gIX);
 
 %% Regression with the centroid of each cluster
-[cIX,gIX,~] = f.AllCentroidRegression_direct(hfig,cIX,gIX);
+[cIX,gIX,~] = AllCentroidRegression_direct(hfig);
 disp('auto-reg-clus complete');
 
 [gIX, numU] = f.Merge_direct(thres_merge,M_0,cIX,gIX);
-SaveCluster_Direct(hfig,cIX,gIX,'clean_round2');
+% SaveCluster_Direct(hfig,cIX,gIX,'clean_round2');
 
 %% Silhouette
 disp('silhouette analysis');
@@ -129,7 +130,7 @@ end
 f.UpdateIndices(hfig,cIX,gIX,numU);
 % RefreshFigure(hfig);
 
-SaveCluster_Direct(hfig,cIX,gIX,'clean_round3');
+SaveCluster_Direct(hfig,cIX,gIX,'Full_autoclus');
 beep;
 toc
 end
@@ -149,8 +150,12 @@ i_fish = getappdata(hfig,'i_fish');
 absIX = getappdata(hfig,'absIX');
 cIX_abs = absIX(cIX);
 
+i_ClusGroup = 3;
 global VAR;
-Cluster = VAR(i_fish).ClusGroup{1};
+if length(VAR(i_fish).ClusGroup)<i_ClusGroup,
+    VAR(i_fish).ClusGroup = [VAR(i_fish).ClusGroup,cell(1,1)];
+end
+Cluster = VAR(i_fish).ClusGroup{i_ClusGroup};
 
 clusID = numel(Cluster)+1;
 Cluster(clusID).name = name; %[clusheader name];
@@ -160,6 +165,6 @@ Cluster(clusID).numK = length(unique(gIX));
 
 setappdata(hfig,'Cluster',Cluster);
 % UpdateClusID(hfig,clusID);
-VAR(i_fish).ClusGroup{1} = Cluster;
+VAR(i_fish).ClusGroup{i_ClusGroup} = Cluster;
 disp('cluster saved');
 end

@@ -77,10 +77,10 @@ if exist(fullfile(data_masterdir,name_MASKs),'file') ...
 end
 
 %% fish protocol sets (different sets have different parameters)
-M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2]; % M = Matrix
+M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2]; % M = Matrix
 setappdata(hfig,'M_fish_set',M_fish_set);
 
-% parameters / constants
+%% parameters / constants
 setappdata(hfig,'z_res',19.7); % resoltion in z, um per slice
 % fpsec = 1.97; % hard-coded in ext function 'GetStimRegressor.m'
 % approx fpsec of 2 used in ext function 'DrawCluster.m'
@@ -123,7 +123,7 @@ setappdata(hfig,'isCentroid',0);
 setappdata(hfig,'isWkmeans',1); % in autoclustering, with/without kmeans
 setappdata(hfig,'isflipstim',0); % flag for flip updown %%%%%%obsolete ????????????????????????????????????
 setappdata(hfig,'regchoice',{1,1}); % regressor choice; first cell,1=stim,2=motor,3=centroid
-setappdata(hfig,'isfullfish',0); % no if QuickUpdateFish, yes if LoadFullFish
+% setappdata(hfig,'isfullfish',0); % no if QuickUpdateFish, yes if LoadFullFish
 setappdata(hfig,'isPlotCorrHist',0); % option for regression
 setappdata(hfig,'isPlotReg',1); % plot regressor when selecting it
 setappdata(hfig,'hierinplace',1); % hier. partitioning, no reordering
@@ -1012,11 +1012,11 @@ disp('preparing z-stack...');
 isMarkAllCells = 1;
 
 hfig = getParentFigure(hObject);
-isfullfish = getappdata(hfig,'isfullfish');
-if ~isfullfish,
-    errordlg('Load full fish first!');
-    return;
-end
+% isfullfish = getappdata(hfig,'isfullfish');
+% if ~isfullfish,
+%     errordlg('Load full fish first!');
+%     return;
+% end
 
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
@@ -1094,24 +1094,24 @@ end
 
 function pushbutton_tileZstack_Callback(hObject,~)
 hfig = getParentFigure(hObject);
-isfullfish = getappdata(hfig,'isfullfish');
-if isfullfish,
+% isfullfish = getappdata(hfig,'isfullfish');
+% if isfullfish,
     disp('Rendering...')
     DrawTiledPics(hfig);
-else
-    errordlg('Load full fish first!');
-end
+% else
+%     errordlg('Load full fish first!');
+% end
 end
 
 function pushbutton_tileClusters_Callback(hObject,~)
 hfig = getParentFigure(hObject);
-isfullfish = getappdata(hfig,'isfullfish');
-if isfullfish,
+% isfullfish = getappdata(hfig,'isfullfish');
+% if isfullfish,
     disp('Rendering...')
     DrawTiledPics_clus(hfig);
-else
-    errordlg('Load full fish first!');
-end
+% else
+%     errordlg('Load full fish first!');
+% end
 end
 
 function out = makeDisk2(radius, dim)
@@ -1228,10 +1228,12 @@ end
 %% row 2: Load
 
 function popup_loadfullfishmenu_Callback(hObject,~)
-new_i_fish = get(hObject,'Value')-1;
-if new_i_fish>0,
+i_fish = get(hObject,'Value')-1;
+if i_fish>0,
     hfig = getParentFigure(hObject);
-    LoadFullFish(hfig,new_i_fish);
+    LoadFullFish(hfig,i_fish);
+    UpdateFishData(hfig,i_fish);
+    UpdateFishDisplay(hfig);
 end
 end
 
@@ -1304,11 +1306,7 @@ setappdata(hfig,'absIX',absIX);
 
 toc
 
-%%
-UpdateFishData(hfig,i_fish);
-UpdateFishDisplay(hfig);
-
-setappdata(hfig,'isfullfish',1);
+% setappdata(hfig,'isfullfish',1);
 end
 
 function UpdateFishData(hfig,new_i_fish)
@@ -2609,34 +2607,11 @@ end
 
 function pushbutton_allCentroidRegression_Callback(hObject,~)
 hfig = getParentFigure(hObject);
-cIX = getappdata(hfig,'cIX');
-gIX = getappdata(hfig,'gIX');
-[cIX,gIX,numK] = AllCentroidRegression_direct(hfig,cIX,gIX);
+[cIX,gIX,numK] = AllCentroidRegression_direct(hfig);
 
 UpdateIndices(hfig,cIX,gIX,numK);
 RefreshFigure(hfig);
 disp('all regression complete');
-end
-
-function [cIX,gIX,numK] = AllCentroidRegression_direct(hfig,cIX,gIX)
-M_0 = getappdata(hfig,'M_0');
-thres_reg = getappdata(hfig,'thres_reg');
-U = unique(gIX);
-clusters(length(U)).cIX = [];
-for i = 1:length(U),
-    disp(['i = ' num2str(i)]);
-    IX = find(gIX == U(i));
-    [~,regressor] = kmeans(M_0(cIX(IX),:),1,'distance','correlation');
-    cIX_ = Regression_Direct(hfig,thres_reg,regressor,0);
-    clusters(i).cIX = cIX_;
-end
-disp('union...');
-CIX = vertcat(clusters(1:end).cIX);
-GIX = [];
-for i = 1:numel(clusters),
-    GIX = [GIX; ones(length(clusters(i).cIX),1)*i];
-end
-[cIX,gIX,numK] = SmartUnique(CIX,GIX,M_0(CIX,:));
 end
 
 function pushbutton_IterCentroidRegression_Callback(hObject,~)
@@ -3176,9 +3151,10 @@ IX = find(rankscore<thres_stimlock);
 ix = ismember(gIX,IX);
 gIX = gIX(ix);
 cIX = cIX(ix);
+UpdateIndices(hfig,cIX,gIX);
 
 %% Regression with the centroid of each cluster
-[cIX,gIX,~] = AllCentroidRegression_direct(hfig,cIX,gIX);
+[cIX,gIX,~] = AllCentroidRegression_direct(hfig);
 disp('auto-reg-clus complete');
 
 [gIX, numU] = Merge_direct(thres_merge,M_0,cIX,gIX);
@@ -3408,34 +3384,34 @@ figure('Position',[1000,200,500,500]);
 CorrPlot(coeffs);
 end
 
-function CorrPlot(coeffs)
-im = coeffs;
+% function CorrPlot(coeffs)
+% im = coeffs;
+% 
+% % red-white-blue colormap
+% cmap = zeros(64,3);
+% cmap(:,1) = [linspace(0,1,32), linspace(1,1,32)];
+% cmap(:,2) = [linspace(0,1,32), linspace(1,0,32)];
+% cmap(:,3) = [linspace(1,1,32), linspace(1,0,32)];
+% minlim = -1; %min(min(im));
+% maxlim = 1; %max(max(im));
+% 
+% RGB = ImageToRGB(im,cmap,minlim,maxlim); % map image matrix to range of colormap
+% 
+% image(RGB); axis equal; axis tight;
+% set(gca,'XTick',1:length(im),'YTick',1:length(im));
+% 
+% for i = 1:size(im,2), % horizontal.. because of image axis
+%     for j = 1:size(im,1),
+%         text(i-0.3, j, num2str(round(im(i,j)*100)/100));%, 'Units', 'data')
+%     end
+% end
+% end
 
-% red-white-blue colormap
-cmap = zeros(64,3);
-cmap(:,1) = [linspace(0,1,32), linspace(1,1,32)];
-cmap(:,2) = [linspace(0,1,32), linspace(1,0,32)];
-cmap(:,3) = [linspace(1,1,32), linspace(1,0,32)];
-minlim = -1; %min(min(im));
-maxlim = 1; %max(max(im));
-
-RGB = ImageToRGB(im,cmap,minlim,maxlim); % map image matrix to range of colormap
-
-image(RGB); axis equal; axis tight;
-set(gca,'XTick',1:length(im),'YTick',1:length(im));
-
-for i = 1:size(im,2), % horizontal.. because of image axis
-    for j = 1:size(im,1),
-        text(i-0.3, j, num2str(round(im(i,j)*100)/100));%, 'Units', 'data')
-    end
-end
-end
-
-function RGB = ImageToRGB(im,cmap,minlim,maxlim)
-L = size(cmap,1);
-ix = round(interp1(linspace(minlim,maxlim,L),1:L,im,'linear','extrap'));
-RGB = reshape(cmap(ix,:),[size(ix) 3]); % Make RGB image from scaled.
-end
+% function RGB = ImageToRGB(im,cmap,minlim,maxlim)
+% L = size(cmap,1);
+% ix = round(interp1(linspace(minlim,maxlim,L),1:L,im,'linear','extrap'));
+% RGB = reshape(cmap(ix,:),[size(ix) 3]); % Make RGB image from scaled.
+% end
 
 %% ----- tab five ----- (Saved Clusters)
 
@@ -3915,7 +3891,7 @@ leafOrder = optimalleaforder(tree,D);
 
 if numU>1,
     if exist('isplotfig','var'),
-        figure('Position',[100 400 600 600]);
+        figure('Position',[100 100 600 600]);
         %             subplot(1,3,1);
         %             CORR = corr(C');
         %             CorrPlot(CORR);
