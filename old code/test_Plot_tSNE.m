@@ -1,11 +1,33 @@
-addpath(genpath('C:\Users\engertlab\Dropbox\t-SNE'));
+addpath(genpath('C:\Users\Xiu\Dropbox\t-SNE'));
 
 tic;[mappedA, mapping] = compute_mapping(M,'tSNE');toc
+
+%%
+            % Compute t-SNE mapping
+% 			if isempty(varargin), mappedA = tsne(A, [], no_dims);
+%             else mappedA = tsne(A, [], no_dims, varargin{1}); end
+%             mapping.name = 't-SNE';
+
+mappedA = tsne(M, [], 2); % no_dims = 2
 %%
 figure;
 n = round(numK*1.1);
 cmap = hsv(max(1,n));
 gscatter(mappedA(:,1),mappedA(:,2),gIX,cmap,'.',[],'off');
+%%
+figure;hold on;%image([1,2],[3,4],pic)
+
+k_scale = 800;
+for i = 1:size(M,1),
+    name = Astar.itemName{i};
+    pic = imread([fullfile(picdir,name),'.jpg']);    
+    dx = size(pic,2)/k_scale;
+    dy = size(pic,1)/k_scale;
+    image([mappedA(i,1),mappedA(i,1)+dx],[mappedA(i,2),mappedA(i,2)+dy],pic);
+end
+axis ij
+axis equal
+
 %%
 save('C:\Janelia2014\tSNE_F10_autorightmotor.mat','mappedA','mapping','M','cIX','gIX','tIX','numK','stim','fictive');
 

@@ -1,0 +1,31 @@
+function CorrPlot(coeffs,ylabels)%,isPlotText)
+im = coeffs;
+
+% red-white-blue colormap
+cmap = zeros(64,3);
+cmap(:,1) = [linspace(0,1,32), linspace(1,1,32)];
+cmap(:,2) = [linspace(0,1,32), linspace(1,0,32)];
+cmap(:,3) = [linspace(1,1,32), linspace(1,0,32)];
+minlim = -1; %min(min(im));
+maxlim = 1; %max(max(im));
+
+RGB = ImageToRGB(im,cmap,minlim,maxlim); % map image matrix to range of colormap
+
+image(RGB); axis equal; axis tight; %axis off 
+set(gca,'YTickLabel',ylabels);
+set(gca,'XTick',1:length(im),'YTick',1:length(im));
+
+% if exist('isPlotText','var'),
+%     for i = 1:size(im,2), % horizontal.. because of image axis
+%         for j = 1:size(im,1),
+%             text(i-0.3, j, num2str(round(im(i,j)*100)/100));%, 'Units', 'data')
+%         end
+%     end
+% end
+end
+
+function RGB = ImageToRGB(im,cmap,minlim,maxlim)
+L = size(cmap,1);
+ix = round(interp1(linspace(minlim,maxlim,L),1:L,im,'linear','extrap'));
+RGB = reshape(cmap(ix,:),[size(ix) 3]); % Make RGB image from scaled.
+end

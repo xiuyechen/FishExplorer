@@ -1,11 +1,11 @@
-function regressors = GetMotorRegressor(fictive)
+function regressors = GetMotorRegressor(behavior)
 %% generate GCaMP6f kernel
 % GCaMP6f: decay half-time: 400±41; peak: 80±35
 % GCaMP6s: 1796±73, 480±24
 
 fpsec = 1.97;
 
-tlen=size(fictive,2);
+tlen=size(behavior,2);
 t=0:0.05:8; % sec
 gc6=exp(-(t-(4+0.48))/1.8);
 gc6(t<(4+0.48))=0;
@@ -29,12 +29,12 @@ t_gc6=0:0.05:tlen; % sec
 %     turn(:,13)  = fltCh1;                                            %analog: left channel   
 %     turn(:,14)  = fltCh2;                                            %analog: right channel   
 regressor_0={ % rows = [7,8,9,13,14];
-    fictive(1,:);   %weighted: right turns
-    fictive(2,:);   %weighted: left turns
-    fictive(3,:);   %weighted: forward swims
-    fictive(4,:);  %analog: right channel
-    fictive(5,:);  %analog: left channel   
-    fictive(4,:)+fictive(5,:);   %analog: average
+    behavior(1,:);   %weighted: right turns
+    behavior(2,:);   %weighted: left turns
+    behavior(3,:);   %weighted: forward swims
+    behavior(4,:);  %analog: right channel
+    behavior(5,:);  %analog: left channel   
+    behavior(4,:)+behavior(5,:);   %analog: average
     };
 nRegType = length(regressor_0);
 name_array = {'w_right','w_left','w_fwd','raw_right','raw_left','raw_all'};
