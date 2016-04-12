@@ -77,7 +77,7 @@ if exist(fullfile(data_masterdir,name_MASKs),'file') ...
 end
 
 %% fish protocol sets (different sets have different parameters)
-M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2]; % M = Matrix
+M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2,2]; % M = Matrix
 setappdata(hfig,'M_fish_set',M_fish_set);
 
 % parameters / constants
