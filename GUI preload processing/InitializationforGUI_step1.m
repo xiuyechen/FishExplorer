@@ -9,7 +9,7 @@ behav_fluo_shift = -2; % shift correction between fictive and fluo, manually cho
 %% Load data
 data_masterdir = GetNestedDataDir();
 
-range_fish = 14;
+range_fish = 12;
 
 for i_fish = range_fish,
     
