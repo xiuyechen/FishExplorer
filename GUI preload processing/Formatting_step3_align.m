@@ -3,12 +3,12 @@
 clear all;close all;clc
 
 %% set manually
-M_stimset = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2]; % Fish 1-14
+M_stimset = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2];
 M_dir = GetFishDirectories();
 save_masterdir = GetNestedDataDir();
 
 %% 
-range_fish = 14;
+range_fish = 12;
 
 for i_fish = range_fish,
     disp(['i_fish = ', num2str(i_fish)]);

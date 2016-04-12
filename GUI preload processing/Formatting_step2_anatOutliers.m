@@ -1,6 +1,6 @@
 clear all;close all;clc
 
-i_fish = 14;
+i_fish = 12;
 disp(['i_fish = ' num2str(i_fish)]);
 
 M_dir = GetFishDirectories();

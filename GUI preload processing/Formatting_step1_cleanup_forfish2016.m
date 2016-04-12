@@ -9,17 +9,17 @@ addpath(genpath(code_dir));
 % file directories
 M_dir = GetFishDirectories();
 M_tcutoff = {3500,[],[],3500,3600,4000,1800,[],... % Fish 1-8
-    [],5000,[],7000,6500, 4500 }; % Fish 9-14 % Fish 12 last ran with []! 1/22/16
+    [],5000,[],7000,6500 }; % fish 9-13 % fish 12 last ran with []! 1/22/16
 
 M_fpsec = {1.97,1.97,1.97,1.97,1.97,1.97,1.97,1.97,1.97,1.97,1.97,... % Fish 1-11
-    2.56,2.33, 2.27}; % Fish 12-14 (Hz)
+    2.56,2.33}; % Hz
 
 % also check manual frame-correction section below
 
 %%
 % poolobj=parpool(8);
 %%
-range_fish = 14;
+range_fish = 12;
 
 for i_fish = range_fish,
     tic
