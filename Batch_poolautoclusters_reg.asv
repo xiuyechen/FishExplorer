@@ -19,19 +19,20 @@ i_Cluster = 1;
 
 %% load 'data'
 for i_fish = range_fish;
-    
+
     f.LoadFullFish(hfig,i_fish);
-    
-    %     global hm1;
-    %     hObject = hm1;
+
+%     global hm1;
+%     hObject = hm1;
     
     periods = getappdata(hfig,'periods');
-    if periods>1,
+        if periods>1,
         setappdata(hfig,'stimrange',1:length(periods));
     else
         setappdata(hfig,'stimrange',1);
     end
-    
+    setappdata(hfig,'stimrange',1:length(periods));
+
     setappdata(hfig,'cIX',1);
     setappdata(hfig,'gIX',1);
     UpdateTimeIndex(hfig);

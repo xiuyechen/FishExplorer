@@ -1265,9 +1265,7 @@ end
 end
 
 function LoadFullFish(hfig,i_fish,hdf5_dir,mat_dir)
-% watchon;
-set(hfig,'Pointer','watch');
-    
+watchon;
 disp(['loading fish #' num2str(i_fish) '...']);
 
 M_fish_set = getappdata(hfig,'M_fish_set');
@@ -1308,7 +1306,7 @@ setappdata(hfig,'CellRespAvrZ',CellRespAvrZ);
 setappdata(hfig,'absIX',absIX);
 
 toc
-% watchoff;
+wa
 % setappdata(hfig,'isfullfish',1);
 end
 

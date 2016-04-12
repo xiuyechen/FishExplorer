@@ -30,9 +30,10 @@ numFish = 3;
 TF = zeros(numFish,numFish,numDim);
 
 for i_ref = 1:numFish,
-    means = zeros(100,3);
-    for i = 1:100,
-        IX = ceil(100*rand(1,67));
+    numRand = 100;
+    means = zeros(numRand,3);
+    for i = 1:numRand,
+        IX = ceil(100*rand(1,numRand));
         means(i,:) = mean(Data{i_ref}.xyz_norm(IX,:),1);
     end
     for i_test = 1:numFish, 

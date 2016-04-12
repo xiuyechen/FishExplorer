@@ -86,10 +86,10 @@ for i_node = 1:length(Nodes),
    i_fish = Nodes(i_node,1);
    clusIX = Nodes(i_node,2);
    
-   temp = VAR(i_fish).ClusGroup{3}.gIX;
-   IX = find(temp == clusIX);
-   temp = VAR(i_fish).ClusGroup{3}.cIX_abs;
-   cIX_abs = temp(IX);
+   GIX = VAR(i_fish).ClusGroup{3}.gIX;
+   IX = find(GIX == clusIX);
+   CIX_abs = VAR(i_fish).ClusGroup{3}.cIX_abs;
+   cIX_abs = CIX_abs(IX);
    LoadFishDataWithoutTS(hfig,i_fish);
    CellXYZ_norm = getappdata(hfig,'CellXYZ_norm');
    xyz_norm = CellXYZ_norm(cIX_abs,:);
