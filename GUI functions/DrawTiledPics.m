@@ -1,8 +1,28 @@
 function DrawTiledPics(hfig)
+absIX = getappdata(hfig,'absIX');
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
-CInfo = getappdata(hfig,'CInfo');
-ave_stack = getappdata(hfig,'ave_stack');
+anat_stack = getappdata(hfig,'anat_stack');
+
+if ~isRefAnat,
+    CellXYZ = getappdata(hfig,'CellXYZ');
+    anat_yx = getappdata(hfig,'anat_yx');
+    anat_yz = getappdata(hfig,'anat_yz');
+    anat_zx = getappdata(hfig,'anat_zx');
+    k_zres = 20;
+    radius_xy = 7;
+    width_z = 10;
+    thickness_z = 1;
+else
+    CellXYZ = getappdata(hfig,'CellXYZ_norm');
+    anat_yx = getappdata(hfig,'anat_yx_norm');
+    anat_yz = getappdata(hfig,'anat_yz_norm');
+    anat_zx = getappdata(hfig,'anat_zx_norm');
+    k_zres = 2.5;
+    radius_xy = 3;
+    width_z = 5;
+    thickness_z = 3;
+end
 
 isShowMasks = getappdata(hfig,'isShowMasks');
 if isShowMasks,
@@ -16,10 +36,10 @@ end
 U = unique(gIX);
 numK = length(U);
 
-ave_stack2=zeros(size(ave_stack,1), size(ave_stack,2), size(ave_stack,3) ,3);
-nPlanes=size(ave_stack,3);
-dimv_yxz=size(ave_stack);
-stacklen=numel(ave_stack);
+anat_stack2=zeros(size(anat_stack,1), size(anat_stack,2), size(anat_stack,3) ,3);
+nPlanes=size(anat_stack,3);
+dimv_yxz=size(anat_stack);
+stacklen=numel(anat_stack);
 
 % circle=makeDisk2(10,21);
 radius = 10; dim = 21;
@@ -42,20 +62,37 @@ cmap = hsv(round(numK*1.1));
 weight = 0.3;
 
 for i=1:nPlanes,
-    ave_stack2(:,:,i,:)=repmat(imNormalize99(ave_stack(:,:,i))/4,[1 1 1 3]);
+    anat_stack2(:,:,i,:)=repmat(imNormalize99(anat_stack(:,:,i))/4,[1 1 1 3]);
 end
 
-for j=1:length(cIX)
-    cinds=(CInfo(cIX(j)).center(2)-1)*dimv_yxz(1)+CInfo(cIX(j)).center(1);
-    labelinds=find((cinds+circle_inds)>0 & (cinds+circle_inds)<=dimv_yxz(1)*dimv_yxz(2));
-    zinds=dimv_yxz(1)*dimv_yxz(2)*(CInfo(cIX(j)).slice-1);
-    ix = find(U==gIX(j));
-    ixs = cinds+circle_inds(labelinds)+zinds;
-    ave_stack2(ixs)=cmap(ix,1)*weight + ave_stack2(ixs)*(1-weight);
-    ixs = cinds+circle_inds(labelinds)+zinds+stacklen;
-    ave_stack2(ixs)=cmap(ix,2)*weight + ave_stack2(ixs)*(1-weight);
-    ixs = cinds+circle_inds(labelinds)+zinds+stacklen*2;
-    ave_stack2(ixs)=cmap(ix,3)*weight + ave_stack2(ixs)*(1-weight);
+% for j=1:length(cIX)
+%     cinds=(CInfo(cIX(j)).center(2)-1)*dimv_yxz(1)+CInfo(cIX(j)).center(1);
+%     labelinds=find((cinds+circle_inds)>0 & (cinds+circle_inds)<=dimv_yxz(1)*dimv_yxz(2));
+%     zinds=dimv_yxz(1)*dimv_yxz(2)*(CInfo(cIX(j)).slice-1);
+%     ix = find(U==gIX(j));
+%     ixs = cinds+circle_inds(labelinds)+zinds;
+%     anat_stack2(ixs)=cmap(ix,1)*weight + anat_stack2(ixs)*(1-weight);
+%     ixs = cinds+circle_inds(labelinds)+zinds+stacklen;
+%     anat_stack2(ixs)=cmap(ix,2)*weight + anat_stack2(ixs)*(1-weight);
+%     ixs = cinds+circle_inds(labelinds)+zinds+stacklen*2;
+%     anat_stack2(ixs)=cmap(ix,3)*weight + anat_stack2(ixs)*(1-weight);
+% end
+
+    cIX_abs = absIX(cIX);
+for j=1:length(cIX)        
+    if ~isempty(CellXYZ(cIX_abs(j),1)),
+        ix = gIX(j);
+    %% Y-X        
+        cinds=(CellXYZ(cIX_abs(j),2)-1)*dimv_yx(1)+CellXYZ(cIX_abs(j),1); % linear pixel index, faster equivalent of:
+        %     cinds = sub2ind([dim_y,dim_x],cell_info(cellsIX(j)).center(1),cell_info(cellsIX(j)).center(2));
+        labelinds=find((cinds+circle_inds)>0 & (cinds+circle_inds)<=dimv_yx(1)*dimv_yx(2)); % within bounds
+        ixs = cinds+circle_inds(labelinds);
+        anat_YX(ixs) = cmap(ix,1)*alpha(j) + anat_YX(ixs)*(1-alpha(j)); % R
+        ixs = cinds+circle_inds(labelinds) + dimv_yx(1)*dimv_yx(2);
+        anat_YX(ixs) = cmap(ix,2)*alpha(j) + anat_YX(ixs)*(1-alpha(j)); % G
+        ixs = cinds+circle_inds(labelinds) + dimv_yx(1)*dimv_yx(2)*2;
+        anat_YX(ixs) = cmap(ix,3)*alpha(j) + anat_YX(ixs)*(1-alpha(j)); % B
+    end
 end
 
 if isShowMasks,  
@@ -73,11 +110,11 @@ if isShowMasks,
 %         masks_XY = max(mask_3D,[],3);
 %         masks_fit = logical(imresize(masks_XY,[size(anat_yx,1),size(anat_yx,2)]));
         ixs = find(masks_fit);
-        ave_stack2(ixs) = (cmap2(i,1)*msk_alpha + ave_stack2(masks_fit)*(1-msk_alpha))*(1-white_alpha) + white_alpha; % R;
+        anat_stack2(ixs) = (cmap2(i,1)*msk_alpha + anat_stack2(masks_fit)*(1-msk_alpha))*(1-white_alpha) + white_alpha; % R;
         ixs = find(masks_fit) + dimv_yx(1)*dimv_yx(2);
-        ave_stack2(ixs) = (cmap2(i,2)*msk_alpha + ave_stack2(masks_fit)*(1-msk_alpha))*(1-white_alpha) + white_alpha; % G;
+        anat_stack2(ixs) = (cmap2(i,2)*msk_alpha + anat_stack2(masks_fit)*(1-msk_alpha))*(1-white_alpha) + white_alpha; % G;
         ixs = find(masks_fit) + dimv_yx(1)*dimv_yx(2)*2;
-        ave_stack2(ixs) = (cmap2(i,3)*msk_alpha + ave_stack2(masks_fit)*(1-msk_alpha))*(1-white_alpha) + white_alpha; % B;
+        anat_stack2(ixs) = (cmap2(i,3)*msk_alpha + anat_stack2(masks_fit)*(1-msk_alpha))*(1-white_alpha) + white_alpha; % B;
     end
 end
 %% view stack sequentially
@@ -102,7 +139,7 @@ numP = nPlanes - mod(nPlanes,numRow);
 numCol = numP/numRow;
 
 for i_plane = 1:numP,
-    im = squeeze(ave_stack2(:,:,i_plane,:));
+    im = squeeze(anat_stack2(:,:,i_plane,:));
     im = imresize(im,0.25);
     
     [col, row] = ind2sub([numCol,numRow],i_plane); % this is intensionally inverted...

@@ -2,11 +2,11 @@ function DrawTiledPics_clus(hfig)
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
 CInfo = getappdata(hfig,'CInfo');
-ave_stack = getappdata(hfig,'ave_stack');
+anat_stack = getappdata(hfig,'anat_stack');
 
 anat_yx = getappdata(hfig,'anat_yx');
 % hack:
-ave_stack = repmat(anat_yx,1,1,size(ave_stack,3));
+anat_stack = repmat(anat_yx,1,1,size(anat_stack,3));
 
 timestamp = datestr(now,'mmddyy_HHMMSS');
 tiffName = ['stack_' timestamp '.tif'];
@@ -18,10 +18,10 @@ numK = segment; %length(U);
 % left half: stack with cells marked; 
 % right half: original anatomy, or mark all cells
 
-ave_stack2=zeros(size(ave_stack,1), size(ave_stack,2), size(ave_stack,3) ,3);
-nPlanes=size(ave_stack,3);
-dimv_yxz=size(ave_stack);
-stacklen=numel(ave_stack);
+anat_stack2=zeros(size(anat_stack,1), size(anat_stack,2), size(anat_stack,3) ,3);
+nPlanes=size(anat_stack,3);
+dimv_yxz=size(anat_stack);
+stacklen=numel(anat_stack);
 
 % circle=makeDisk2(10,21);
 % radius = 10; dim = 21;
@@ -45,7 +45,7 @@ cmap = hsv(round(numK*1.1));
 weight = 0.3;
 
 for i=1:nPlanes,
-    ave_stack2(:,:,i,:)=repmat(imNormalize99(ave_stack(:,:,i))/4,[1 1 1 3]);
+    anat_stack2(:,:,i,:)=repmat(imNormalize99(anat_stack(:,:,i))/4,[1 1 1 3]);
 end
 
 for j=1:length(cIX)
@@ -54,11 +54,11 @@ for j=1:length(cIX)
     zinds = dimv_yxz(1)*dimv_yxz(2)*floor(gIX(j)/segment); %dimv_yxz(1)*dimv_yxz(2)*(CInfo(cIX(j)).slice-1);
     ix = mod(gIX(j),segment)+1;%find(U==gIX(j));
     ixs = cinds+circle_inds(labelinds)+zinds;
-    ave_stack2(ixs)=cmap(ix,1)*weight + ave_stack2(ixs)*(1-weight);
+    anat_stack2(ixs)=cmap(ix,1)*weight + anat_stack2(ixs)*(1-weight);
     ixs = cinds+circle_inds(labelinds)+zinds+stacklen;
-    ave_stack2(ixs)=cmap(ix,2)*weight + ave_stack2(ixs)*(1-weight);
+    anat_stack2(ixs)=cmap(ix,2)*weight + anat_stack2(ixs)*(1-weight);
     ixs = cinds+circle_inds(labelinds)+zinds+stacklen*2;
-    ave_stack2(ixs)=cmap(ix,3)*weight + ave_stack2(ixs)*(1-weight);
+    anat_stack2(ixs)=cmap(ix,3)*weight + anat_stack2(ixs)*(1-weight);
 end
 
 %% view stack sequentially
@@ -83,7 +83,7 @@ numP = ceil(max(gIX)/segment); %nPlanes - mod(nPlanes,numRow);
 numCol = floor(numP/numRow);
 
 for i_plane = 1:numP,
-    im = squeeze(ave_stack2(:,:,i_plane,:));
+    im = squeeze(anat_stack2(:,:,i_plane,:));
 %     im = imresize(im,0.25);
     
     [col, row] = ind2sub([numCol,numRow],i_plane); % this is intensionally inverted...

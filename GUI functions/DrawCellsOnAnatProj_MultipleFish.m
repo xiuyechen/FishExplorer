@@ -1,4 +1,4 @@
-function  [tot_image, dim_totimage] = DrawCellsOnAnatProj_MultipleFish(hfig,C,isPopout)
+function  [tot_image, dim_totimage] = DrawCellsOnAnatProj_MultipleFish(hfig,AllCentroids,range_fish,range_clus,isPopout)
 anat_yx = getappdata(hfig,'anat_yx_norm');
 anat_yz = getappdata(hfig,'anat_yz_norm');
 anat_zx = getappdata(hfig,'anat_zx_norm');
@@ -11,11 +11,11 @@ thickness_z = 3;
 CellXYZ = [];
 gIX = [];
 
-range_fish = [8,9,11];
 for i = 1:length(range_fish), 
     i_fish = range_fish(i);
-    CellXYZ = vertcat(CellXYZ,C(i_fish).CellXYZ_norm(C(i_fish).cIX_abs,:));
-    gIX = vertcat(gIX,i*ones(size(C(i_fish).cIX_abs)));
+    XYZ_thisfish = vertcat(AllCentroids{i_fish}.XYZn{range_clus{i}});
+    CellXYZ = vertcat(CellXYZ,XYZ_thisfish);
+    gIX = vertcat(gIX,i*ones(size(XYZ_thisfish,1),1));
 end
 cIX = (1:length(gIX))';
 numK = length(range_fish);
