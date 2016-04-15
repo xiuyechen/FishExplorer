@@ -92,13 +92,10 @@ anat_zx2=zeros(dimv_zx(1)*k_zres,dimv_zx(2),3);
 dim_totimage = [dimv_yx(1)+dimv_zx(1)*k_zres+10,dimv_yx(2)+dimv_yz(2)*k_zres+10,3];
 tot_image=ones(dim_totimage);
 
-% create circlular mask (~linearized indices), to draw cells on image (later)
-circle=makeDisk2(radius_xy,radius_xy*2+1); % make mask of filled circle % (7,15)
-mask = zeros(dimv_yx(1),dimv_yx(2));
-mask(1:radius_xy*2+1,1:radius_xy*2+1) = circle;
-ix = find(mask);
-cix = sub2ind([dimv_yx(1),dimv_yx(2)],radius_xy+1,radius_xy+1);% 8
-circle_inds = ix - cix;
+% create masks (~linearized indices), to draw cells on image (later)
+circlemaskIX = MakeCircularMask(radius_xy,dimv_yx);
+yzmaskIX = MakeSquareMask(width_z,thickness_z,dimv_yz);
+zxmaskIX = MakeSquareMask(thickness_z,width_z,dimv_zx);
 
 % set transparancy
 alpha_max = 0.3-min(length(cIX)/1000/100,0.1);
@@ -110,77 +107,26 @@ else
 end
 
 %% Draw each cell on map (all 3 views)
-
-square=ones(width_z,thickness_z); % make mask of filled circle % (7,15)
-mask = zeros(dimv_yz(1),dimv_yz(2));
-mask(1:width_z,1:thickness_z) = square;
-ix = find(mask);
-cix = sub2ind([dimv_yz(1),dimv_yz(2)],round((width_z+1)/2),round((thickness_z+1)/2));
-yzplane_inds = ix - cix;
-% yzplane_inds = -radius_z:radius_z;
-
-square=ones(thickness_z,width_z); % make mask of filled circle % (7,15)
-mask = zeros(dimv_zx(1),dimv_zx(2));
-mask(1:thickness_z,1:width_z) = square;
-ix = find(mask);
-cix = sub2ind([dimv_zx(1),dimv_zx(2)],round((thickness_z+1)/2),round((width_z+1)/2));
-zxplane_inds = ix - cix;
-% zxplane_inds = -width_z*dimv_zx(1):dimv_zx(1):width_z*dimv_zx(1);
-
 % main loop
 cIX_abs = absIX(cIX);
-for j=1:length(cIX)        
-    if ~isempty(CellXYZ(cIX_abs(j),1)),
-        ix = gIX(j);
-                
-        %% Y-X        
-        cinds=(CellXYZ(cIX_abs(j),2)-1)*dimv_yx(1)+CellXYZ(cIX_abs(j),1); % linear pixel index, faster equivalent of:
-        %     cinds = sub2ind([dim_y,dim_x],cell_info(cellsIX(j)).center(1),cell_info(cellsIX(j)).center(2));
-        labelinds=find((cinds+circle_inds)>0 & (cinds+circle_inds)<=dimv_yx(1)*dimv_yx(2)); % within bounds
-        ixs = cinds+circle_inds(labelinds);
-        anat_YX(ixs) = cmap(ix,1)*alpha(j) + anat_YX(ixs)*(1-alpha(j)); % R
-        ixs = cinds+circle_inds(labelinds) + dimv_yx(1)*dimv_yx(2);
-        anat_YX(ixs) = cmap(ix,2)*alpha(j) + anat_YX(ixs)*(1-alpha(j)); % G
-        ixs = cinds+circle_inds(labelinds) + dimv_yx(1)*dimv_yx(2)*2;
-        anat_YX(ixs) = cmap(ix,3)*alpha(j) + anat_YX(ixs)*(1-alpha(j)); % B
-        
-        %% Y-Z
-        z_alpha(j) = alpha(j)/2;        
-        cinds=(CellXYZ(cIX_abs(j),3)-1)*dimv_yz(1)+CellXYZ(cIX_abs(j),1); % linear pixel index, faster equivalent of:
-        %     cinds = sub2ind([dim_y,dim_z],cell_info(cellsIX(j)).center(1),cell_info(cellsIX(j)).slice);
-        labelinds=find((cinds+yzplane_inds)>0 & (cinds+yzplane_inds)<=dimv_yz(1)*dimv_yz(2));
-        ixs = cinds+yzplane_inds(labelinds);
-        anat_YZ(ixs) = cmap(ix,1)*z_alpha(j) + anat_YZ(ixs)*(1-z_alpha(j)); % R
-        ixs = cinds+yzplane_inds(labelinds) + dimv_yz(1)*dimv_yz(2);
-        anat_YZ(ixs) = cmap(ix,2)*z_alpha(j) + anat_YZ(ixs)*(1-z_alpha(j)); % G
-        ixs = cinds+yzplane_inds(labelinds) + dimv_yz(1)*dimv_yz(2)*2;
-        anat_YZ(ixs) = cmap(ix,3)*z_alpha(j) + anat_YZ(ixs)*(1-z_alpha(j)); % B
-                
-        %% Z-X
-        z_alpha(j) = alpha(j)/2;        
-        cinds=(CellXYZ(cIX_abs(j),2)-1)*dimv_zx(1) +(CellXYZ(cIX_abs(j),3)); % linear pixel index, faster equivalent of:
-        %     cinds = sub2ind([dim_y,dim_z],cell_info(cellsIX(j)).center(1),cell_info(cellsIX(j)).slice);
-        labelinds=find((cinds+zxplane_inds)>0 & (cinds+zxplane_inds)<=dimv_zx(1)*dimv_zx(2));
-        ixs = cinds+zxplane_inds(labelinds);
-        anat_ZX(ixs) = cmap(ix,1)*z_alpha(j) + anat_ZX(ixs)*(1-z_alpha(j)); % R
-        ixs = cinds+zxplane_inds(labelinds) + dimv_zx(1)*dimv_zx(2);
-        anat_ZX(ixs) = cmap(ix,2)*z_alpha(j) + anat_ZX(ixs)*(1-z_alpha(j)); % G
-        ixs = cinds+zxplane_inds(labelinds) + dimv_zx(1)*dimv_zx(2)*2;
-        anat_ZX(ixs) = cmap(ix,3)*z_alpha(j) + anat_ZX(ixs)*(1-z_alpha(j)); % B
-        
-    end
-end
+M_xyz = CellXYZ(cIX_abs,:);
 
-% draw masks on anat projections
+anat_YX = DrawMasksOn3D(anat_YX,M_xyz(:,[1,2]),circlemaskIX,cmap,gIX,alpha);
+anat_YZ = DrawMasksOn3D(anat_YZ,M_xyz(:,[1,3]),yzmaskIX,cmap,gIX,alpha/2);
+anat_ZX = DrawMasksOn3D(anat_ZX,M_xyz(:,[3,2]),zxmaskIX,cmap,gIX,alpha/2);
+
+%% Draw masks on anat projections
 if isShowMasks,  
     nMasks = length(Msk_IDs);
     % set params
     cmap2 = jet(nMasks);
-    msk_alpha(j) = 0.25;
-    white_alpha(j) = 0.05;
     outline_radius = 3;
-    
+    msk_alpha = 0.25;
+    white_alpha = 0.05;
+    M_xyz = [];
     for i = 1:nMasks,
+        clr = cmap2(i,:);
+        % get masks from database
         msk = full(MASKs.MaskDatabase(:,Msk_IDs(i)));
         mask_3D = reshape(msk, [MASKs.height, MASKs.width, MASKs.Zs]);
         
@@ -190,40 +136,24 @@ if isShowMasks,
         if isShowMskOutline,
             masks_fit = imdilate(edge(masks_fit), strel('disk',outline_radius));
         end
-        ixs = find(masks_fit);
-        anat_YX(ixs) = (cmap2(i,1)*msk_alpha(j) + anat_YX(masks_fit)*(1-msk_alpha(j)))*(1-white_alpha(j)) + white_alpha(j); % R;
-        ixs = find(masks_fit) + dimv_yx(1)*dimv_yx(2);
-        anat_YX(ixs) = (cmap2(i,2)*msk_alpha(j) + anat_YX(masks_fit)*(1-msk_alpha(j)))*(1-white_alpha(j)) + white_alpha(j); % G;
-        ixs = find(masks_fit) + dimv_yx(1)*dimv_yx(2)*2;
-        anat_YX(ixs) = (cmap2(i,3)*msk_alpha(j) + anat_YX(masks_fit)*(1-msk_alpha(j)))*(1-white_alpha(j)) + white_alpha(j); % B;
-        
+        anat_YX = DrawMasksOn3D(anat_YX,M_xyz,masks_fit,clr,1,msk_alpha,white_alpha);
+
         % Y-Z
+        outline_radius = 6;
         masks_YZ = squeeze(max(mask_3D,[],2));
         masks_fit = logical(imresize(masks_YZ,[size(anat_yz,1),size(anat_yz,2)]));
         if isShowMskOutline,
-%             masks_fit = edge(masks_fit);
-            masks_fit = imdilate(edge(masks_fit), strel('line',outline_radius,90));
+            masks_fit = imdilate(edge(masks_fit), ones(5,2));%strel('line',outline_radius,90));
         end
-        ixs = find(masks_fit);
-        anat_YZ(ixs) = (cmap2(i,1)*msk_alpha(j) + anat_YZ(masks_fit)*(1-msk_alpha(j)))*(1-white_alpha(j)) + white_alpha(j); % R;
-        ixs = find(masks_fit) + dimv_yz(1)*dimv_yz(2);
-        anat_YZ(ixs) = (cmap2(i,2)*msk_alpha(j) + anat_YZ(masks_fit)*(1-msk_alpha(j)))*(1-white_alpha(j)) + white_alpha(j); % G;
-        ixs = find(masks_fit) + dimv_yz(1)*dimv_yz(2)*2;
-        anat_YZ(ixs) = (cmap2(i,3)*msk_alpha(j) + anat_YZ(masks_fit)*(1-msk_alpha(j)))*(1-white_alpha(j)) + white_alpha(j); % B;
-        
+        anat_YZ = DrawMasksOn3D(anat_YZ,M_xyz,masks_fit,clr,1,msk_alpha,white_alpha);
+
         % Z-X
         masks_ZX = squeeze(max(mask_3D,[],1))';  % notice the transpose
         masks_fit = logical(imresize(masks_ZX,[size(anat_zx,1),size(anat_zx,2)]));
         if isShowMskOutline,
-%             masks_fit = edge(masks_fit);
-            masks_fit = imdilate(edge(masks_fit), strel('line',outline_radius,0));
+            masks_fit = imdilate(edge(masks_fit), ones(2,5));%strel('line',outline_radius,0));
         end
-        ixs = find(masks_fit);
-        anat_ZX(ixs) = (cmap2(i,1)*msk_alpha(j) + anat_ZX(masks_fit)*(1-msk_alpha(j)))*(1-white_alpha(j)) + white_alpha(j); % R;
-        ixs = find(masks_fit) + dimv_zx(1)*dimv_zx(2);
-        anat_ZX(ixs) = (cmap2(i,2)*msk_alpha(j) + anat_ZX(masks_fit)*(1-msk_alpha(j)))*(1-white_alpha(j)) + white_alpha(j); % G;
-        ixs = find(masks_fit) + dimv_zx(1)*dimv_zx(2)*2;
-        anat_ZX(ixs) = (cmap2(i,3)*msk_alpha(j) + anat_ZX(masks_fit)*(1-msk_alpha(j)))*(1-white_alpha(j)) + white_alpha(j); % B;
+        anat_ZX = DrawMasksOn3D(anat_ZX,M_xyz,masks_fit,clr,1,msk_alpha,white_alpha);
     end
 end
 

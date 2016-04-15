@@ -1022,7 +1022,7 @@ cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
 CellXYZ = getappdata(hfig,'CellXYZ');
 absIX = getappdata(hfig,'absIX');
-ave_stack = getappdata(hfig,'ave_stack');
+anat_stack = getappdata(hfig,'anat_stack');
 
 timestamp = datestr(now,'mmddyy_HHMMSS');
 tiffName = ['stack_' timestamp '.tif'];
@@ -1033,10 +1033,10 @@ numK = length(U);
 % left half: stack with cells marked;
 % right half: original anatomy, or mark all cells
 
-ave_stack2 = zeros(size(ave_stack,1), size(ave_stack,2)*2, size(ave_stack,3) ,3);
-nPlanes = size(ave_stack,3);
-dimv_yxz = size(ave_stack);
-stacklen = numel(ave_stack);
+anat_stack2 = zeros(size(anat_stack,1), size(anat_stack,2)*2, size(anat_stack,3) ,3);
+nPlanes = size(anat_stack,3);
+dimv_yxz = size(anat_stack);
+stacklen = numel(anat_stack);
 
 circle = makeDisk2(10,21);
 [r, v] = find(circle);
@@ -1046,7 +1046,7 @@ cmap = hsv(numK);
 weight = 0.3;
 
 for i = 1:nPlanes,
-    ave_stack2(:,:,i,:) = repmat(imNormalize99(ave_stack(:,:,i)),[1 2 1 3]);
+    anat_stack2(:,:,i,:) = repmat(imNormalize99(anat_stack(:,:,i)),[1 2 1 3]);
 end
 
 cIX_abs = absIX(cIX);
@@ -1056,11 +1056,11 @@ for j = 1:length(cIX),
     zinds = dimv_yxz(1)*dimv_yxz(2)*2*(CellXYZ(cIX_abs(j),3)-1);
     ix = find(U==gIX(j));
     ixs = cinds+circle_inds(labelinds)+zinds;
-    ave_stack2(ixs) = cmap(ix,1)*weight + ave_stack2(ixs)*(1-weight);
+    anat_stack2(ixs) = cmap(ix,1)*weight + anat_stack2(ixs)*(1-weight);
     ixs = cinds+circle_inds(labelinds)+zinds+stacklen*2;
-    ave_stack2(ixs) = cmap(ix,2)*weight + ave_stack2(ixs)*(1-weight);
+    anat_stack2(ixs) = cmap(ix,2)*weight + anat_stack2(ixs)*(1-weight);
     ixs = cinds+circle_inds(labelinds)+zinds+stacklen*4;
-    ave_stack2(ixs) = cmap(ix,3)*weight + ave_stack2(ixs)*(1-weight);
+    anat_stack2(ixs) = cmap(ix,3)*weight + anat_stack2(ixs)*(1-weight);
 end
 if isMarkAllCells,
     clr = [0,1,0];
@@ -1070,16 +1070,16 @@ if isMarkAllCells,
         labelinds = find((cinds+circle_inds)>0 & (cinds+circle_inds)<=dimv_yxz(1)*dimv_yxz(2));
         zinds = dimv_yxz(1)*dimv_yxz(2)*2*(CellXYZ(j,3)-1);
         ixs = cinds+circle_inds(labelinds)+zinds + shift;
-        ave_stack2(ixs) = clr(1)*weight + ave_stack2(ixs)*(1-weight);
+        anat_stack2(ixs) = clr(1)*weight + anat_stack2(ixs)*(1-weight);
         ixs = cinds+circle_inds(labelinds)+zinds+stacklen*2 + shift;
-        ave_stack2(ixs) = clr(2)*weight + ave_stack2(ixs)*(1-weight);
+        anat_stack2(ixs) = clr(2)*weight + anat_stack2(ixs)*(1-weight);
         ixs = cinds+circle_inds(labelinds)+zinds+stacklen*4 + shift;
-        ave_stack2(ixs) = clr(3)*weight + ave_stack2(ixs)*(1-weight);
+        anat_stack2(ixs) = clr(3)*weight + anat_stack2(ixs)*(1-weight);
     end
 end
 h = figure;
 for i_plane = 1:nPlanes,
-    im = squeeze(ave_stack2(:,:,i_plane,:));
+    im = squeeze(anat_stack2(:,:,i_plane,:));
     image(im);
     % save tiff
     if (i_plane == 1)
@@ -1229,11 +1229,15 @@ end
 
 function popup_loadfullfishmenu_Callback(hObject,~)
 i_fish = get(hObject,'Value')-1;
+hfig = getParentFigure(hObject);
 if i_fish>0,
-    hfig = getParentFigure(hObject);
+    tic    
+    watchon; drawnow;
     LoadFullFish(hfig,i_fish);
     UpdateFishData(hfig,i_fish);
     UpdateFishDisplay(hfig);
+    toc
+    watchoff;
 end
 end
 
@@ -1265,9 +1269,6 @@ end
 end
 
 function LoadFullFish(hfig,i_fish,hdf5_dir,mat_dir)
-% watchon;
-set(hfig,'Pointer','watch');
-    
 disp(['loading fish #' num2str(i_fish) '...']);
 
 M_fish_set = getappdata(hfig,'M_fish_set');
@@ -1308,7 +1309,6 @@ setappdata(hfig,'CellRespAvrZ',CellRespAvrZ);
 setappdata(hfig,'absIX',absIX);
 
 toc
-% watchoff;
 % setappdata(hfig,'isfullfish',1);
 end
 
@@ -2609,12 +2609,14 @@ end
 end
 
 function pushbutton_allCentroidRegression_Callback(hObject,~)
+watchon; drawnow;
 hfig = getParentFigure(hObject);
 [cIX,gIX,numK] = AllCentroidRegression_direct(hfig);
 
 UpdateIndices(hfig,cIX,gIX,numK);
 RefreshFigure(hfig);
 disp('all regression complete');
+watchoff;
 end
 
 function pushbutton_IterCentroidRegression_Callback(hObject,~)
@@ -2805,6 +2807,7 @@ end
 %% row 1: k-means
 
 function edit_kmeans_Callback(hObject,~)
+watchon; drawnow;
 hfig = getParentFigure(hObject);
 M = getappdata(hfig,'M');
 
@@ -2835,6 +2838,7 @@ if ~isempty(str),
     UpdateIndices(hfig,cIX,gIX,numK);
     RefreshFigure(hfig);
 end
+watchoff
 end
 
 function edit_kmeans2_Callback(hObject,~) % based on anatomical distance
@@ -4056,7 +4060,7 @@ end
 
 % frequently used, 2 plotting functions are outside ('DrawTimeSeries.m' and 'DrawCellsOnAnatProj.m')
 function RefreshFigure(hfig)
-watchon;
+watchon; drawnow;
 isPopout = 0; % with down-sampling in plots
 
 % clean-up canvas
