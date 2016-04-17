@@ -1,4 +1,4 @@
-function anat_im = DrawMasksOn3D(anat_im,M_xyz,maskIX,cmap,clrIX,alpha,white_alpha)
+function anat_im = DrawMasksInRGB(anat_im,M_xyz,maskIX,cmap,clrIX,alpha,white_alpha)
 dimv = size(anat_im);
 
 if ~isempty(M_xyz), % draw cells
