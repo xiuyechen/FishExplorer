@@ -1,74 +1,69 @@
 function DrawTiledPics_clus(hfig)
+% isRefAnat = getappdata(hfig,'isRefAnat');
+% if ~isRefAnat,
+    CellXYZ = getappdata(hfig,'CellXYZ');
+    anat_stack = getappdata(hfig,'anat_stack');
+    anat_yx = getappdata(hfig,'anat_yx');
+    anat_yz = getappdata(hfig,'anat_yz');
+    anat_zx = getappdata(hfig,'anat_zx');
+    k_zres = 20;
+    radius_xy = 7;
+    width_z = 10;
+    thickness_z = 1;
+% else
+%     CellXYZ = getappdata(hfig,'CellXYZ_norm');
+%     anat_stack = getappdata(hfig,'anat_stack_norm');
+%     anat_yx = getappdata(hfig,'anat_yx_norm');
+%     anat_yz = getappdata(hfig,'anat_yz_norm');
+%     anat_zx = getappdata(hfig,'anat_zx_norm');
+%     k_zres = 2.5;
+%     radius_xy = 3;
+%     width_z = 5;
+%     thickness_z = 3;
+% end
+
+% isShowMasks = getappdata(hfig,'isShowMasks');
+% if isShowMasks,
+%     MASKs = getappdata(hfig,'MASKs');
+%     Msk_IDs = getappdata(hfig,'Msk_IDs');    
+% end
+
+% load params
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
-CInfo = getappdata(hfig,'CInfo');
-anat_stack = getappdata(hfig,'anat_stack');
+absIX = getappdata(hfig,'absIX');
 
-anat_yx = getappdata(hfig,'anat_yx');
-% hack:
-anat_stack = repmat(anat_yx,1,1,size(anat_stack,3));
+% initialize image stack
+anat_stack2 = zeros([size(anat_stack),3]);
+dimv_yxz = size(anat_stack);
 
-timestamp = datestr(now,'mmddyy_HHMMSS');
-tiffName = ['stack_' timestamp '.tif'];
-
-U = unique(gIX);
 segment = 8;
+% nPlanes = size(anat_stack,3);
+nPlanes = ceil(max(gIX)/segment);
+
+
+% make cell-shaped circular mask
+radius_xy = 7;
+circlemaskIX = MakeCircularMask(radius_xy,dimv_yxz(1:2));
+
+% make color-map
 numK = segment; %length(U);
+clrmap = hsv(numK);
+% set transparency
+alpha = ones(size(cIX))*0.5;
 
-% left half: stack with cells marked; 
-% right half: original anatomy, or mark all cells
-
-anat_stack2=zeros(size(anat_stack,1), size(anat_stack,2), size(anat_stack,3) ,3);
-nPlanes=size(anat_stack,3);
-dimv_yxz=size(anat_stack);
-stacklen=numel(anat_stack);
-
-% circle=makeDisk2(10,21);
-% radius = 10; dim = 21;
-radius = 8; dim = 17;
-center=floor(dim/2)+1;
-circle=zeros(dim);
-for x=1:dim
-    for y=1:dim
-        if norm([x,y]-[center,center])<=radius
-            circle(x,y)=1;
-        end
+% main: coloring of stack
+cIX_abs = absIX(cIX);
+M_xyz = CellXYZ(cIX_abs,:);
+stack_alpha = 0.25;
+for i = 1:nPlanes,
+    anat_plane = stack_alpha*repmat(squeeze(imNormalize99(anat_stack(:,:,i))),[1 1 3]);
+    IX = find(ceil(gIX/segment)==i); % for DrawTiledPics.m: IX = find(M_xyz(:,3)==i);
+    clrIX = gIX(IX)-(i-1)*segment;
+    if ~isempty(IX),
+        anat_stack2(:,:,i,:) = DrawMasksInRGB(anat_plane,M_xyz(IX,[1,2]),circlemaskIX,clrmap,clrIX,alpha(IX));
     end
 end
-
-
-[r, v]=find(circle);
-r=r-11;v=v-11;
-circle_inds  = r*dimv_yxz(1)+v;
-cmap = hsv(round(numK*1.1));
-% cmap = [0.3 1 0];
-weight = 0.3;
-
-for i=1:nPlanes,
-    anat_stack2(:,:,i,:)=repmat(imNormalize99(anat_stack(:,:,i))/4,[1 1 1 3]);
-end
-
-for j=1:length(cIX)
-    cinds = (CInfo(cIX(j)).center(2)-1)*dimv_yxz(1)+CInfo(cIX(j)).center(1);
-    labelinds = find((cinds+circle_inds)>0 & (cinds+circle_inds)<=dimv_yxz(1)*dimv_yxz(2));
-    zinds = dimv_yxz(1)*dimv_yxz(2)*floor(gIX(j)/segment); %dimv_yxz(1)*dimv_yxz(2)*(CInfo(cIX(j)).slice-1);
-    ix = mod(gIX(j),segment)+1;%find(U==gIX(j));
-    ixs = cinds+circle_inds(labelinds)+zinds;
-    anat_stack2(ixs)=cmap(ix,1)*weight + anat_stack2(ixs)*(1-weight);
-    ixs = cinds+circle_inds(labelinds)+zinds+stacklen;
-    anat_stack2(ixs)=cmap(ix,2)*weight + anat_stack2(ixs)*(1-weight);
-    ixs = cinds+circle_inds(labelinds)+zinds+stacklen*2;
-    anat_stack2(ixs)=cmap(ix,3)*weight + anat_stack2(ixs)*(1-weight);
-end
-
-%% view stack sequentially
-% figure;
-% for i_plane = 1:nPlanes,
-%     im = squeeze(ave_stack2(:,:,i_plane,:));
-%     image(im);
-%     axis image; axis off
-%     pause(0.1)
-% end
 
 %% lay out
 

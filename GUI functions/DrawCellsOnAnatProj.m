@@ -111,9 +111,9 @@ end
 cIX_abs = absIX(cIX);
 M_xyz = CellXYZ(cIX_abs,:);
 
-anat_YX = DrawMasksOn3D(anat_YX,M_xyz(:,[1,2]),circlemaskIX,cmap,gIX,alpha);
-anat_YZ = DrawMasksOn3D(anat_YZ,M_xyz(:,[1,3]),yzmaskIX,cmap,gIX,alpha/2);
-anat_ZX = DrawMasksOn3D(anat_ZX,M_xyz(:,[3,2]),zxmaskIX,cmap,gIX,alpha/2);
+anat_YX = DrawMasksInRGB(anat_YX,M_xyz(:,[1,2]),circlemaskIX,cmap,gIX,alpha);
+anat_YZ = DrawMasksInRGB(anat_YZ,M_xyz(:,[1,3]),yzmaskIX,cmap,gIX,alpha/2);
+anat_ZX = DrawMasksInRGB(anat_ZX,M_xyz(:,[3,2]),zxmaskIX,cmap,gIX,alpha/2);
 
 %% Draw masks on anat projections
 if isShowMasks,  
@@ -136,7 +136,7 @@ if isShowMasks,
         if isShowMskOutline,
             masks_fit = imdilate(edge(masks_fit), strel('disk',outline_radius));
         end
-        anat_YX = DrawMasksOn3D(anat_YX,M_xyz,masks_fit,clr,1,msk_alpha,white_alpha);
+        anat_YX = DrawMasksInRGB(anat_YX,M_xyz,masks_fit,clr,1,msk_alpha,white_alpha);
 
         % Y-Z
         outline_radius = 6;
@@ -145,7 +145,7 @@ if isShowMasks,
         if isShowMskOutline,
             masks_fit = imdilate(edge(masks_fit), ones(5,2));%strel('line',outline_radius,90));
         end
-        anat_YZ = DrawMasksOn3D(anat_YZ,M_xyz,masks_fit,clr,1,msk_alpha,white_alpha);
+        anat_YZ = DrawMasksInRGB(anat_YZ,M_xyz,masks_fit,clr,1,msk_alpha,white_alpha);
 
         % Z-X
         masks_ZX = squeeze(max(mask_3D,[],1))';  % notice the transpose
@@ -153,7 +153,7 @@ if isShowMasks,
         if isShowMskOutline,
             masks_fit = imdilate(edge(masks_fit), ones(2,5));%strel('line',outline_radius,0));
         end
-        anat_ZX = DrawMasksOn3D(anat_ZX,M_xyz,masks_fit,clr,1,msk_alpha,white_alpha);
+        anat_ZX = DrawMasksInRGB(anat_ZX,M_xyz,masks_fit,clr,1,msk_alpha,white_alpha);
     end
 end
 
