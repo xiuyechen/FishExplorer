@@ -18,7 +18,7 @@ fpsec = 1.97; % Hz
 %%
 poolobj=parpool(8);
 %%
-range_fish = 1:11;
+range_fish = 15;
 
 for i_fish = range_fish,
     tic

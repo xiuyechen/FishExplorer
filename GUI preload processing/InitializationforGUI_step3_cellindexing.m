@@ -5,7 +5,7 @@ clear all;close all;clc
 data_masterdir = GetCurrentDataDir();
 save_dir = data_masterdir;
 
-range_fish = 12;
+range_fish = 15;
 
 %% Initialize VAR
 % VAR = [];

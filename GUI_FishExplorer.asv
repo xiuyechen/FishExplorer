@@ -68,7 +68,7 @@ if exist(fullfile(data_masterdir,name_MASKs),'file') ...
 end
 
 %% fish protocol sets (different sets have different parameters)
-M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2]; % M = Matrix
+M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3]; % M = Matrix
 setappdata(hfig,'M_fish_set',M_fish_set);
 
 %% parameters / constants
@@ -1001,11 +1001,6 @@ end
 function pushbutton_writeZstack_Callback(hObject,~)
 disp('save z-stack...');
 hfig = getParentFigure(hObject);
-% isfullfish = getappdata(hfig,'isfullfish');
-% if ~isfullfish,
-%     errordlg('Load full fish first!');
-%     return;
-% end
 
 % get save path
 timestamp = datestr(now,'mmddyy_HHMMSS');
@@ -1033,13 +1028,14 @@ circlemaskIX = MakeCircularMask(radius_xy,dimv_yxz(1:2));
 numK = double(max(gIX));
 clrmap = hsv(numK);
 % set transparency
-alpha = ones(size(cIX))*0.3;
+alpha = ones(size(cIX))*0.5;
 
 % main: coloring of stack
 cIX_abs = absIX(cIX);
 M_xyz = CellXYZ(cIX_abs,:);
+stack_alpha = 0.25;
 for i = 1:nPlanes,
-    anat_plane = repmat(imNormalize99(anat_stack(:,:,i)),[1 1 1 3]);
+    anat_plane = stack_alpha*repmat(imNormalize99(anat_stack(:,:,i)),[1 1 1 3]);
     IX = find(M_xyz(:,3)==i);
     anat_stack2(:,:,i,:) = DrawMasksInRGB(anat_plane,M_xyz(IX,[1,2]),circlemaskIX,clrmap,gIX(IX),alpha(IX));
 end
@@ -1062,13 +1058,8 @@ end
 
 function pushbutton_tileZstack_Callback(hObject,~)
 hfig = getParentFigure(hObject);
-% isfullfish = getappdata(hfig,'isfullfish');
-% if isfullfish,
-    disp('Rendering...')
-    DrawTiledPics(hfig);
-% else
-%     errordlg('Load full fish first!');
-% end
+disp('tile z stack...')
+DrawTiledPics(hfig);
 end
 
 function pushbutton_tileClusters_Callback(hObject,~)
@@ -1080,18 +1071,6 @@ hfig = getParentFigure(hObject);
 % else
 %     errordlg('Load full fish first!');
 % end
-end
-
-function out = makeDisk2(radius, dim)
-center=floor(dim/2)+1;
-out=zeros(dim);
-for x=1:dim
-    for y=1:dim
-        if norm([x,y]-[center,center])<=radius
-            out(x,y)=1;
-        end
-    end
-end
 end
 
 function pushbutton_exporttoworkspace_Callback(hObject,~)
@@ -1234,50 +1213,6 @@ if ~isempty(answer),
         LoadFullFish(hfig,new_i_fish,hdf5_dir,mat_dir);
     end
 end
-end
-
-function LoadFullFish(hfig,i_fish,hdf5_dir,mat_dir)
-disp(['loading fish #' num2str(i_fish) '...']);
-
-M_fish_set = getappdata(hfig,'M_fish_set');
-fishset = M_fish_set(i_fish);
-setappdata(hfig,'fishset',fishset);
-
-%% load data from file
-
-disp(['load fish ' num2str(i_fish) '...']);
-
-if ~exist('hdf5_dir','var') || ~exist('mat_dir','var'),
-    data_masterdir = getappdata(hfig,'data_masterdir');
-    data_dir = fullfile(data_masterdir,['subject_' num2str(i_fish)]);
-    hdf5_dir = fullfile(data_dir,'TimeSeries.h5');
-    mat_dir = fullfile(data_dir,'data_full.mat');
-end
-
-tic
-
-% load 'data'
-load(mat_dir,'data'); % struct with many fields
-names = fieldnames(data); % cell of strings
-for i = 1:length(names),
-    setappdata(hfig,names{i},eval(['data.',names{i}]));
-end
-
-% load time series (hdf5 file)
-CellResp = h5read(hdf5_dir,'/CellResp');
-CellRespZ = h5read(hdf5_dir,'/CellRespZ');
-CellRespAvr = h5read(hdf5_dir,'/CellRespAvr');
-CellRespAvrZ = h5read(hdf5_dir,'/CellRespAvrZ');
-absIX = h5read(hdf5_dir,'/absIX');
-
-setappdata(hfig,'CellResp',CellResp);
-setappdata(hfig,'CellRespZ',CellRespZ);
-setappdata(hfig,'CellRespAvr',CellRespAvr);
-setappdata(hfig,'CellRespAvrZ',CellRespAvrZ);
-setappdata(hfig,'absIX',absIX);
-
-toc
-% setappdata(hfig,'isfullfish',1);
 end
 
 function UpdateFishData(hfig,new_i_fish)

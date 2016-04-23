@@ -68,7 +68,7 @@ if exist(fullfile(data_masterdir,name_MASKs),'file') ...
 end
 
 %% fish protocol sets (different sets have different parameters)
-M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2]; % M = Matrix
+M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3]; % M = Matrix
 setappdata(hfig,'M_fish_set',M_fish_set);
 
 %% parameters / constants
@@ -1026,7 +1026,7 @@ circlemaskIX = MakeCircularMask(radius_xy,dimv_yxz(1:2));
 
 % make color-map
 numK = double(max(gIX));
-clrmap = hsv(numK);
+clrmap = hsv(round(double(numK)*1.1));
 % set transparency
 alpha = ones(size(cIX))*0.5;
 
@@ -1037,7 +1037,9 @@ stack_alpha = 0.25;
 for i = 1:nPlanes,
     anat_plane = stack_alpha*repmat(imNormalize99(anat_stack(:,:,i)),[1 1 1 3]);
     IX = find(M_xyz(:,3)==i);
-    anat_stack2(:,:,i,:) = DrawMasksInRGB(anat_plane,M_xyz(IX,[1,2]),circlemaskIX,clrmap,gIX(IX),alpha(IX));
+    if ~isempty(IX),
+        anat_stack2(:,:,i,:) = DrawMasksInRGB(anat_plane,M_xyz(IX,[1,2]),circlemaskIX,clrmap,gIX(IX),alpha(IX));
+    end
 end
 
 % display each plane and save as tif
@@ -1134,7 +1136,7 @@ isPlotBehavior = getappdata(hfig,'isPlotBehavior');
 isPlotAnatomyOnly = getappdata(hfig,'isPlotAnatomyOnly');
 
 if ~isPlotAnatomyOnly,
-    figure('Position',[50,100,1600,800],'color',[1 1 1],...
+    figure('Position',[50,50,1600,800],'color',[1 1 1],...
         'Name',['Fish#' num2str(i_fish)]);
     h1 = axes('Position',[0.05, 0.03, 0.53, 0.94]); % left ~subplot
     h2 = axes('Position',[0.61, 0.03, 0.35, 0.94]); % right ~subplot
@@ -1148,7 +1150,7 @@ if ~isPlotAnatomyOnly,
     DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
     
 else
-    figure('Position',[600,300,600,900],'color',[1 1 1],...
+    figure('Position',[600,50,600,900],'color',[1 1 1],...
         'Name',['Fish#' num2str(i_fish)]);
     axes('Position',[0.03, 0.03, 0.94, 0.94]); % right ~subplot
     % right subplot
@@ -1213,50 +1215,6 @@ if ~isempty(answer),
         LoadFullFish(hfig,new_i_fish,hdf5_dir,mat_dir);
     end
 end
-end
-
-function LoadFullFish(hfig,i_fish,hdf5_dir,mat_dir)
-disp(['loading fish #' num2str(i_fish) '...']);
-
-M_fish_set = getappdata(hfig,'M_fish_set');
-fishset = M_fish_set(i_fish);
-setappdata(hfig,'fishset',fishset);
-
-%% load data from file
-
-disp(['load fish ' num2str(i_fish) '...']);
-
-if ~exist('hdf5_dir','var') || ~exist('mat_dir','var'),
-    data_masterdir = getappdata(hfig,'data_masterdir');
-    data_dir = fullfile(data_masterdir,['subject_' num2str(i_fish)]);
-    hdf5_dir = fullfile(data_dir,'TimeSeries.h5');
-    mat_dir = fullfile(data_dir,'data_full.mat');
-end
-
-tic
-
-% load 'data'
-load(mat_dir,'data'); % struct with many fields
-names = fieldnames(data); % cell of strings
-for i = 1:length(names),
-    setappdata(hfig,names{i},eval(['data.',names{i}]));
-end
-
-% load time series (hdf5 file)
-CellResp = h5read(hdf5_dir,'/CellResp');
-CellRespZ = h5read(hdf5_dir,'/CellRespZ');
-CellRespAvr = h5read(hdf5_dir,'/CellRespAvr');
-CellRespAvrZ = h5read(hdf5_dir,'/CellRespAvrZ');
-absIX = h5read(hdf5_dir,'/absIX');
-
-setappdata(hfig,'CellResp',CellResp);
-setappdata(hfig,'CellRespZ',CellRespZ);
-setappdata(hfig,'CellRespAvr',CellRespAvr);
-setappdata(hfig,'CellRespAvrZ',CellRespAvrZ);
-setappdata(hfig,'absIX',absIX);
-
-toc
-% setappdata(hfig,'isfullfish',1);
 end
 
 function UpdateFishData(hfig,new_i_fish)

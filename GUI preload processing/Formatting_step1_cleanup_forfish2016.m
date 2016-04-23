@@ -2,24 +2,26 @@
 
 clear all;close all;clc
 
-code_dir = 'C:\Users\Xiu\Dropbox\Github\FishExplorer';
+code_dir = 'C:\Users\Xiu\Dropbox\FishExplorer';
 addpath(genpath(code_dir));
 
 %% Set Manaully!
 % file directories
 M_dir = GetFishDirectories();
 M_tcutoff = {3500,[],[],3500,3600,4000,1800,[],... % Fish 1-8
-    [],5000,[],7000,6500 }; % fish 9-13 % fish 12 last ran with []! 1/22/16
+    [],5000,[],7000,6500,4500, ... % fish 9-14 % fish 12 last ran with []! 1/22/16
+    [],2200,[],7000}; % fish 15-18 with GAD in red channel
 
 M_fpsec = {1.97,1.97,1.97,1.97,1.97,1.97,1.97,1.97,1.97,1.97,1.97,... % Fish 1-11
-    2.56,2.33}; % Hz
+    2.56,2.33,...
+    2.33,2.33,2,38,2,38}; % Hz
 
 % also check manual frame-correction section below
 
 %%
 % poolobj=parpool(8);
 %%
-range_fish = 12;
+range_fish = 15;
 
 for i_fish = range_fish,
     tic
@@ -46,8 +48,12 @@ for i_fish = range_fish,
 %     else
 %         errordlg('find data to load!');
 %     end
-    
-    load(fullfile(data_dir,'frame_turn.mat'));
+
+    if exist(fullfile(data_dir,'frame_turn_new.mat'), 'file'),
+        load(fullfile(data_dir,'frame_turn_new.mat'));
+    elseif exist(fullfile(data_dir,'frame_turn.mat'), 'file'),
+        load(fullfile(data_dir,'frame_turn.mat'));
+    end
     frame_keys = frame_turn;
     
     TimeSeries = read_LSstack_fast_float(fullfile(data_dir,'CR_detrend.stackf'),cell_resp_dim);
