@@ -66,7 +66,6 @@ if i_fish == 8,
     
     % M_range_raw = [2,3,4,5,12,13,14,15,99,100]; % for Fish 8
     M_range =       [3,1,3,2, 3,10,11,12, 0,16]; % standardized
-%     M_range =       [3,1,3,2, 9,10,11,12, 4,16]; % standardized
     
 elseif i_fish >=9 && i_fish <=11,
     nBlocks = 3;
@@ -97,9 +96,8 @@ elseif i_fish >=9 && i_fish <=11,
     
     % M_range_raw = [2,3,4,5,12,13,14,15,22,23,30,31,32,42,43,44,45,99,100] % for Fish 10
     M_range =       [3,1,3,2, 3,10,11,12,13, 0, 3,14,15,23,21,23,22, 0,16]; % standardized
-%     M_range =       [3,1,3,2, 9,10,11,12,13, 0, 3,14,15,23,21,23,22, 4,16]; % standardized
     
-elseif i_fish >=12 && i_fish <=15,
+elseif i_fish >=12 && i_fish <=14,
     nBlocks = 2;
     block_raw = cell(nBlocks,1); % number of blocks
     block_raw{1} = {[2,3,4,5],[12,13,12,14,12,15,12,16],[0,12],99,[30,31,30,32]};
@@ -119,7 +117,6 @@ elseif i_fish >=12 && i_fish <=15,
 
     % M_range_raw = [0,2,3,4,5,12,13,14,15,16,30,31,32,99] % for Fish 12
     M_range =       [0,3,1,3,2, 3,10, 9,11,12, 3,14,15, 4]; % standardized
-%     M_range =       [3,1,3,2, 9, 0,10,11,12, 3,14,15, 4]; % standardized
     
 % elseif i_fish == 12 || i_fish == 13 || i_fish == 14,
 %     nBlocks = 1;
@@ -137,7 +134,28 @@ elseif i_fish >=12 && i_fish <=15,
 %     
 %     % M_range_raw = [1,3,4] % for Fish 10
 %     M_range =       [0,3,4]; % standardized
-    
+elseif i_fish >=15 && i_fish <=18,
+%     M_range_raw = [2   3   4   5  12  13  14  15  16  17  18  99]
+    nBlocks = 2;
+    block_raw = cell(nBlocks,1); % number of blocks
+    block_raw{1} = {[2,3,4,5],[12,13,12,14,12,15,12,16],[17,18],99,[30,31,30,32]};
+    block_raw{2} = {[2,3,4,5],[12,13,12,14,12,15,12,16],[17,18],99,[30,31,30,32]};
+        
+    stimset = [];
+    stimset(1).name = 'PT';
+    stimset(1).ij = [1,1; 2,1];
+    stimset(2).name = 'OMR';
+    stimset(2).ij = [1,2; 2,2];
+    stimset(3).name = 'DF';
+    stimset(3).ij = [1,3; 2,3];
+    stimset(4).name = 'Spontaneous';
+    stimset(4).ij = [1,4; 2,4];
+    stimset(5).name = 'Looming';
+    stimset(5).ij = [1,5; 2,5];
+
+    % M_range_raw = [2,3,4,5,12,13,14,15,16,17,18,30,31,32,99] % for Fish 12
+    M_range =       [3,1,3,2, 3,10, 9,11,12, 3, 0, 3,14,15, 4]; % standardized
+
 else % inspect manually to set these manual params
     % set M_range here after first inspection of M_range_raw:
     M_range =       [3,1,3,2, 9,10,11,12, 0,13, 3,14,15, 4,16]; % standardized

@@ -29,7 +29,8 @@ for i = 1:numClus1,%77,%
         [D2_srt,IX] = sort(D2);
         [D12_srt,IX] = sort(D12(:));
 
-        D1_avr = mean(D1_srt);
+        k = 2;
+        D1_avr = mean(D1_srt();
         D2_avr = mean(D2_srt);
         D12_avr = mean(D12_srt);
         

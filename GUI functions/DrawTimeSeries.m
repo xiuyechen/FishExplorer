@@ -33,7 +33,7 @@ if isPlotLines,
     if 1, % (just to collapse isPlotLines = true)               
         %% settings
         len = pos(3);
-        fps = 1.97;
+        fpsec = getappdata(hfig,'fpsec');%1.97;
         
         % set position grid
         nLines = length(unique(gIX));
@@ -73,8 +73,8 @@ if isPlotLines,
         for j = 1:nLines,
             k = U(j);
             Ys = M(gIX==k,:);            
-            ymean = mean(Ys);
-            ySTD=std(Ys); % /sqrt(size(Ys,1))??
+            ymean = mean(Ys,1);
+            ySTD=std(Ys,0,1); % /sqrt(size(Ys,1))??
             ySTD_upper=ymean+ySTD;
             ySTD_lower=ymean-ySTD;
             
@@ -92,11 +92,11 @@ if isPlotLines,
         %% plot scale bar
         axes('Position',[pos(1),pos(2)+pos(4)-lineH*(nLines+2),len,lineH]); hold on;
         if nFrames<1200, % <~10 min, plot 1min scale bar
-            plot([1,60*fps],[0.75,0.75],'k-');
-            text(pos(1)+60*fps/2,0.5,'1 min','HorizontalAlignment','center')
+            plot([1,60*fpsec],[0.75,0.75],'k-');
+            text(pos(1)+60*fpsec/2,0.5,'1 min','HorizontalAlignment','center')
         else % >~10 min, plot 10min scale bar
-            plot([1,600*fps],[0.75,0.75],'k-');
-            text(pos(1)+600*fps/2,0.5,'10 min','HorizontalAlignment','center')
+            plot([1,600*fpsec],[0.75,0.75],'k-');
+            text(pos(1)+600*fpsec/2,0.5,'10 min','HorizontalAlignment','center')
         end
         xlim([xv(1),xv(end)]);ylim([0,1]);
         axis off

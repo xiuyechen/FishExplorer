@@ -3,7 +3,7 @@ clear all;close all;clc
 save_masterdir = GetCurrentDataDir();
 
 %%
-range_fish = 12;
+range_fish = 15;
 
 for i_fish = range_fish,
     %% load data

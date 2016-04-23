@@ -3,13 +3,13 @@ function DrawTiledPics(hfig)
 % if ~isRefAnat,
     CellXYZ = getappdata(hfig,'CellXYZ');
     anat_stack = getappdata(hfig,'anat_stack');
-    anat_yx = getappdata(hfig,'anat_yx');
-    anat_yz = getappdata(hfig,'anat_yz');
-    anat_zx = getappdata(hfig,'anat_zx');
-    k_zres = 20;
-    radius_xy = 7;
-    width_z = 10;
-    thickness_z = 1;
+%     anat_yx = getappdata(hfig,'anat_yx');
+%     anat_yz = getappdata(hfig,'anat_yz');
+%     anat_zx = getappdata(hfig,'anat_zx');
+%     k_zres = 20;
+    radius_xy = 10;%7;
+%     width_z = 10;
+%     thickness_z = 1;
 % else
 %     CellXYZ = getappdata(hfig,'CellXYZ_norm');
 %     anat_stack = getappdata(hfig,'anat_stack_norm');
@@ -39,12 +39,12 @@ nPlanes = size(anat_stack,3);
 dimv_yxz = size(anat_stack);
 
 % make cell-shaped circular mask
-radius_xy = 7;
+% radius_xy = 7;
 circlemaskIX = MakeCircularMask(radius_xy,dimv_yxz(1:2));
 
 % make color-map
 numK = double(max(gIX));
-clrmap = hsv(numK);
+clrmap = hsv(round(double(numK)*1.1));
 % set transparency
 alpha = ones(size(cIX))*0.5;
 

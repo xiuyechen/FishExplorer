@@ -48,7 +48,7 @@ circlemaskIX = MakeCircularMask(radius_xy,dimv_yxz(1:2));
 
 % make color-map
 numK = segment; %length(U);
-clrmap = hsv(numK);
+clrmap = hsv(round(double(numK)*1.1));
 % set transparency
 alpha = ones(size(cIX))*0.5;
 
@@ -75,7 +75,7 @@ image(zeros(3,3,3));axis off
 
 numRow = 3;
 numP = ceil(max(gIX)/segment); %nPlanes - mod(nPlanes,numRow);
-numCol = floor(numP/numRow);
+numCol = ceil(numP/numRow);
 
 for i_plane = 1:numP,
     im = squeeze(anat_stack2(:,:,i_plane,:));
