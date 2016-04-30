@@ -1,4 +1,4 @@
-function pushbutton_autoclus_Callback(hObject,f,i_fish)
+function AutoClustering(hObject,f,i_fish,savename,isWkmeans)
 %% test
 % hfig = f.getParentFigure(hObject);
 % cIX = getappdata(hfig,'cIX');
@@ -18,9 +18,7 @@ thres_size = 10;
 thres_split = getappdata(hfig,'thres_split');
 thres_stimlock = 1.0;
 thres_merge = getappdata(hfig,'thres_merge');
-thres_silh = 0.4;
-
-isWkmeans = getappdata(hfig,'isWkmeans');
+% thres_silh = 0.4;
 
 %% kmeans
 if isWkmeans,
@@ -38,7 +36,7 @@ if isWkmeans,
         gIX = kmeans(M,numK,'distance','correlation');
     end
     toc
-    SaveCluster_Direct(hfig,cIX,gIX,'k=20');
+%     SaveCluster_Direct(hfig,cIX,gIX,'k=20');
 end
 [gIX, numU] = f.SqueezeGroupIX(gIX);
 
@@ -68,18 +66,19 @@ end
 [gIX, numU] = f.Merge_direct(thres_merge,M_0,cIX,gIX);
 
 %% rank by stim-lock
-disp('stim-lock');
-f.UpdateIndices(hfig,cIX,gIX,numU);
-[gIX,rankscore] = f.RankByStimLock_Direct(hfig,gIX,numU);
-disp('ranking complete');
-% and threshold
-IX = find(rankscore<thres_stimlock);
-ix = ismember(gIX,IX);
-gIX = gIX(ix);
-cIX = cIX(ix);
-f.UpdateIndices(hfig,cIX,gIX);
+% disp('stim-lock');
+% f.UpdateIndices(hfig,cIX,gIX,numU);
+% [gIX,rankscore] = f.RankByStimLock_Direct(hfig,gIX,numU);
+% disp('ranking complete');
+% % and threshold
+% IX = find(rankscore<thres_stimlock);
+% ix = ismember(gIX,IX);
+% gIX = gIX(ix);
+% cIX = cIX(ix);
+
 
 %% Regression with the centroid of each cluster
+f.UpdateIndices(hfig,cIX,gIX);
 [cIX,gIX,~] = AllCentroidRegression_direct(hfig);
 disp('auto-reg-clus complete');
 
@@ -87,23 +86,23 @@ disp('auto-reg-clus complete');
 % SaveCluster_Direct(hfig,cIX,gIX,'clean_round2');
 
 %% Silhouette
-disp('silhouette analysis');
-gIX_last = gIX;
-for i = 1:numU,
-    disp(['i = ' num2str(i)]);
-    IX = find(gIX_last == i);
-    cIX_2 = cIX(IX);
-    M_s = M_0(cIX_2,:);
-    % try k-means with k=2, see whether to keep
-    gIX_ = kmeans(M_s,2,'distance','correlation');
-    silh = silhouette(M_s,gIX_,'correlation');
-    if mean(silh)>thres_silh,
-        % keep the k-means k=2 subsplit
-        disp('split');
-        gIX(IX) = gIX_ + numU; % reassign (much larger) gIX
-    end
-end
-[gIX, ~] = f.SqueezeGroupIX(gIX);
+% disp('silhouette analysis');
+% gIX_last = gIX;
+% for i = 1:numU,
+%     disp(['i = ' num2str(i)]);
+%     IX = find(gIX_last == i);
+%     cIX_2 = cIX(IX);
+%     M_s = M_0(cIX_2,:);
+%     % try k-means with k=2, see whether to keep
+%     gIX_ = kmeans(M_s,2,'distance','correlation');
+%     silh = silhouette(M_s,gIX_,'correlation');
+%     if mean(silh)>thres_silh,
+%         % keep the k-means k=2 subsplit
+%         disp('split');
+%         gIX(IX) = gIX_ + numU; % reassign (much larger) gIX
+%     end
+% end
+% [gIX, ~] = f.SqueezeGroupIX(gIX);
 
 %% rank by stim-lock ?? bug?
 % disp('stim-lock');
@@ -118,9 +117,9 @@ end
 %
 % [gIX, ~] = Merge_direct(thres_merge,M_0,cIX,gIX);
 
-% size threshold
-thres_size = getappdata(hfig,'thres_size');
-[cIX, gIX, numU] = f.ThresSize(cIX,gIX,thres_size);
+%% size threshold
+% thres_size = getappdata(hfig,'thres_size');
+% [cIX, gIX, numU] = f.ThresSize(cIX,gIX,thres_size);
 
 %% update GUI
 if isempty(gIX),
@@ -130,7 +129,7 @@ end
 f.UpdateIndices(hfig,cIX,gIX,numU);
 % RefreshFigure(hfig);
 
-SaveCluster_Direct(hfig,cIX,gIX,'Full_autoclus');
+SaveCluster_Direct(hfig,cIX,gIX,savename);%'Full_autoclus');
 beep;
 toc
 end

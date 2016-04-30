@@ -1,4 +1,4 @@
-function  [tot_image, dim_totimage] = DrawCellsOnAnatProj(hfig,isRefAnat,isPopout)
+function  [tot_image, dim_totimage] = DrawCellsOnAnatProj_othercolor(hfig,cIX_plot,gIX_plot,cmap_U,isRefAnat,isPopout)
 %% load
 if ~isRefAnat,
     CellXYZ = getappdata(hfig,'CellXYZ');
@@ -21,8 +21,10 @@ else
 end
 
 absIX = getappdata(hfig,'absIX');
-cIX = getappdata(hfig,'cIX');
-gIX = getappdata(hfig,'gIX');
+% cIX = getappdata(hfig,'cIX');
+% gIX = getappdata(hfig,'gIX');
+cIX = cIX_plot;
+gIX = gIX_plot;
 numK = getappdata(hfig,'numK');
 
 clrmap = getappdata(hfig,'clrmap');
@@ -111,9 +113,9 @@ end
 cIX_abs = absIX(cIX);
 M_xyz = CellXYZ(cIX_abs,:);
 
-anat_YX = DrawMasksInRGB(anat_YX,M_xyz(:,[1,2]),circlemaskIX,cmap,gIX,alpha);
-anat_YZ = DrawMasksInRGB(anat_YZ,M_xyz(:,[1,3]),yzmaskIX,cmap,gIX,alpha/2);
-anat_ZX = DrawMasksInRGB(anat_ZX,M_xyz(:,[3,2]),zxmaskIX,cmap,gIX,alpha/2);
+anat_YX = DrawMasksInRGB(anat_YX,M_xyz(:,[1,2]),circlemaskIX,cmap_U,gIX,alpha);
+anat_YZ = DrawMasksInRGB(anat_YZ,M_xyz(:,[1,3]),yzmaskIX,cmap_U,gIX,alpha/2);
+anat_ZX = DrawMasksInRGB(anat_ZX,M_xyz(:,[3,2]),zxmaskIX,cmap_U,gIX,alpha/2);
 
 %% Draw masks on anat projections
 if isShowMasks,  

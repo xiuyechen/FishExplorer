@@ -35,7 +35,11 @@ for i = 1:length(range_fish),
             
     %%
     periods = getappdata(hfig,'periods');
-    setappdata(hfig,'stimrange',1:length(periods));
+    if length(periods)>1,
+        setappdata(hfig,'stimrange',1:length(periods));
+    else
+        setappdata(hfig,'stimrange',1);
+    end
     UpdateTimeIndex(hfig);
 
     %%

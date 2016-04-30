@@ -20,7 +20,7 @@ i_Cluster = 1;
 %% load 'data'
 for i_fish = range_fish;
     
-    f.LoadFullFish(hfig,i_fish);
+    LoadFullFish(hfig,i_fish);
     
     %     global hm1;
     %     hObject = hm1;

@@ -29,11 +29,11 @@ t_gc6=0:0.05:tlen; % sec
 %     turn(:,13)  = fltCh1;                                            %analog: left channel   
 %     turn(:,14)  = fltCh2;                                            %analog: right channel   
 regressor_0={ % rows = [7,8,9,13,14];
-    behavior(1,:);   %weighted: right turns
-    behavior(2,:);   %weighted: left turns
+    behavior(1,:);   %weighted: left turns
+    behavior(2,:);   %weighted: right turns
     behavior(3,:);   %weighted: forward swims
-    behavior(4,:);  %analog: right channel
-    behavior(5,:);  %analog: left channel   
+    behavior(4,:);  %analog: left channel
+    behavior(5,:);  %analog: right channel   
     behavior(4,:)+behavior(5,:);   %analog: average
     };
 nRegType = length(regressor_0);

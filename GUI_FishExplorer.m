@@ -1,4 +1,4 @@
-%{ 
+%{
 ------Interactive app for exploratory analysis of calcium imaging data----
 (with stimulus, behavior, and anatomy)
 
@@ -52,10 +52,10 @@ setappdata(hfig,'data_masterdir',data_masterdir);
 setappdata(hfig,'VAR',VAR);
 nFish = length(VAR);
 
-%% Load ZBrain Atlas  
-if exist(fullfile(data_masterdir,name_MASKs),'file') ... 
-    && exist(fullfile(data_masterdir,name_ReferenceBrain),'file'),
-
+%% Load ZBrain Atlas
+if exist(fullfile(data_masterdir,name_MASKs),'file') ...
+        && exist(fullfile(data_masterdir,name_ReferenceBrain),'file'),
+    
     % load masks for ZBrain Atlas
     MASKs = load(fullfile(data_masterdir,name_MASKs));
     setappdata(hfig,'MASKs',MASKs);
@@ -112,7 +112,6 @@ setappdata(hfig,'isPlotBehavior',1);
 setappdata(hfig,'rankscore',[]);
 setappdata(hfig,'isCentroid',0);
 setappdata(hfig,'isWkmeans',1); % in autoclustering, with/without kmeans
-setappdata(hfig,'isflipstim',0); % flag for flip updown %%%%%%obsolete ????????????????????????????????????
 setappdata(hfig,'regchoice',{1,1}); % regressor choice; first cell,1=stim,2=motor,3=centroid
 % setappdata(hfig,'isfullfish',0); % no if QuickUpdateFish, yes if LoadFullFish
 setappdata(hfig,'isPlotCorrHist',0); % option for regression
@@ -197,13 +196,13 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Export(workspace)',
     'Callback',@pushbutton_exporttoworkspace_Callback);
 
 i=i+n;
-n=2; % 
+n=2; %
 uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Import(VAR)',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@pushbutton_loadVARfromworkspace_Callback);
 
 i=i+n;
-n=2; % 
+n=2; %
 uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Import(current)',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@pushbutton_loadCurrentClustersfromworkspace_Callback);
@@ -523,12 +522,6 @@ n=1;
 hcentroidreg = uicontrol('Parent',tab{i_tab},'Style','edit','String',num2str(1),...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@edit_ctrdID_as_reg_Callback);
-
-i=i+n;
-n=2; % too complicated... chomp up centroid, then order as if stimulus were left/right inverted
-uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Flip stim',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-    'Callback',@checkbox_flipstim_Callback);
 
 %% UI row 2: regression
 i_row = 2; % Step 2:
@@ -1068,8 +1061,8 @@ function pushbutton_tileClusters_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 % isfullfish = getappdata(hfig,'isfullfish');
 % if isfullfish,
-    disp('Rendering...')
-    DrawTiledPics_clus(hfig);
+disp('Rendering...')
+DrawTiledPics_clus(hfig);
 % else
 %     errordlg('Load full fish first!');
 % end
@@ -1180,13 +1173,13 @@ function popup_loadfullfishmenu_Callback(hObject,~)
 i_fish = get(hObject,'Value')-1;
 hfig = getParentFigure(hObject);
 if i_fish>0,
-    tic    
-    watchon; drawnow;
+    tic
+    WatchOn(hfig); drawnow;
     LoadFullFish(hfig,i_fish);
     UpdateFishData(hfig,i_fish);
     UpdateFishDisplay(hfig);
     toc
-    watchoff;
+    WatchOff(hfig);
 end
 end
 
@@ -1529,6 +1522,9 @@ end
 function popup_ranking_Callback(hObject,~)
 % menu = {'(ranking)','hier.','size','stim-lock','corr','noise'};
 rankID = get(hObject,'Value') - 1;
+if rankID==0,
+    return;
+end
 hfig = getParentFigure(hObject);
 setappdata(hfig,'rankID',rankID);
 cIX = getappdata(hfig,'cIX');
@@ -1945,13 +1941,13 @@ isRefAnat = getappdata(hfig,'isRefAnat');
 if ~isRefAnat,
     CellXYZ = getappdata(hfig,'CellXYZ');
     anat_yx = getappdata(hfig,'anat_yx');
-%     anat_yz = getappdata(hfig,'anat_yz');
+    %     anat_yz = getappdata(hfig,'anat_yz');
     anat_zx = getappdata(hfig,'anat_zx');
     k_zres = 20;
 else
     CellXYZ = getappdata(hfig,'CellXYZ_norm');
     anat_yx = getappdata(hfig,'anat_yx_norm');
-%     anat_yz = getappdata(hfig,'anat_yz_norm');
+    %     anat_yz = getappdata(hfig,'anat_yz_norm');
     anat_zx = getappdata(hfig,'anat_zx_norm');
     k_zres = 2.5;
 end
@@ -2033,14 +2029,14 @@ absIX = getappdata(hfig,'absIX');
 isRefAnat = getappdata(hfig,'isRefAnat');
 if ~isRefAnat,
     CellXYZ = getappdata(hfig,'CellXYZ');
-%     anat_yx = getappdata(hfig,'anat_yx');
-%     anat_yz = getappdata(hfig,'anat_yz');
+    %     anat_yx = getappdata(hfig,'anat_yx');
+    %     anat_yz = getappdata(hfig,'anat_yz');
     anat_zx = getappdata(hfig,'anat_zx');
     k_zres = 20;
 else
     CellXYZ = getappdata(hfig,'CellXYZ_norm');
-%     anat_yx = getappdata(hfig,'anat_yx_norm');
-%     anat_yz = getappdata(hfig,'anat_yz_norm');
+    %     anat_yx = getappdata(hfig,'anat_yx_norm');
+    %     anat_yz = getappdata(hfig,'anat_yz_norm');
     anat_zx = getappdata(hfig,'anat_zx_norm');
     k_zres = 2.5;
 end
@@ -2249,11 +2245,6 @@ set(hmotorreg,'BackgroundColor',[1,1,1]);
 set(hcentroidreg,'BackgroundColor',[1,1,0.8]); % yellow
 end
 
-function checkbox_flipstim_Callback(hObject,~)
-hfig = getParentFigure(hObject);
-setappdata(hfig,'isflipstim',get(hObject,'Value'));
-end
-
 %% row 2: regression
 
 function regressor = GetRegressor(hObject)
@@ -2291,44 +2282,6 @@ else % regchoice{1}==3, from Centroid
     end
     C = FindCentroid(hfig);
     regressor = C(i,:);
-    
-    if isflipstim, % swap left/right stim
-        % 0 = all black; 1 = black/white; 2 = white/black; 3 = all white; 4 = all gray;
-        % 10 = forward grating (very slow, more for calibration)
-        % 11 = rightward grating
-        % 12 = leftward grating
-        % swap: 1~2,11~12
-        
-        %     if i_fish == 6 || i_fish == 7,
-        %         halflength = length(stim)/2;
-        %         stim = stim(1:halflength); % length is always even
-        %     end
-        flipstim = stim;
-        flipstim(stim==1)=2;
-        flipstim(stim==2)=1;
-        flipstim(stim==11)=12;
-        flipstim(stim==12)=11;
-        
-        phototrans = GetPhotoTrans(stim);
-        fliptrans = GetPhotoTrans(flipstim);
-        
-        % transition e.g.:
-        % stimulus    : 2     3     1     3     3     0     0     1     1     0     3     2     0     2     2     1
-        % transitionID: 6    11    13     7    15    12     0     1     5     4     3    14     8     2    10     9
-        
-        IX = [];
-        targetstates = unique(fliptrans,'stable');
-        for i = 1:length(targetstates),
-            IX = [IX, find(phototrans==targetstates(i))];
-        end
-        %     if i_fish == 6 || i_fish == 7,
-        %         reg = regressor(1:halflength);
-        %         reg = reg(IX);
-        %         regressor = repmat(reg,1,2);
-        %     else
-        regressor = regressor(IX);
-        %     end
-    end
 end
 
 end
@@ -2427,7 +2380,7 @@ if isCentroid,
     clusterIX = cIX_;
     weightIX = wIX;
     
-%     M = getappdata(hfig,'M');
+    %     M = getappdata(hfig,'M');
     cIX = getappdata(hfig,'cIX');
     gIX = getappdata(hfig,'gIX');
     cIX_ = [];
@@ -2514,14 +2467,14 @@ end
 end
 
 function pushbutton_allCentroidRegression_Callback(hObject,~)
-watchon; drawnow;
 hfig = getParentFigure(hObject);
+WatchOn(hfig); drawnow;
 [cIX,gIX,numK] = AllCentroidRegression_direct(hfig);
 
 UpdateIndices(hfig,cIX,gIX,numK);
 RefreshFigure(hfig);
 disp('all regression complete');
-watchoff;
+WatchOff(hfig);
 end
 
 function pushbutton_IterCentroidRegression_Callback(hObject,~)
@@ -2712,8 +2665,8 @@ end
 %% row 1: k-means
 
 function edit_kmeans_Callback(hObject,~)
-watchon; drawnow;
 hfig = getParentFigure(hObject);
+WatchOn(hfig); drawnow;
 M = getappdata(hfig,'M');
 
 str = get(hObject,'String');
@@ -2743,7 +2696,7 @@ if ~isempty(str),
     UpdateIndices(hfig,cIX,gIX,numK);
     RefreshFigure(hfig);
 end
-watchoff
+WatchOff(hfig)
 end
 
 function edit_kmeans2_Callback(hObject,~) % based on anatomical distance
@@ -3298,7 +3251,7 @@ end
 
 % function CorrPlot(coeffs)
 % im = coeffs;
-% 
+%
 % % red-white-blue colormap
 % cmap = zeros(64,3);
 % cmap(:,1) = [linspace(0,1,32), linspace(1,1,32)];
@@ -3306,12 +3259,12 @@ end
 % cmap(:,3) = [linspace(1,1,32), linspace(1,0,32)];
 % minlim = -1; %min(min(im));
 % maxlim = 1; %max(max(im));
-% 
+%
 % RGB = ImageToRGB(im,cmap,minlim,maxlim); % map image matrix to range of colormap
-% 
+%
 % image(RGB); axis equal; axis tight;
 % set(gca,'XTick',1:length(im),'YTick',1:length(im));
-% 
+%
 % for i = 1:size(im,2), % horizontal.. because of image axis
 %     for j = 1:size(im,1),
 %         text(i-0.3, j, num2str(round(im(i,j)*100)/100));%, 'Units', 'data')
@@ -3556,20 +3509,20 @@ setappdata(hfig,'isRefAnat',1);
 %     CellXYZ = getappdata(hfig,'CellXYZ');
 %     anat_stack = getappdata(hfig,'anat_stack');
 %     [s1,s2,s3] = size(anat_stack);
-%     
+%
 %     % fake
 %     X_raw = CellXYZ(absIX(cIX),1);
 %     Y_raw = CellXYZ(absIX(cIX),2);
 %     Z_raw =  CellXYZ(absIX(cIX),3);
-% 
+%
 %     X = ceil(X_raw.*((height-1)/(s1-1)));
 %     Y = ceil(Y_raw.*((width-1)/(s2-1)));
 %     Z = ceil(1+(Z_raw-1).*((Zs-1)/(s3-1)));
 % else
-    CellXYZ = getappdata(hfig,'CellXYZ_norm');
-    X = CellXYZ(absIX(cIX),1);
-    Y = CellXYZ(absIX(cIX),2);
-    Z = CellXYZ(absIX(cIX),3);
+CellXYZ = getappdata(hfig,'CellXYZ_norm');
+X = CellXYZ(absIX(cIX),1);
+Y = CellXYZ(absIX(cIX),2);
+Z = CellXYZ(absIX(cIX),3);
 % end
 
 %%
@@ -3649,6 +3602,14 @@ end
 
 %% Internal functions
 
+function WatchOn(hfig)
+set(hfig,'Pointer','watch');
+end
+
+function WatchOff(hfig)
+set(hfig,'Pointer','arrow');
+end
+
 function UpdateClusGroupID(hfig,clusgroupID,new_clusgroupID,norefresh) %#ok<INUSD>
 % save/update old Cluster into ClusGroup before exiting,
 % as Cluster is the variable handled in hfig but not saved elsewhere
@@ -3667,7 +3628,7 @@ Cluster = ClusGroup{new_clusgroupID};
 setappdata(hfig,'Cluster',Cluster);
 setappdata(hfig,'clusgroupID',new_clusgroupID);
 
-% update GUI: hclusgroupmenu
+% update GUI: clustergroup
 global hclusgroupmenu hclusgroupname;
 if ishandle(hclusgroupmenu),
     menu = MakeNumberedMenu(VAR(i_fish).ClusGroupName);
@@ -3675,12 +3636,18 @@ if ishandle(hclusgroupmenu),
     set(hclusgroupname,'String',VAR(i_fish).ClusGroupName(new_clusgroupID));
 end
 
+% update GUI: cluster
+global hclusname hclusmenu;
+set(hclusname,'String','');
+menu = MakeNumberedMenu({Cluster.name});
+set(hclusmenu,'String', menu,'Value',1);
+
 if ~exist('norefresh','var'),
     if numel(Cluster) == 0, % i.e. for newly created ClusGroup
         SaveCluster(hfig,'new');
-    else % load this ClusGroup
-        clusID = 1;
-        UpdateClusID(hfig,clusID);
+        %     else % load this ClusGroup
+        %         clusID = 1;
+        %         UpdateClusID(hfig,clusID);
     end
 end
 end
@@ -3798,32 +3765,34 @@ function [gIX, numU] = HierClus(M,gIX,isplotfig) %#ok<INUSD>
 [gIX, numU] = SqueezeGroupIX(gIX);
 [C,~] = FindCentroid_Direct(gIX,M);
 D = pdist(C,'correlation');
-tree = linkage(C,'average','correlation');
-leafOrder = optimalleaforder(tree,D);
-
-if numU>1,
-    if exist('isplotfig','var'),
-        figure('Position',[100 100 600 600]);
-        %             subplot(1,3,1);
-        %             CORR = corr(C');
-        %             CorrPlot(CORR);
-        %
-        %             subplot(1,3,2);
-        dendrogram(tree,numU,'orientation','right','reorder',leafOrder);
-        set(gca,'YDir','reverse');
-        set(gca,'XTick',[]);
-        
-        %             subplot(1,3,3);
-        %             C2 = C(leafOrder,:);
-        %             CORR2 = corr(C2');
-        %             CorrPlot(CORR2);
+if size(C,1)>1,
+    tree = linkage(C,'average','correlation');
+    leafOrder = optimalleaforder(tree,D);
+    
+    if numU>1,
+        if exist('isplotfig','var'),
+            figure('Position',[100 100 600 600]);
+            %             subplot(1,3,1);
+            %             CORR = corr(C');
+            %             CorrPlot(CORR);
+            %
+            %             subplot(1,3,2);
+            dendrogram(tree,numU,'orientation','right','reorder',leafOrder);
+            set(gca,'YDir','reverse');
+            set(gca,'XTick',[]);
+            
+            %             subplot(1,3,3);
+            %             C2 = C(leafOrder,:);
+            %             CORR2 = corr(C2');
+            %             CorrPlot(CORR2);
+        end
+        % sort for uniform colorscale
+        temp = zeros(size(gIX));
+        for i = 1:numU,
+            temp(gIX==leafOrder(i)) = i; % = T(i) for clusters segmented from tree
+        end
+        gIX = temp;
     end
-    % sort for uniform colorscale
-    temp = zeros(size(gIX));
-    for i = 1:numU,
-        temp(gIX==leafOrder(i)) = i; % = T(i) for clusters segmented from tree
-    end
-    gIX = temp;
 end
 end
 
@@ -3965,7 +3934,7 @@ end
 
 % frequently used, 2 plotting functions are outside ('DrawTimeSeries.m' and 'DrawCellsOnAnatProj.m')
 function RefreshFigure(hfig)
-watchon; drawnow;
+WatchOn(hfig); drawnow;
 isPopout = 0; % with down-sampling in plots
 
 % clean-up canvas
@@ -4000,7 +3969,7 @@ DrawTimeSeries(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior);
 % right subplot
 axes(h2);
 DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
-watchoff;
+WatchOff(hfig);
 end
 
 function [C,D] = FindCentroid_Direct(gIX,M)
