@@ -2,7 +2,7 @@
 
 % f.pushbutton_autoclus_Callback
 
-global hm1;
+global hm1 VAR;
 hObject = hm1;
 
 data_masterdir = GetCurrentDataDir();
@@ -10,17 +10,17 @@ data_masterdir = GetCurrentDataDir();
 % range_fish = [5,6,7];
 % M_ClusGroup = [2,2,2,2];
 % M_Cluster = [1,1,1,1];
-range_fish = 8;
+range_fish = 8:13;
 M_ClusGroup = 2;
 M_Cluster = 3;
 M_stim = [1,2];
 % M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2];
 
 %%
-M_param = 0.5:0.05:0.75;
+M_param = 0.3:0.1:0.8;
 
-ParamScores = cell(length(M_param),length(fish));
-ParamScores_raw = cell(length(M_param),length(fish));
+ParamScores = cell(length(M_param),length(range_fish));
+ParamScores_raw = cell(length(M_param),length(range_fish));
 
 for k_param = 1:length(M_param),
     thres_split = M_param(k_param);
@@ -36,7 +36,7 @@ for k_param = 1:length(M_param),
         %% partitions for CV
         timelists = getappdata(hfig,'timelists');
         timelists_names = getappdata(hfig,'timelists_names');
-        
+        periods = getappdata(hfig,'periods');
         if length(periods)>1,
             timelistsCV = cell(length(M_stim),2);
             for k_stim = 1:length(M_stim), % :3
@@ -62,7 +62,7 @@ for k_param = 1:length(M_param),
                 %% Cluster to start auto-clustering
                 i_ClusGroup = M_ClusGroup(k_fish);
                 i_Cluster = M_Cluster(k_fish);
-                Cluster = VAR(i_fish).ClusGroup{i_ClusGroup};
+                Cluster = VAR(i_fish).ClusFolder{i_ClusGroup};
                 numK = Cluster(i_Cluster).numK;
                 gIX = Cluster(i_Cluster).gIX;
                 cIX_abs = Cluster(i_Cluster).cIX_abs; % convert absolute index to index used for this dataset
