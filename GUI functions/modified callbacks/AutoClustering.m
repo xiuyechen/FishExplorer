@@ -1,4 +1,4 @@
-function AutoClustering(hObject,f,i_fish,savename,isWkmeans)
+function AutoClustering(hfig,f,i_fish,savename,isWkmeans)
 %% test
 % hfig = f.getParentFigure(hObject);
 % cIX = getappdata(hfig,'cIX');
@@ -7,7 +7,7 @@ function AutoClustering(hObject,f,i_fish,savename,isWkmeans)
 
 %%
 tic
-hfig = f.getParentFigure(hObject);
+% hfig = f.getParentFigure(hObject);
 setappdata(hfig,'i_fish',i_fish);
 
 cIX = getappdata(hfig,'cIX');

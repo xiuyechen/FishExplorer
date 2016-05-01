@@ -2,8 +2,7 @@
 
 % f.pushbutton_autoclus_Callback
 
-global hm1 VAR;
-hObject = hm1;
+global VAR;
 
 data_masterdir = GetCurrentDataDir();
 
@@ -81,7 +80,7 @@ for k_param = 1:length(M_param),
                 
                 savename = [timelists_names{i_stim},num2str(k)];
                 isWkmeans = 0;
-                AutoClustering(hObject,f,i_fish,savename,isWkmeans);
+                AutoClustering(hfig,f,i_fish,savename,isWkmeans);
                 
                 cIX = getappdata(hfig,'cIX');
                 gIX = getappdata(hfig,'gIX');

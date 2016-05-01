@@ -2815,6 +2815,7 @@ gIX = getappdata(hfig,'gIX');
 numU = getappdata(hfig,'numK');
 thres_split = getappdata(hfig,'thres_split');
 M_0 = getappdata(hfig,'M_0');
+clusgroupID = 3;
 
 disp('iter. split all, beep when done...');
 thres_size = 10;
@@ -2843,9 +2844,9 @@ for round = 1:length(thres_H),
     end
     
     [gIX, numU] = SqueezeGroupIX(gIX);
-    SaveCluster_Direct(hfig,cIX,gIX,['clean_round' num2str(round)]);
+    SaveCluster_Direct(hfig,cIX,gIX,['clean_round' num2str(round)],clusgroupID);
     
-    SaveCluster_Direct(hfig,I_rest,ones(length(I_rest),1),['rest_round' num2str(round)]);
+    SaveCluster_Direct(hfig,I_rest,ones(length(I_rest),1),['rest_round' num2str(round)],clusgroupID);
 end
 toc
 beep
@@ -2951,7 +2952,8 @@ if isWkmeans,
         gIX = kmeans(M,numK,'distance','correlation');
     end
     toc
-    SaveCluster_Direct(hfig,cIX,gIX,'k=20');
+    clusgroupID = 2;
+    SaveCluster_Direct(hfig,cIX,gIX,'k=20',clusgroupID);
 end
 [gIX, numU] = SqueezeGroupIX(gIX);
 
@@ -2975,8 +2977,8 @@ if isempty(gIX),
     errordlg('nothing to display!');
     return;
 end
-SaveCluster_Direct(hfig,cIX,gIX,['clean_round' num2str(iter)]);
-SaveCluster_Direct(hfig,I_rest,ones(length(I_rest),1),['rest_round' num2str(iter)]);
+% SaveCluster_Direct(hfig,cIX,gIX,['clean_round' num2str(iter)]);
+% SaveCluster_Direct(hfig,I_rest,ones(length(I_rest),1),['rest_round' num2str(iter)]);
 
 [gIX, numU] = Merge_direct(thres_merge,M_0,cIX,gIX);
 
@@ -2997,26 +2999,26 @@ UpdateIndices(hfig,cIX,gIX);
 disp('auto-reg-clus complete');
 
 [gIX, numU] = Merge_direct(thres_merge,M_0,cIX,gIX);
-SaveCluster_Direct(hfig,cIX,gIX,'clean_round2');
+% SaveCluster_Direct(hfig,cIX,gIX,'clean_round2');
 
 %% Silhouette
-disp('silhouette analysis');
-gIX_last = gIX;
-for i = 1:numU,
-    disp(['i = ' num2str(i)]);
-    IX = find(gIX_last == i);
-    cIX_2 = cIX(IX);
-    M_s = M_0(cIX_2,:);
-    % try k-means with k=2, see whether to keep
-    gIX_ = kmeans(M_s,2,'distance','correlation');
-    silh = silhouette(M_s,gIX_,'correlation');
-    if mean(silh)>thres_silh,
-        % keep the k-means k=2 subsplit
-        disp('split');
-        gIX(IX) = gIX_ + numU; % reassign (much larger) gIX
-    end
-end
-[gIX, ~] = SqueezeGroupIX(gIX);
+% disp('silhouette analysis');
+% gIX_last = gIX;
+% for i = 1:numU,
+%     disp(['i = ' num2str(i)]);
+%     IX = find(gIX_last == i);
+%     cIX_2 = cIX(IX);
+%     M_s = M_0(cIX_2,:);
+%     % try k-means with k=2, see whether to keep
+%     gIX_ = kmeans(M_s,2,'distance','correlation');
+%     silh = silhouette(M_s,gIX_,'correlation');
+%     if mean(silh)>thres_silh,
+%         % keep the k-means k=2 subsplit
+%         disp('split');
+%         gIX(IX) = gIX_ + numU; % reassign (much larger) gIX
+%     end
+% end
+% [gIX, ~] = SqueezeGroupIX(gIX);
 
 %% rank by stim-lock ?? bug?
 % disp('stim-lock');
@@ -3043,7 +3045,8 @@ end
 UpdateIndices(hfig,cIX,gIX,numU);
 RefreshFigure(hfig);
 
-SaveCluster_Direct(hfig,cIX,gIX,'clean_round3');
+clusgroupID = 3;
+SaveCluster_Direct(hfig,cIX,gIX,'clean_round3',clusgroupID);
 beep;
 
 end
@@ -3376,7 +3379,7 @@ clusID = getappdata(hfig,'clusID');
 clusgroupID = getappdata(hfig,'clusgroupID');
 global VAR;   
 ClusGroup = VAR(i_fish).ClusGroup{clusgroupID};
-ClusGroup = 0;
+
 % insert current cluster into new position = 'rank'
 if rank > 1,
     temp = ClusGroup(clusID);
@@ -3391,32 +3394,37 @@ VAR(i_fish).ClusGroup{clusgroupID} = ClusGroup;
 
 % update pointer = clusID
 clusID = rank;
-SaveCurrentClusters(hfig,Cluster,clusID);
-UpdateClustersGUI(Cluster,clusID);
+setappdata(hfig,'clusID',clusID);
+UpdateClustersGUI(hfig);
 end
 
 function edit_notes_Callback(hObject,~)
 str = get(hObject,'String');
 hfig = getParentFigure(hObject);
-Cluster = getappdata(hfig,'Cluster');
+i_fish = getappdata(hfig,'i_fish');
+clusgroupID = getappdata(hfig,'clusgroupID');
 clusID = getappdata(hfig,'clusID');
-Cluster(clusID).notes = str;
-setappdata(hfig,'Cluster',Cluster);
+global VAR;   
+VAR(i_fish).ClusGroup{clusgroupID}(clusID).notes = str;
 end
 
 function pushbutton_delclus_Callback(hObject,~)
-choice = questdlg('Delete current cluster?','','Cancel','Yes','Yes');
-if strcmp(choice,'Yes'),
-    hfig = getParentFigure(hObject);
-    clusID = getappdata(hfig,'clusID');
-    Cluster = GetCurrentClusGroup(hfig,clusID);
-    disp(['delete ' num2str(clusID)]);
-    Cluster(clusID) = [];
-    setappdata(hfig,'Cluster',Cluster);
-    
-    clusID = max(1,clusID-1);
-    disp(['new clusID: ' num2str(clusID)]);
-    UpdateClusID(hfig,clusID);
+hfig = getParentFigure(hObject);
+clusgroupID = getappdata(hfig,'clusgroupID');
+i_fish = getappdata(hfig,'i_fish');
+global VAR;
+if length(VAR(i_fish).ClusGroup{clusgroupID})>1,
+    choice = questdlg('Delete current cluster?','','Cancel','Yes','Yes');    
+    if strcmp(choice,'Yes'),        
+        clusID = getappdata(hfig,'clusID');
+        VAR(i_fish).ClusGroup{clusgroupID}(clusID) = [];
+        clusID = max(1,clusID-1);
+        setappdata(hfig,'clusID',clusID);
+        UpdateClustersGUI(hfig);
+        LoadNewClusters(hfig);
+    end
+else 
+    errordlg('last cluster in ClusGroup; delete whole ClusGroup instead');
 end
 end
 
@@ -3613,25 +3621,6 @@ function WatchOff(hfig)
 set(hfig,'Pointer','arrow');
 end
 
-function UpdateClusfolderID(hfig,clusgroupID,clusID)
-UpdateClusGroupGUI(hfig,clusgroupID_view);
-end
-
-function ClusGroup = GetCurrentClusGroup(hfig)
-clusgroupID = getappdata(hfig,'clusgroupID');
-i_fish = getappdata(hfig,'i_fish');
-global VAR;
-ClusGroup = VAR(i_fish).ClusGroup{clusgroupID};
-end
-
-function SaveCurrentClusters(hfig,Cluster,clusID)
-% setappdata(hfig,'clusID',clusID);
-% i_fish = getappdata(hfig,'i_fish');
-% clusgroupID = getappdata(hfig,'clusgroupID');
-% global VAR;
-% VAR(i_fish).ClusGroup{clusgroupID}(clusID) = Cluster;
-end
-
 function UpdateClusGroupGUI(hfig,clusgroupID_view) 
 % this function updates GUI only, nothing else changes...
 % (besides saving clusgroupID_view)
@@ -3655,14 +3644,18 @@ end
 
 function UpdateClustersGUI(hfig)
 clusID = getappdata(hfig,'clusID');
-ClusGroup = GetCurrentClusGroup(hfig);
+clusgroupID = getappdata(hfig,'clusgroupID');
+i_fish = getappdata(hfig,'i_fish');
+global VAR;
+ClusGroup = VAR(i_fish).ClusGroup{clusgroupID};
+
 global hclusname hclusmenu;
 set(hclusname,'String',ClusGroup(clusID).name);
 menu = MakeNumberedMenu({ClusGroup.name});
 set(hclusmenu,'String', menu,'Value',clusID+1);
 end
 
-function [ClusGroup,clusID] = SaveCluster(hfig,state) % state: 'current' or 'new'
+function SaveCluster(hfig,state) % state: 'current' or 'new'
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
 absIX = getappdata(hfig,'absIX');
@@ -3694,38 +3687,36 @@ UpdateClustersGUI(hfig);
 disp('cluster saved');
 end
 
-function [Cluster,clusID] = SaveCluster_Direct(hfig,cIX,gIX,name)
-new_clusgroupID = 1;
-clusgroupID = getappdata(hfig,'clusgroupID');
-UpdateClusfolderID(hfig,clusgroupID,new_clusgroupID);
-
-if ~exist('cIX','var'),
-    cIX = getappdata(hfig,'cIX');
-end
-if ~exist('gIX','var'),
-    gIX = getappdata(hfig,'gIX');
-end
-
-Cluster = getappdata(hfig,'Cluster');
+function SaveCluster_Direct(hfig,cIX,gIX,name,clusgroupID)
 absIX = getappdata(hfig,'absIX');
-cIX_abs = absIX(cIX);
+i_fish = getappdata(hfig,'i_fish');
 
-clusID = numel(Cluster)+1;
-Cluster(clusID).name = name;
-Cluster(clusID).cIX_abs = cIX_abs;
-Cluster(clusID).gIX = gIX;
-Cluster(clusID).numel = length(cIX);
-Cluster(clusID).numK = length(unique(gIX));
+global VAR;
+ClusGroup = VAR(i_fish).ClusGroup{clusgroupID};
 
-SaveCurrentClusters(hfig,Cluster,clusID);
-UpdateClustersGUI(Cluster,clusID)
-% UpdateClusID(hfig,clusID);
-% RefreshFigure(hfig);
+clusID = numel(ClusGroup)+1;
+ClusGroup(clusID).name = name;
+
+ClusGroup(clusID).cIX_abs = absIX(cIX);
+ClusGroup(clusID).gIX = gIX;
+
+U = unique(gIX);
+numU = length(U);
+ClusGroup(clusID).numK = numU;
+
+VAR(i_fish).ClusGroup{clusgroupID} = ClusGroup;
+
+setappdata(hfig,'clusID',clusID);
+UpdateClustersGUI(hfig);
 disp('cluster saved');
 end
 
 function LoadNewClusters(hfig)
-ClusGroup = GetCurrentClusGroup(hfig);
+clusgroupID = getappdata(hfig,'clusgroupID');
+i_fish = getappdata(hfig,'i_fish');
+global VAR;
+ClusGroup = VAR(i_fish).ClusGroup{clusgroupID};
+
 clusID = getappdata(hfig,'clusID');
 
 gIX = ClusGroup(clusID).gIX;
@@ -3745,9 +3736,6 @@ end
 
 UpdateIndices(hfig,cIX,gIX,numK);
 RefreshFigure(hfig);
-end
-
-function UpdateClusID(hfig,clusID)
 end
 
 function menu = MakeNumberedMenu(name) % e.g. name = {Cluster.name} (note {})
@@ -4098,4 +4086,3 @@ switch flag_script
         RefreshFigure(var_script{1});
 end
 end
-% end
