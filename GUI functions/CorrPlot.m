@@ -1,4 +1,4 @@
-function CorrPlot(coeffs,ylabels)%,isPlotText)
+function CorrPlot(coeffs,isPlotText,ylabels)
 im = coeffs;
 
 % red-white-blue colormap
@@ -12,16 +12,20 @@ maxlim = 1; %max(max(im));
 RGB = ImageToRGB(im,cmap,minlim,maxlim); % map image matrix to range of colormap
 
 image(RGB); axis equal; axis tight; %axis off 
-set(gca,'YTickLabel',ylabels);
 set(gca,'XTick',1:length(im),'YTick',1:length(im));
 
-% if exist('isPlotText','var'),
-%     for i = 1:size(im,2), % horizontal.. because of image axis
-%         for j = 1:size(im,1),
-%             text(i-0.3, j, num2str(round(im(i,j)*100)/100));%, 'Units', 'data')
-%         end
-%     end
-% end
+if exist('isPlotText','var'),
+    if isPlotText,
+        for i = 1:size(im,2), % horizontal.. because of image axis
+            for j = 1:size(im,1),
+                text(i-0.3, j, num2str(round(im(i,j)*100)/100));%, 'Units', 'data')
+            end
+        end
+    end
+end
+if exist('ylabels','var'),
+    set(gca,'YTickLabel',ylabels);
+end
 end
 
 function RGB = ImageToRGB(im,cmap,minlim,maxlim)

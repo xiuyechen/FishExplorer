@@ -157,7 +157,7 @@ if isShowMasks,
     end
 end
 
-% rescale (low-res) z dimension
+%% rescale (low-res) z dimension
 for k=1:3
     anat_yz2(:,:,1) = imresize(anat_YZ(:,:,1), [dimv_yz(1), dimv_yz(2)*k_zres],'nearest');
     anat_yz2(:,:,2) = imresize(anat_YZ(:,:,2), [dimv_yz(1), dimv_yz(2)*k_zres],'nearest');
