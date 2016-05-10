@@ -61,10 +61,10 @@ for k_param = 1:length(M_param),
                 %% Cluster to start auto-clustering
                 i_ClusGroup = M_ClusGroup(k_fish);
                 i_Cluster = M_Cluster(k_fish);
-                Cluster = VAR(i_fish).ClusFolder{i_ClusGroup};
-                numK = Cluster(i_Cluster).numK;
-                gIX = Cluster(i_Cluster).gIX;
-                cIX_abs = Cluster(i_Cluster).cIX_abs; % convert absolute index to index used for this dataset
+                ClusGroup = VAR(i_fish).ClusGroup{i_ClusGroup};
+                numK = ClusGroup(i_Cluster).numK;
+                gIX = ClusGroup(i_Cluster).gIX;
+                cIX_abs = ClusGroup(i_Cluster).cIX_abs; % convert absolute index to index used for this dataset
                 [~,cIX] = ismember(cIX_abs,absIX);
                 setappdata(hfig,'cIX',cIX);
                 
@@ -79,7 +79,7 @@ for k_param = 1:length(M_param),
                 f.UpdateIndices(hfig,cIX,gIX,numK);
                 
                 savename = [timelists_names{i_stim},num2str(k)];
-                isWkmeans = 0;
+                isWkmeans = 1;
                 AutoClustering(hfig,f,i_fish,savename,isWkmeans);
                 
                 cIX = getappdata(hfig,'cIX');

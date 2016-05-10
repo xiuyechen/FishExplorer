@@ -714,7 +714,7 @@ uicontrol('Parent',tab{i_tab},'Style','checkbox','String','(starting with k-mean
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',1,...
     'Callback',@checkbox_wkmeans_Callback);
 
-%% UI row 3: misc plots
+%% UI row 3: Hier. clustering
 i_row = 3;
 i = 1;n = 0;
 
@@ -1070,9 +1070,9 @@ end
 function pushbutton_exporttoworkspace_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 M = getappdata(hfig,'M');
-M_0_fluo = GetTimeIndexedData(hfig,'isAllCells');
+M_0 = GetTimeIndexedData(hfig,'isAllCells');
 assignin('base', 'M', M);
-assignin('base', 'M_0_fluo', M_0_fluo);
+assignin('base', 'M_0', M_0);
 assignin('base', 'behavior', getappdata(hfig,'behavior'));
 assignin('base', 'stim', getappdata(hfig,'stim'));
 
@@ -1080,6 +1080,8 @@ assignin('base', 'cIX', getappdata(hfig,'cIX'));
 assignin('base', 'gIX', getappdata(hfig,'gIX'));
 assignin('base', 'tIX', getappdata(hfig,'tIX'));
 assignin('base', 'numK', getappdata(hfig,'numK'));
+assignin('base', 'absIX', getappdata(hfig,'absIX'));
+assignin('base', 'i_fish', getappdata(hfig,'i_fish'));
 end
 
 function pushbutton_loadVARfromworkspace_Callback(hObject,~)
@@ -1428,7 +1430,7 @@ end
 
 function range = ParseRange(str)
 str = strrep(str,':','-'); % e.g. str= '1,3,5:8';
-C = textscan(str,'%d','delimiter',',');
+C = textscan(str,'%d','delimiter',{',',';'});
 m = C{:};
 range = [];
 for i = 1:length(m),
@@ -2443,7 +2445,7 @@ end
 function pushbutton_allCentroidRegression_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 WatchOn(hfig); drawnow;
-[cIX,gIX,numK] = AllCentroidRegression_direct(hfig);
+[cIX,gIX,numK] = AllCentroidRegression(hfig);
 
 UpdateIndices(hfig,cIX,gIX,numK);
 RefreshFigure(hfig);
@@ -2663,7 +2665,7 @@ if ~isempty(str),
     beep
     
     if numK>1,
-        gIX = HierClusDirect(C,gIX,numK);
+        gIX = HierClus_Direct(C,gIX);
     end
     
     cIX = getappdata(hfig,'cIX');
@@ -2695,7 +2697,7 @@ if ~isempty(str),
     beep
     
     if numK>1,
-        gIX = HierClusDirect(C,gIX,numK);
+        gIX = HierClus_Direct(C,gIX);
     end
     
     cIX = getappdata(hfig,'cIX');
@@ -2748,7 +2750,7 @@ if ~isempty(str),
         [gIX,C] = kmeans(M,numK,'distance','correlation');%,'Replicates',3);
     end
     if numK>1,
-        gIX = HierClusDirect(C,gIX,numK);
+        gIX = HierClus_Direct(C,gIX);
     end
     cIX = getappdata(hfig,'cIX');
     UpdateIndices(hfig,cIX,gIX,numK);
@@ -2844,9 +2846,9 @@ for round = 1:length(thres_H),
     end
     
     [gIX, numU] = SqueezeGroupIX(gIX);
-    SaveCluster_Direct(hfig,cIX,gIX,['clean_round' num2str(round)],clusgroupID);
+    SaveCluster(hfig,cIX,gIX,['clean_round' num2str(round)],clusgroupID);
     
-    SaveCluster_Direct(hfig,I_rest,ones(length(I_rest),1),['rest_round' num2str(round)],clusgroupID);
+    SaveCluster(hfig,I_rest,ones(length(I_rest),1),['rest_round' num2str(round)],clusgroupID);
 end
 toc
 beep
@@ -2876,13 +2878,12 @@ if mean(Dist)>dthres,
             [gIX_s,~,~,D] = kmeans(M_s,numK_s,'distance','correlation');
             Dist = min(D,[],2);
             if mean(Dist)<dthres,
-                break;
-            end
-            
-            if numK_s < kmax,
-                numK_s = numK_s+1;
                 disp(['numK_s = ' num2str(numK_s)]);
+                break;
+            elseif numK_s < kmax,
+                numK_s = numK_s+1;                
             else % numK_s = kmax;
+                disp(['numK_s = ' num2str(numK_s)]);
                 break;
             end
         end
@@ -2953,7 +2954,7 @@ if isWkmeans,
     end
     toc
     clusgroupID = 2;
-    SaveCluster_Direct(hfig,cIX,gIX,'k=20',clusgroupID);
+    SaveCluster(hfig,cIX,gIX,'k=20',clusgroupID);
 end
 [gIX, numU] = SqueezeGroupIX(gIX);
 
@@ -2977,8 +2978,8 @@ if isempty(gIX),
     errordlg('nothing to display!');
     return;
 end
-% SaveCluster_Direct(hfig,cIX,gIX,['clean_round' num2str(iter)]);
-% SaveCluster_Direct(hfig,I_rest,ones(length(I_rest),1),['rest_round' num2str(iter)]);
+% SaveCluster(hfig,cIX,gIX,['clean_round' num2str(iter)]);
+% SaveCluster(hfig,I_rest,ones(length(I_rest),1),['rest_round' num2str(iter)]);
 
 [gIX, numU] = Merge_direct(thres_merge,M_0,cIX,gIX);
 
@@ -2995,11 +2996,11 @@ cIX = cIX(ix);
 UpdateIndices(hfig,cIX,gIX);
 
 %% Regression with the centroid of each cluster
-[cIX,gIX,~] = AllCentroidRegression_direct(hfig);
+[cIX,gIX,~] = AllCentroidRegression(hfig);
 disp('auto-reg-clus complete');
 
 [gIX, numU] = Merge_direct(thres_merge,M_0,cIX,gIX);
-% SaveCluster_Direct(hfig,cIX,gIX,'clean_round2');
+% SaveCluster(hfig,cIX,gIX,'clean_round2');
 
 %% Silhouette
 % disp('silhouette analysis');
@@ -3046,7 +3047,7 @@ UpdateIndices(hfig,cIX,gIX,numU);
 RefreshFigure(hfig);
 
 clusgroupID = 3;
-SaveCluster_Direct(hfig,cIX,gIX,'clean_round3',clusgroupID);
+SaveCluster(hfig,cIX,gIX,'clean_round3',clusgroupID);
 beep;
 
 end
@@ -3118,7 +3119,7 @@ hfig = getParentFigure(hObject);
 setappdata(hfig,'isWkmeans',get(hObject,'Value'));
 end
 
-%% row 3: misc plots
+%% row 3: Hier. clustering
 
 function pushbutton_hierplot_Callback(hObject,~)
 hfig = getParentFigure(hObject);
@@ -3223,37 +3224,9 @@ hfig = getParentFigure(hObject);
 C = FindCentroid(hfig);
 coeffs = corr(C');%corr(C(1,:)',C(2,:)')
 figure('Position',[1000,200,500,500]);
-CorrPlot(coeffs);
+isPlotText = (size(C,1)<30);
+CorrPlot(coeffs,isPlotText);
 end
-
-% function CorrPlot(coeffs)
-% im = coeffs;
-%
-% % red-white-blue colormap
-% cmap = zeros(64,3);
-% cmap(:,1) = [linspace(0,1,32), linspace(1,1,32)];
-% cmap(:,2) = [linspace(0,1,32), linspace(1,0,32)];
-% cmap(:,3) = [linspace(1,1,32), linspace(1,0,32)];
-% minlim = -1; %min(min(im));
-% maxlim = 1; %max(max(im));
-%
-% RGB = ImageToRGB(im,cmap,minlim,maxlim); % map image matrix to range of colormap
-%
-% image(RGB); axis equal; axis tight;
-% set(gca,'XTick',1:length(im),'YTick',1:length(im));
-%
-% for i = 1:size(im,2), % horizontal.. because of image axis
-%     for j = 1:size(im,1),
-%         text(i-0.3, j, num2str(round(im(i,j)*100)/100));%, 'Units', 'data')
-%     end
-% end
-% end
-
-% function RGB = ImageToRGB(im,cmap,minlim,maxlim)
-% L = size(cmap,1);
-% ix = round(interp1(linspace(minlim,maxlim,L),1:L,im,'linear','extrap'));
-% RGB = reshape(cmap(ix,:),[size(ix) 3]); % Make RGB image from scaled.
-% end
 
 %% ----- tab five ----- (Saved Clusters)
 
@@ -3262,7 +3235,9 @@ end
 function popup_clusgroupmenu_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 clusgroupID_view = get(hObject,'Value')-1;
-UpdateClusGroupGUI(hfig,clusgroupID_view);
+if clusgroupID_view>0,
+    UpdateClusGroupGUI(hfig,clusgroupID_view);
+end
 end
 
 function edit_clusgroupname_Callback(hObject,~)
@@ -3297,7 +3272,7 @@ VAR(i_fish).ClusGroup{clusgroupID_view} = [];
 VAR(i_fish).ClusGroup{clusgroupID_view}(clusID).name = name;
 setappdata(hfig,'clusgroupID',clusgroupID_view);
 setappdata(hfig,'clusID',clusID);
-SaveCluster(hfig,'current');
+SaveGUIcluster(hfig,'current');
 
 UpdateClusGroupGUI(hfig,clusgroupID_view);
 end
@@ -3354,7 +3329,7 @@ end
 
 function pushbutton_saveclus_Callback(hObject,~)
 hfig = getParentFigure(hObject);
-SaveCluster(hfig,'current');
+SaveGUIcluster(hfig,'current');
 end
 
 function edit_newclusname_Callback(hObject,~)
@@ -3365,7 +3340,7 @@ end
 
 function pushbutton_makeclus_Callback(hObject,~)
 hfig = getParentFigure(hObject);
-SaveCluster(hfig,'new');
+SaveGUIcluster(hfig,'new');
 end
 
 function edit_setrank_Callback(hObject,~)
@@ -3394,8 +3369,8 @@ VAR(i_fish).ClusGroup{clusgroupID} = ClusGroup;
 
 % update pointer = clusID
 clusID = rank;
-SaveCurrentClusters(hfig,Cluster,clusID);
-UpdateClustersGUI(Cluster,clusID);
+setappdata(hfig,'clusID',clusID);
+UpdateClustersGUI(hfig);
 end
 
 function edit_notes_Callback(hObject,~)
@@ -3413,18 +3388,18 @@ hfig = getParentFigure(hObject);
 clusgroupID = getappdata(hfig,'clusgroupID');
 i_fish = getappdata(hfig,'i_fish');
 global VAR;
-if length(VAR(i_fish).ClusGroup{clusgroupID})
-choice = questdlg('Delete current cluster?','','Cancel','Yes','Yes');
-
-if strcmp(choice,'Yes'),
-    
-    clusID = getappdata(hfig,'clusID');   
-    VAR(i_fish).ClusGroup{clusgroupID}(clusID) = [];
-    clusID = max(1,clusID-1);
-    setappdata(hfig,'clusID',clusID);
-    UpdateClustersGUI(hfig);
-    LoadNewClusters(hfig);
-end
+if length(VAR(i_fish).ClusGroup{clusgroupID})>1,
+    choice = questdlg('Delete current cluster?','','Cancel','Yes','Yes');    
+    if strcmp(choice,'Yes'),        
+        clusID = getappdata(hfig,'clusID');
+        VAR(i_fish).ClusGroup{clusgroupID}(clusID) = [];
+        clusID = max(1,clusID-1);
+        setappdata(hfig,'clusID',clusID);
+        UpdateClustersGUI(hfig);
+        LoadNewClusters(hfig);
+    end
+else 
+    errordlg('last cluster in ClusGroup; delete whole ClusGroup instead');
 end
 end
 
@@ -3621,21 +3596,6 @@ function WatchOff(hfig)
 set(hfig,'Pointer','arrow');
 end
 
-function ClusGroup = GetCurrentClusGroup(hfig)
-clusgroupID = getappdata(hfig,'clusgroupID');
-i_fish = getappdata(hfig,'i_fish');
-global VAR;
-ClusGroup = VAR(i_fish).ClusGroup{clusgroupID};
-end
-
-function SaveCurrentClusters(hfig,Cluster,clusID)
-% setappdata(hfig,'clusID',clusID);
-% i_fish = getappdata(hfig,'i_fish');
-% clusgroupID = getappdata(hfig,'clusgroupID');
-% global VAR;
-% VAR(i_fish).ClusGroup{clusgroupID}(clusID) = Cluster;
-end
-
 function UpdateClusGroupGUI(hfig,clusgroupID_view) 
 % this function updates GUI only, nothing else changes...
 % (besides saving clusgroupID_view)
@@ -3657,21 +3617,12 @@ menu = MakeNumberedMenu({ClusGroup.name});
 set(hclusmenu,'String', menu,'Value',clusID_view+1);% ~ placeholder '(choose)'
 end
 
-function UpdateClustersGUI(hfig)
-clusID = getappdata(hfig,'clusID');
-ClusGroup = GetCurrentClusGroup(hfig);
-global hclusname hclusmenu;
-set(hclusname,'String',ClusGroup(clusID).name);
-menu = MakeNumberedMenu({ClusGroup.name});
-set(hclusmenu,'String', menu,'Value',clusID+1);
-end
-
-function [ClusGroup,clusID] = SaveCluster(hfig,state) % state: 'current' or 'new'
+function SaveGUIcluster(hfig,state) % state: 'current' or 'new'
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
 absIX = getappdata(hfig,'absIX');
 i_fish = getappdata(hfig,'i_fish');
-clusgroupID = getappdata(hfig,'clusgroupID');
+clusgroupID = getappdata(hfig,'clusgroupID_view');
 
 global VAR;
 ClusGroup = VAR(i_fish).ClusGroup{clusgroupID};
@@ -3679,6 +3630,10 @@ ClusGroup = VAR(i_fish).ClusGroup{clusgroupID};
 if strcmp(state,'current'),
     clusID = getappdata(hfig,'clusID');
 else %if strcmp(state,'new'),
+    
+    UpdateClusGroupGUI(hfig,clusgroupID_view); 
+    
+    
     clusID = numel(ClusGroup)+1;
     name = getappdata(hfig,'newclusname');
     ClusGroup(clusID).name = name;
@@ -3698,32 +3653,12 @@ UpdateClustersGUI(hfig);
 disp('cluster saved');
 end
 
-function SaveCluster_Direct(hfig,cIX,gIX,name,clusgroupID)
-absIX = getappdata(hfig,'absIX');
+function LoadNewClusters(hfig)
+clusgroupID = getappdata(hfig,'clusgroupID');
 i_fish = getappdata(hfig,'i_fish');
-
 global VAR;
 ClusGroup = VAR(i_fish).ClusGroup{clusgroupID};
 
-clusID = numel(ClusGroup)+1;
-ClusGroup(clusID).name = name;
-
-ClusGroup(clusID).cIX_abs = absIX(cIX);
-ClusGroup(clusID).gIX = gIX;
-
-U = unique(gIX);
-numU = length(U);
-ClusGroup(clusID).numK = numU;
-
-VAR(i_fish).ClusGroup{clusgroupID} = ClusGroup;
-
-setappdata(hfig,'clusID',clusID);
-UpdateClustersGUI(hfig);
-disp('cluster saved');
-end
-
-function LoadNewClusters(hfig)
-ClusGroup = GetCurrentClusGroup(hfig);
 clusID = getappdata(hfig,'clusID');
 
 gIX = ClusGroup(clusID).gIX;
@@ -3743,14 +3678,6 @@ end
 
 UpdateIndices(hfig,cIX,gIX,numK);
 RefreshFigure(hfig);
-end
-
-function UpdateClusID(hfig,clusID)
-end
-
-function menu = MakeNumberedMenu(name) % e.g. name = {Cluster.name} (note {})
-menu = [{'(choose)'},name];
-for j=2:length(menu),menu(j)={[num2str(j-1) ': ' menu{j}]};end
 end
 
 function [gIX, numU] = HierClus(M,gIX,isplotfig) %#ok<INUSD>
@@ -3785,28 +3712,6 @@ if size(C,1)>1,
         end
         gIX = temp;
     end
-end
-end
-
-function gIX = HierClusDirect(C,gIX,numU)
-D = pdist(C,'correlation');
-tree = linkage(C,'average','correlation');
-leafOrder = optimalleaforder(tree,D);
-
-% sort for uniform colorscale
-temp = zeros(size(gIX));
-for i = 1:numU,
-    temp(gIX==leafOrder(i)) = i; % = T(i) for clusters segmented from tree
-end
-gIX = temp;
-end
-
-function [gIX, numK] = SqueezeGroupIX(gIX)
-U = unique(gIX);
-numK = length(U);
-for i = 1:numK,
-    old = U(i);
-    gIX(gIX==old) = i;
 end
 end
 
@@ -3964,25 +3869,6 @@ DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
 WatchOff(hfig);
 end
 
-function [C,D] = FindCentroid_Direct(gIX,M)
-U = unique(gIX);
-numU = length(U);
-C = zeros(numU,size(M,2));
-D = zeros(numU,1);
-for i=1:numU,
-    IX = find(gIX == U(i));
-    if length(IX)==1,
-        C(i,:) = M(IX,:);
-        D(i) = 1;
-    else
-        M_s = M(IX,:);
-        [~,C1,~,D1] = kmeans(M_s,1,'distance','correlation');
-        C(i,:) = C1;
-        D(i) = mean(D1);
-    end
-end
-end
-
 function UpdateTimeIndex(hfig,isSkipcIX) %#ok<INUSD>
 % input params
 isAvr = getappdata(hfig,'isAvr');
@@ -4029,54 +3915,6 @@ if ~exist('isSkipcIX','var'),
 end
 end
 
-function [M,behavior,stim] = GetTimeIndexedData(hfig,isAllCells) %#ok<INUSD>
-%{
-% naming convention used:
-M = GetTimeIndexedData(hfig);
-M_0 = GetTimeIndexedData(hfig,'isAllCells');
-%}
-
-isZscore = getappdata(hfig,'isZscore');
-% main data input
-if ~isZscore,
-    cellResp = getappdata(hfig,'CellResp');
-    cellRespAvr = getappdata(hfig,'CellRespAvr');
-else
-    cellResp = getappdata(hfig,'CellRespZ');
-    cellRespAvr = getappdata(hfig,'CellRespAvrZ');
-end
-Behavior_full = getappdata(hfig,'Behavior_full');
-BehaviorAvr = getappdata(hfig,'BehaviorAvr');
-stim_full = getappdata(hfig,'stim_full');
-stimAvr = getappdata(hfig,'stimAvr');
-% other params
-isAvr = getappdata(hfig,'isAvr');
-cIX = getappdata(hfig,'cIX');
-tIX = getappdata(hfig,'tIX');
-
-%% set data
-if isAvr,
-    if exist('isAllCells','var'),
-        M = cellRespAvr(:,tIX);
-    else
-        M = cellRespAvr(cIX,tIX);
-    end
-    behavior = BehaviorAvr(:,tIX);
-    stim = stimAvr(:,tIX);
-else
-    if exist('isAllCells','var'),
-        M = cellResp(:,tIX);
-    else
-        M = cellResp(cIX,tIX);
-    end
-    behavior = Behavior_full(:,tIX);
-    stim = stim_full(:,tIX);
-end
-
-setappdata(hfig,'behavior',behavior);
-setappdata(hfig,'stim',stim);
-end
-
 function closefigure_Callback(hfig,~)
 global EXPORT_autorecover;
 EXPORT_autorecover = getappdata(hfig);
@@ -4096,4 +3934,3 @@ switch flag_script
         RefreshFigure(var_script{1});
 end
 end
-% end
