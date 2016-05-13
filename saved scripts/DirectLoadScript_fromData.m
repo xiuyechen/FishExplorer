@@ -11,7 +11,7 @@ for i = 1:length(range_fish),
     i_fish = range_fish(i);
     disp(i_fish);
 
-    f.LoadFullFish(hfig,i_fish);
+    LoadFullFish(hfig,i_fish);
     
     absIX = getappdata(hfig,'absIX');
     
