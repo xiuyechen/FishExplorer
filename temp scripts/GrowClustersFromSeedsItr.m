@@ -11,33 +11,30 @@ disp('find ROIs')
 % thres_minsize = 10; % cell number in final clusters
 
 %%
-% cIX = getappdata(hfig,'cIX');
-% gIX = getappdata(hfig,'gIX');
-% gIX = SqueezeGroupIX(gIX);
-% setappdata(hfig,'gIX',gIX);
-% 
+gIX = SqueezeGroupIX(gIX);
 M = M_0(cIX,:);
 C = FindCentroid_Direct(gIX,M); % kmeans 20x20, 'supervoxels'
-nPixels = size(C,1);
+nFoxels = size(C,1);
 
 %% Calculate correlation distance between all cluster-centroids
 temp = pdist(C,'correlation');
 Dist = squareform(temp);
-for i = 1:nPixels,
+for i = 1:nFoxels,
     Dist(i,i) = NaN;
 end
 
 %% ITERATION:
 % initialize
 ROI = [];
-ROI(nPixels).pxlist = []; % not capping
-ROI(nPixels).numcell = [];
+ROI(nFoxels).fxlist = []; % not capping
+ROI(nFoxels).numcell = [];
 ROIcount = 0;
 
 % analogy ~ mask to store new ROI
-BW = zeros(nPixels,1); 
+BW = zeros(nFoxels,1); 
 
 %%
+tic
 while true, % loop through all qualified seeds           
     % look for next seed
     [~,ix] = min(Dist(:));
@@ -46,36 +43,35 @@ while true, % loop through all qualified seeds
     BW(I) = 1;
     BW(J) = 1;
     
-    if Dist(I,J)>thres_merge,
+    if Dist(I,J)>(1-thres_merge),
         break;
     end
     
     while true % grow ROI: expand mask and examine next neighbors
-        % find new core based on cells in clusters
-        list = find(BW);
+        IX_in = find(BW);
+        IX_out = find(BW==0);
+
+        % find next closest cluster
+        D = 1-corr(C(IX_in,:)',C(IX_out,:)'); % distance matrix between new core and the original cluster means
+        D2 = min(D,[],1);
+        [a,ix] = min(D2);
+        ix_pretend = IX_out(ix);
+        
+        BW_pretend = BW;
+        BW_pretend(ix_pretend) = 1;
+        
+        % find correlation between potential cluster and new core
+        list = find(BW_pretend);
         IX = [];
         for i_gIX = 1:length(list),
             IX = [IX;find(gIX==list(i_gIX))];
         end
         M_core = M(IX,:);
-        try
-            [~,newCore] = kmeans(M_core,1,'distance','correlation');
-        catch
-            
-        end
+        [~,newCore] = kmeans(M_core,1,'distance','correlation');                
+        coredist = 1-corr(C(ix_pretend,:)',newCore');
         
-        % find next closest cluster
-        D = 1-corr(newCore',C'); % distance matrix between new core and the original cluster means
-        IX1 = find(BW==0);
-        [a,IX2] = min(D(IX1));
-        
-        BW_pretend = BW;
-        BW_pretend(IX1(IX2)) = 1;
-        IX = find(BW_pretend);
-        maxdist = max(pdist(C(IX,:),'correlation'));
-        
-        if a<thres_merge && maxdist<thres_cap,
-            BW(IX1(IX2)) = 1;
+        if a<(1-thres_merge) && coredist<(1-thres_cap),
+            BW(ix_pretend) = 1;
         else
             break; % finished expanding this seed
         end
@@ -90,7 +86,7 @@ while true, % loop through all qualified seeds
     numcell = length(IX);
     if numcell >= thres_minsize,
         ROIcount = ROIcount+1;
-        ROI(ROIcount).pxlist = find(BW);
+        ROI(ROIcount).fxlist = find(BW);
         ROI(ROIcount).numcell = numcell;
     end
     
@@ -98,36 +94,36 @@ while true, % loop through all qualified seeds
     Dist(list,:) = NaN;
     Dist(:,list) = NaN;
     C(list,:) = NaN;
-    BW = zeros(nPixels,1);
+    BW = zeros(nFoxels,1);
 end
 
 ROI(ROIcount+1:end) = [];
-
+toc
 %% Merge accordingly
 for i = 1:ROIcount,
-    pxlist = ROI(i).pxlist;
-    for j = 2:length(pxlist),
-        gIX(gIX==pxlist(j)) = pxlist(1);
+    fxlist = ROI(i).fxlist;
+    for j = 2:length(fxlist),
+        gIX(gIX==fxlist(j)) = fxlist(1);
     end
 end
 [gIX,numU] = SqueezeGroupIX(gIX);
 disp(numU);
 
 %% Regression with the centroid of each cluster, round 2
-disp('auto-reg');
-% f.UpdateIndices(hfig,cIX,gIX);
+% disp('auto-reg');
+% Reg = FindCentroid_Direct(gIX,M);
+% [cIX,gIX] = AllCentroidRegression_direct(M_0,thres_reg,Reg);
 
-% M_0 = getappdata(hfig,'M_0');
-% thres_reg = getappdata(hfig,'thres_reg');
-% Reg = FindCentroid(hfig);
-Reg = FindCentroid_Direct(gIX,M);
-[cIX,gIX] = AllCentroidRegression_direct(M_0,thres_reg,Reg);
-% f.UpdateIndices(hfig,cIX,gIX);
-% 
-% M = getappdata(hfig,'M');
-% [gIX, numU] = f.HierClus(M,gIX);
-% f.UpdateIndices(hfig,cIX,gIX);
-%     f.RefreshFigure(hfig);
-
+%% size threshold
+U = unique(gIX);
+numU = length(U);
+for i=1:numU,
+    if length(find(gIX==U(i)))<thres_minsize,
+        cIX(gIX==U(i)) = [];
+        gIX(gIX==U(i)) = [];
+    end
+end
+[gIX,numU] = SqueezeGroupIX(gIX);
+disp(numU);
 end
 

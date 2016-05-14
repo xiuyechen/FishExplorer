@@ -1,8 +1,9 @@
 function [cIX,gIX] = AutoClustering(cIX,gIX,absIX,i_fish,M_0,isWkmeans)
 %% set params
-thres_reg = 0.7; % correlation
-thres_merge = 0.4; % correlation distance = 1-corr.coeff
-thres_cap = 0.5; % correlation distance = 1-corr.coeff
+% correlation coeff
+thres_reg = 0.7; 
+thres_merge = 0.6; 
+thres_cap = 0.5; 
 thres_minsize = 10; % number of cells
 %%
 M = M_0(cIX,:);
@@ -49,31 +50,33 @@ end
 
 %% 1.2. Regression with the centroid of each cluster
 disp('regression with all clusters');
+tic
 Reg = FindCentroid_Direct(gIX,M);
 [cIX,gIX,~] = AllCentroidRegression_direct(M_0,thres_reg,Reg);
 gIX = SqueezeGroupIX(gIX);
-
-clusgroupID = 1;
-SaveCluster_Direct(cIX,gIX,absIX,i_fish,'k20x20_reg',clusgroupID);
-
-%% Find Seed
-[cIX,gIX] = GrowClustersFromSeedsItr(thres_merge,thres_cap,thres_minsize,thres_reg,cIX,gIX,M_0);
-
-if isempty(gIX),
-    errordlg('nothing to display!');
-    return;
-end
-
-%% size threshold
+toc
+% clusgroupID = 1;
+% SaveCluster_Direct(cIX,gIX,absIX,i_fish,'k20x20_reg',clusgroupID);
+%% size thresholding
 U = unique(gIX);
 numU = length(U);
 for i=1:numU,
-    if length(find(gIX==U(i)))<thres_minsize,
+    if length(find(gIX==U(i)))<thres_minsize/2,
         cIX(gIX==U(i)) = [];
         gIX(gIX==U(i)) = [];
     end
 end
-% gIX = SqueezeGroupIX(gIX);
+[gIX,numU] = SqueezeGroupIX(gIX);
+disp(numU);
+%% Find Seed
+tic
+[cIX,gIX] = GrowClustersFromSeedsItr(thres_merge,thres_cap,thres_minsize,thres_reg,cIX,gIX,M_0);
+toc
+%%
+if isempty(gIX),
+    errordlg('nothing to display!');
+    return;
+end
 
 %% update GUI
 C = FindCentroid_Direct(gIX,M_0(cIX,:));
