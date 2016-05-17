@@ -8,7 +8,7 @@ range_fish =  8:13;
 % M_ClusGroup = [2,2,2,2];
 % M_Cluster = [1,1,1,1];
 const_ClusGroup = 2;
-const_Cluster = 1;
+const_Cluster = 2;
 % M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2]; 
 
 %%
@@ -16,7 +16,7 @@ for i = 1:length(range_fish),
     i_fish = range_fish(i);
     disp(i_fish);
 
-    f.LoadFullFish(hfig,i_fish);
+    LoadFullFish(hfig,i_fish,1);
     absIX = getappdata(hfig,'absIX');
     
     %% Cluster indexing
