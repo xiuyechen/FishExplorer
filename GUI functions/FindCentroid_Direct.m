@@ -3,7 +3,7 @@ U = unique(gIX);
 numU = length(U);
 C = zeros(numU,size(M,2));
 D = zeros(numU,1);
-for i=1:numU,
+for i = 1:numU,
     IX = find(gIX == U(i));
     if length(IX)==1,
         C(i,:) = M(IX,:);

@@ -28,7 +28,6 @@ for k_param = 1:length(M_param),
     for k_fish = 1:length(range_fish),
         i_fish = range_fish(k_fish);
         disp(i_fish);
-        
         LoadFullFish(hfig,i_fish);
         absIX = getappdata(hfig,'absIX');
         
@@ -66,24 +65,14 @@ for k_param = 1:length(M_param),
                 gIX = ClusGroup(i_Cluster).gIX;
                 cIX_abs = ClusGroup(i_Cluster).cIX_abs; % convert absolute index to index used for this dataset
                 [~,cIX] = ismember(cIX_abs,absIX);
-                setappdata(hfig,'cIX',cIX);
                 
                 % ~UpdateTimeIndex
-                setappdata(hfig,'tIX',timelistsCV{k_stim,k});
-                M_0 = GetTimeIndexedData(hfig,'isAllCells');
-                setappdata(hfig,'M_0',M_0);
-                if ~exist('isSkipcIX','var'),
-                    cIX = getappdata(hfig,'cIX');
-                    setappdata(hfig,'M',M_0(cIX,:));
-                end
-                f.UpdateIndices(hfig,cIX,gIX,numK);
+                tIX = timelistsCV{k_stim,k};
+                M_0 = GetTimeIndexedData_Default_Direct(hfig,cIX,tIX,'isAllCells');
                 
-                savename = [timelists_names{i_stim},num2str(k)];
                 isWkmeans = 1;
-                AutoClustering(hfig,f,i_fish,savename,isWkmeans);
+                [cIX,gIX] = AutoClustering(cIX,gIX,absIX,i_fish,M_0,isWkmeans,numK2);
                 
-                cIX = getappdata(hfig,'cIX');
-                gIX = getappdata(hfig,'gIX');
                 NumClus(k) = length(unique(gIX));
                 CIX{k} = cIX;
                 GIX{k} = gIX;
@@ -92,6 +81,7 @@ for k_param = 1:length(M_param),
             Score(k_stim,1) = HungarianCV(NumClus(1),NumClus(2),CIX{1},CIX{2},GIX{1},GIX{2},timelists_names{i_stim});
             Score(k_stim,2) = HungarianCV(NumClus(2),NumClus(1),CIX{2},CIX{1},GIX{2},GIX{1},timelists_names{i_stim});
         end
+        
         ParamScores{k_param,k_fish} = mean(mean(Score));
         ParamScores_raw{k_param,k_fish} = Score;
     end

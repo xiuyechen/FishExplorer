@@ -1,4 +1,4 @@
-function LoadFullFish(hfig,i_fish,hdf5_dir,mat_dir)
+function LoadFullFish(hfig,i_fish,isfulldata,hdf5_dir,mat_dir)
 disp(['loading fish #' num2str(i_fish) '...']);
 
 M_fish_set = getappdata(hfig,'M_fish_set');
@@ -12,7 +12,15 @@ disp(['load fish ' num2str(i_fish) '...']);
 if ~exist('hdf5_dir','var') || ~exist('mat_dir','var'),
     data_masterdir = getappdata(hfig,'data_masterdir');
     data_dir = fullfile(data_masterdir,['subject_' num2str(i_fish)]);
-    hdf5_dir = fullfile(data_dir,'TimeSeries.h5');
+    if exist('isfulldata','var'),
+        if isfulldata,
+            hdf5_dir = fullfile(data_dir,'TimeSeries_full.h5');
+        else
+            hdf5_dir = fullfile(data_dir,'TimeSeries.h5');
+        end
+    else % default without isfulldata input is full-data
+        hdf5_dir = fullfile(data_dir,'TimeSeries_full.h5');
+    end
     mat_dir = fullfile(data_dir,'data_full.mat');
 end
 

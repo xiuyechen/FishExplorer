@@ -20,16 +20,13 @@ Written in Matlab R2016a (with ___ toolboxes) running on Windows 7.
 %}
 
 %% User Interface:
-function [hfig,fcns] = GUI_FishExplorer(flag_script,var_script)
+function [hfig,fcns] = GUI_FishExplorer()%data_masterdir)
 global data_masterdir name_MASKs name_ReferenceBrain VAR;
-
-if exist('flag_script','var')
-    if ~exist('var_script','var')
-        var_script={};
-    end
-    runscript(flag_script,var_script);
-    return
-end
+% name_ClusterBook = 'VAR_current.mat';
+% name_MASKs = 'MaskDatabase.mat';
+% name_ReferenceBrain = 'ReferenceBrain.mat';
+% 
+% VAR = load(fullfile(data_masterdir,name_MASKs));
 
 %% Make figure
 scrn = get(0,'Screensize');
@@ -2649,24 +2646,7 @@ str = get(hObject,'String');
 if ~isempty(str),
     temp = textscan(str,'%d');
     numK = temp{:};
-    disp(['k-means k=' num2str(numK) '...']);
-    tic
-    rng('default');% default = 0, but can try different seeds if doesn't converge
-    if numel(M)*numK < 10^7 && numK~=1,
-        disp('Replicates = 5');
-        [gIX,C] = kmeans(M,numK,'distance','correlation','Replicates',5);
-    elseif numel(M)*numK < 10^8 && numK~=1,
-        disp('Replicates = 3');
-        [gIX,C] = kmeans(M,numK,'distance','correlation','Replicates',3);
-    else
-        [gIX,C] = kmeans(M,numK,'distance','correlation');%,'Replicates',3);
-    end
-    toc
-    beep
-    
-    if numK>1,
-        gIX = HierClus_Direct(C,gIX);
-    end
+    gIX = Kmeans_Direct(M,numK);
     
     cIX = getappdata(hfig,'cIX');
     UpdateIndices(hfig,cIX,gIX,numK);
@@ -3924,13 +3904,5 @@ function fig = getParentFigure(fig)
 % if the object is a figure or figure descendent, return the figure. Otherwise return [].
 while ~isempty(fig) && ~strcmp('figure', get(fig,'type'))
     fig = get(fig,'parent');
-end
-end
-
-function runscript(flag_script,var_script)
-switch flag_script
-    case 'push_cIX_gIX'
-        UpdateIndices(var_script{:});
-        RefreshFigure(var_script{1});
 end
 end

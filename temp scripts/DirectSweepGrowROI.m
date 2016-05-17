@@ -4,13 +4,13 @@ range_fish = [5,6,7];
 M_ClusGroup = [2,2,2,2];
 M_Cluster = [1,1,1,1];
 
-% M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2]; 
+% M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2];
 
 %%
 for i = 1:length(range_fish),
     i_fish = range_fish(i);
     disp(i_fish);
-
+    
     LoadFullFish(hfig,i_fish);
     
     absIX = getappdata(hfig,'absIX');
@@ -38,19 +38,14 @@ for i = 1:length(range_fish),
     toc
     
     M = M_0(cIX,:);
-
-    %% 
+    
     cIX_20 = cIX;
     gIX_20 = gIX;
-%     numK2 = 20;
-%     gIX = KmeansSubdivide(numK2,gIX,M_0);
     
     %%
-    
-    
-    step = 5;
-    range_numK = 5:step:60;
-    Stats = zeros(length(range_numK),5,3);
+    range_numK = 10:10:60;
+    range_thres = 0.4:0.025:0.7;
+    Stats = zeros(length(range_numK),length(range_thres));
     for i_numK = 1:length(range_numK),
         cIX = cIX_20;
         gIX = gIX_20;
@@ -78,8 +73,75 @@ for i = 1:length(range_fish),
         % histogram?
         
         C = FindCentroid_Direct(gIX,M_0(cIX,:));
-%         
-%         
+        
+        Ccorr = 1-pdist(C,'correlation');
+        Ccorr_sq = squareform(Ccorr);
+        hist(Ccorr,-1:0.05:1)
+        
+        for i_thres = 1:length(range_thres),
+            
+            IX = find(Ccorr>range_thres(i_thres));
+            [IX_ctr,~] = ind2sub(size(Ccorr_sq),IX);
+            list = unique(IX_ctr);
+            
+            Count = 0;
+            for i_ctr = 1:length(IX_ctr),
+                temp = find(gIX==IX_ctr(i_ctr));
+                Count = Count + length(temp);
+            end
+            
+            Stats(i_numK,i_thres) = length(IX_ctr)/2/length(Ccorr_sq); % avr connection per cluster
+        end
+    end
+    %%
+    figure; hold on
+    M_title = {'# cell','# clus','% of clus'};
+    for j = 1:length(range_numK),
+        subplot(length(range_numK),1,j)
+        plot(range_thres,Stats(j,:))
+        title(['numK=',num2str(20*range_numK(j))]);
+    end
+    %%
+    thres_minsize = 10;
+    thres_merge = 0.8;
+    thres_reg = thres_merge;%0.7;
+    thres_cap = 0.7;
+    
+    %% 1.2. Regression with the centroid of each cluster
+    disp('regression with all clusters');
+    tic
+    Reg = FindCentroid_Direct(gIX,M);
+    [cIX,gIX,~] = AllCentroidRegression_direct(M_0,thres_reg,Reg);
+    gIX = SqueezeGroupIX(gIX);
+    toc
+    % clusgroupID = 1;
+    % SaveCluster_Direct(cIX,gIX,absIX,i_fish,'k20x20_reg',clusgroupID);
+    % size thresholding
+    U = unique(gIX);
+    numU = length(U);
+    for i=1:numU,
+        if length(find(gIX==U(i)))<thres_minsize/2,
+            cIX(gIX==U(i)) = [];
+            gIX(gIX==U(i)) = [];
+        end
+    end
+    [gIX,numU] = SqueezeGroupIX(gIX);
+    disp(numU);
+    %% Find Seed
+    tic
+    [cIX,gIX] = GrowClustersFromSeedsItr(thres_merge,thres_cap,thres_minsize,thres_reg,cIX,gIX,M_0);
+    toc
+    
+    %     isWkmeans = 1;
+    %     AutoClustering(cIX,gIX,absIX,i_fish,M_0,isWkmeans)
+    
+    %%
+    f.UpdateIndices(hfig,cIX,gIX);
+    f.RefreshFigure(hfig);
+end
+
+
+
 %         U = unique(gIX);
 %         H = zeros(length(U),4);
 %         for i = 1:length(U),
@@ -99,75 +161,3 @@ for i = 1:length(range_fish),
 %         subplot(141);hist(H(:,1),-0.5:0.05:1)
 %         subplot(142);hist(H(:,2),-0.5:0.05:1)
 %         subplot(143);hist(H(:,3),-0.5:0.05:1)
-%         
-%         subplot(144);
-        Ccorr = 1-pdist(C,'correlation');
-        Ccorr_sq = squareform(Ccorr);
-        hist(Ccorr,-1:0.05:1)
-        
-        range_thres = 0.7:0.1:0.9;
-        for i_thres = 1:3,
-            
-            IX = find(Ccorr>range_thres(i_thres));
-            [IX_ctr,~] = ind2sub(size(Ccorr_sq),IX);
-            list = unique(IX_ctr);
-            
-            Count = 0;
-            for i_ctr = 1:length(IX_ctr),
-                temp = find(gIX==IX_ctr(i_ctr));
-                Count = Count + length(temp);
-            end
-            
-            Stats(i_numK,1,i_thres) = Count;
-            Stats(i_numK,2,i_thres) = length(list)/length(Ccorr_sq); % perc connected clusters
-            Stats(i_numK,3,i_thres) = length(IX_ctr)/2/length(Ccorr_sq); % avr connection per cluster
-        end
-    end
-    
-    figure; hold on
-    M_title = {'# cell','# clus','% of clus'};
-    for i = 1:3, % param
-        for j = 1:3,
-            subplot(3,3,(i-1)*3+j)
-            plot(range_numK*20,Stats(:,i,j))
-            title([M_title{i},',thres=',num2str(range_thres(j))]);
-        end
-    end
-    %%
-    thres_minsize = 10;
-    thres_merge = 0.8;
-    thres_reg = thres_merge;%0.7;
-    thres_cap = 0.7;
-    
-    %% 1.2. Regression with the centroid of each cluster
-disp('regression with all clusters');
-tic
-Reg = FindCentroid_Direct(gIX,M);
-[cIX,gIX,~] = AllCentroidRegression_direct(M_0,thres_reg,Reg);
-gIX = SqueezeGroupIX(gIX);
-toc
-% clusgroupID = 1;
-% SaveCluster_Direct(cIX,gIX,absIX,i_fish,'k20x20_reg',clusgroupID);
-% size thresholding
-U = unique(gIX);
-numU = length(U);
-for i=1:numU,
-    if length(find(gIX==U(i)))<thres_minsize/2,
-        cIX(gIX==U(i)) = [];
-        gIX(gIX==U(i)) = [];
-    end
-end
-[gIX,numU] = SqueezeGroupIX(gIX);
-disp(numU);
-%% Find Seed
-tic
-[cIX,gIX] = GrowClustersFromSeedsItr(thres_merge,thres_cap,thres_minsize,thres_reg,cIX,gIX,M_0);
-toc
-
-%     isWkmeans = 1;
-%     AutoClustering(cIX,gIX,absIX,i_fish,M_0,isWkmeans)
-
-%%
-f.UpdateIndices(hfig,cIX,gIX);
-f.RefreshFigure(hfig);
-end
