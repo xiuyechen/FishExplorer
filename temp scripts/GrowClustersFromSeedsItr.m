@@ -109,10 +109,10 @@ end
 [gIX,numU] = SqueezeGroupIX(gIX);
 disp(numU);
 
-%% Regression with the centroid of each cluster, round 2
-% disp('auto-reg');
-% Reg = FindCentroid_Direct(gIX,M);
-% [cIX,gIX] = AllCentroidRegression_direct(M_0,thres_reg,Reg);
+% Regression with the centroid of each cluster, round 2
+disp('auto-reg');
+Reg = FindCentroid_Direct(gIX,M);
+[cIX,gIX] = AllCentroidRegression_direct(M_0,thres_reg,Reg);
 
 %% size threshold
 U = unique(gIX);
