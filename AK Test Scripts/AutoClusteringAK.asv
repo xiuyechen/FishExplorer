@@ -1,13 +1,13 @@
-function [cIX,gIX] = AutoClusteringAK(cIX,gIX,M_0,isWkmeans,clusParams)
+function [cIX,gIX] = AutoClustering(cIX,gIX,M_0,isWkmeans,clusParams)
 %% set params
 % correlation coeff
 thres_reg2 = clusParams.reg2;
 thres_reg = clusParams.reg1; 
 thres_merge = clusParams.merge; 
-thres_cap = clusParams.cap; 
-thres_minsize = clusParams.minSize; % number of cells
-numK1 = clusParams.k1;
-numK2 = clusParams.k2;
+thres_cap = 0.6; 
+thres_minsize = 10; % number of cells
+numK1 = 20;
+numK2 = 20;
 %%
 %M = M_0(cIX,:);
 
@@ -54,7 +54,7 @@ toc
 %% 1.2. Regression with the centroid of each cluster
 disp('regression with all clusters');
 tic
-Reg = FindCentroid_Direct(gIX,M_0);
+Reg = FindCentroid_Direct(gIX,M);
 [cIX,gIX,~] = AllCentroidRegression_direct(M_0,thres_reg,Reg);
 gIX = SqueezeGroupIX(gIX);
 toc
@@ -81,7 +81,7 @@ toc
 %%
 % Regression with the centroid of each cluster, round 2
 disp('auto-reg');
-Reg = FindCentroid_Direct(gIX,M_0(cIX,:));
+Reg = FindCentroid_Direct(gIX,M);
 [cIX,gIX] = AllCentroidRegression_direct(M_0,thres_reg2,Reg);
 
 %% size threshold

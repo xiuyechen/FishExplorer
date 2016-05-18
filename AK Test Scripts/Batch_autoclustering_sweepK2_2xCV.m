@@ -16,7 +16,7 @@ M_stim = [1];
 % M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2];
 
 %%
-M_param = 5:25:30%0.3:0.1:0.8;
+M_param = 5:5:20%0.3:0.1:0.8;
 
 ParamScores = cell(length(M_param),length(range_fish));
 ParamScores_raw = cell(length(M_param),length(range_fish));
@@ -24,7 +24,7 @@ ParamScores_raw = cell(length(M_param),length(range_fish));
 for k_param = 1:length(M_param),
     numK2 = M_param(k_param);
     %thres_split = M_param(k_param);
-    setappdata(hfig,'thres_split',thres_split);
+    %setappdata(hfig,'thres_split',thres_split);
     
     for k_fish = 1:length(range_fish),
         i_fish = range_fish(k_fish);
@@ -36,7 +36,7 @@ for k_param = 1:length(M_param),
         timelists = getappdata(hfig,'timelists');
         timelists_names = getappdata(hfig,'timelists_names');
         periods = getappdata(hfig,'periods');
-        if length(periods)>1,
+        %if length(periods)>1,
             timelistsCV = cell(length(M_stim),2);
             for k_stim = 1:length(M_stim), % :3
                 i_stim = M_stim(k_stim);
@@ -47,7 +47,7 @@ for k_param = 1:length(M_param),
                 timelistsCV{k_stim,1} = TL(1):TL(n*period);
                 timelistsCV{k_stim,2} = TL(1+n*period):TL(2*n*period);
             end
-        end
+        %end
         
         %% CV loop: auto-clustering with the partitions
         Score = zeros(length(M_stim),2);
@@ -79,8 +79,8 @@ for k_param = 1:length(M_param),
                 GIX{k} = gIX;
             end
             % plot cell-matching figure
-            Score(k_stim,1) = HungarianCV(NumClus(1),NumClus(2),CIX{1},CIX{2},GIX{1},GIX{2},timelists_names{i_stim});
-            Score(k_stim,2) = HungarianCV(NumClus(2),NumClus(1),CIX{2},CIX{1},GIX{2},GIX{1},timelists_names{i_stim});
+            Score(k_stim,1) = HungarianCV(NumClus(1),NumClus(2),CIX{1},CIX{2},GIX{1},GIX{2});
+            Score(k_stim,2) = HungarianCV(NumClus(2),NumClus(1),CIX{2},CIX{1},GIX{2},GIX{1});
         end
         
         ParamScores{k_param,k_fish} = mean(mean(Score));

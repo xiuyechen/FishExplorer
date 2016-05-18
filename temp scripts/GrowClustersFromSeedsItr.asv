@@ -99,7 +99,7 @@ while true, % loop through all qualified seeds
     C(list,:) = NaN;
     BW = zeros(nFoxels,1);
     
-    if isempty(find(isnan(Dist)==0)),
+    if ~isempty(find(isnan(Dist)==0)),
         break;
     end
 end
