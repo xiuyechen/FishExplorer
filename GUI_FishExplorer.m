@@ -122,6 +122,7 @@ setappdata(hfig,'isShowMskOutline',0);
 setappdata(hfig,'isWeighAlpha',0);
 setappdata(hfig,'isPlotAnatomyOnly',0);
 setappdata(hfig,'isRefAnat',0);
+setappdata(hfig,'isFullData',0);
 
 setappdata(hfig,'clusgroupID_view',1);
 setappdata(hfig,'clusID_view',0); % set in UpdateClusGroupGUI
@@ -264,10 +265,16 @@ hloadfish = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',temp,...
     'Callback',@popup_loadfullfishmenu_Callback);
 
 i=i+n;
-n=2; %
-uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','or choose files',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-    'Callback',@pushbutton_choosefilestoload_Callback);
+n=2; % only centroids (~mean) of clusters shown on left-side plot, the rest is unchanged
+uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Load 100% data',...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',0,...
+    'Callback',@checkbox_isFullData_Callback);
+
+% i=i+n;
+% n=2; %
+% uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','or choose files',...
+%     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+%     'Callback',@pushbutton_choosefilestoload_Callback);
 
 i=i+n;
 n=2; % options to load different stimulus types (if applicable for this fish)
@@ -1163,42 +1170,53 @@ end
 function popup_loadfullfishmenu_Callback(hObject,~)
 i_fish = get(hObject,'Value')-1;
 hfig = getParentFigure(hObject);
+isFullData = getappdata(hfig,'isFullData');
 if i_fish>0,
-    tic
     WatchOn(hfig); drawnow;
-    LoadFullFish(hfig,i_fish);
+    LoadFullFish(hfig,i_fish,isFullData);
     UpdateFishData(hfig,i_fish);
-    toc
     WatchOff(hfig);
 end
 end
 
-function pushbutton_choosefilestoload_Callback(hObject,~)
+function checkbox_isFullData_Callback(hObject,~)
 hfig = getParentFigure(hObject);
-data_masterdir = getappdata(hfig,'data_masterdir');
+isFullData = get(hObject,'Value');
+setappdata(hfig,'isFullData',isFullData);
+i_fish = getappdata(hfig,'i_fish');
 
-% get fish number
-prompt={'Enter fish number:'};
-answer = inputdlg(prompt);
-if ~isempty(answer),
-    new_i_fish = str2double(answer{:});
-    
-    [FileName1,PathName] = uigetfile('*.h5','Select the hdf5(.h5) file for TimeSeries data',data_masterdir);
-    hdf5_dir = fullfile(PathName,FileName1);
-    [FileName2,PathName] = uigetfile('*.mat','Select the .mat file for other data',PathName);
-    mat_dir = fullfile(PathName,FileName2);
-    
-    if isequal(FileName1,0) || isequal(FileName2,0),
-        disp('User selected Cancel')
-    else
-        % display fish-number in hloadfish
-        global hloadfish; %#ok<TLEV>
-        set(hloadfish,'Value',new_i_fish+1);
-        
-        LoadFullFish(hfig,new_i_fish,hdf5_dir,mat_dir);
-    end
+WatchOn(hfig); drawnow;
+LoadFullFish(hfig,i_fish,isFullData);
+UpdateFishData(hfig,i_fish);
+WatchOff(hfig);
 end
-end
+
+% function pushbutton_choosefilestoload_Callback(hObject,~)
+% hfig = getParentFigure(hObject);
+% data_masterdir = getappdata(hfig,'data_masterdir');
+% 
+% % get fish number
+% prompt={'Enter fish number:'};
+% answer = inputdlg(prompt);
+% if ~isempty(answer),
+%     new_i_fish = str2double(answer{:});
+%     
+%     [FileName1,PathName] = uigetfile('*.h5','Select the hdf5(.h5) file for TimeSeries data',data_masterdir);
+%     hdf5_dir = fullfile(PathName,FileName1);
+%     [FileName2,PathName] = uigetfile('*.mat','Select the .mat file for other data',PathName);
+%     mat_dir = fullfile(PathName,FileName2);
+%     
+%     if isequal(FileName1,0) || isequal(FileName2,0),
+%         disp('User selected Cancel')
+%     else
+%         % display fish-number in hloadfish
+%         global hloadfish; %#ok<TLEV>
+%         set(hloadfish,'Value',new_i_fish+1);
+%         
+%         LoadFullFish(hfig,new_i_fish,hdf5_dir,mat_dir);
+%     end
+% end
+% end
 
 function UpdateFishData(hfig,i_fish)
 setappdata(hfig,'i_fish',i_fish);

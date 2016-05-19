@@ -32,10 +32,10 @@ else
     [gIX, numK1] = SqueezeGroupIX(gIX);
 end
 
-% step 2: divide the above clusters again
+%% step 2: divide the above clusters again
 % numK2 = 20;
 disp(['2nd tier kmeans k = ' num2str(numK2)]);
-
+tic
 gIX_old = gIX;
 for i = 1:numK1,
     IX = find(gIX_old == i);
@@ -48,7 +48,7 @@ for i = 1:numK1,
     end
     gIX(IX) = (i-1)*numK2+gIX_sub;
 end
-
+toc
 %% 1.2. Regression with the centroid of each cluster
 disp('regression with all clusters');
 tic
