@@ -43,14 +43,21 @@ k2Start = tic;
 %disp(['2nd tier kmeans k = ' num2str(numK2)]);
 tic
 gIX_old = gIX;
+ 
+% for now, limit max iter, suppress warnings
+% maxIter = 10;
+% wid = 'stats:kmeans:FailedToConverge';
+% warning('off',wid);
 for i = 1:numK1,
     IX = find(gIX_old == i);
     M_sub = M_0(IX,:);
     rng('default');
     if numK2<length(IX),
         [gIX_sub,C] = kmeans(M_sub,numK2,'distance','correlation');
+    %        'start','cluster','MaxIter',maxIter);
     else
         [gIX_sub,C] = kmeans(M_sub,length(IX),'distance','correlation');
+     %       'start','cluster','MaxIter',maxIter);
     end
     gIX(IX) = (i-1)*numK2+gIX_sub;
 end

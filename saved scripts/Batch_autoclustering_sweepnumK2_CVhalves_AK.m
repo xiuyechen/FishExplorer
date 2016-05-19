@@ -5,7 +5,7 @@
 
 range_fish = 2:2; % select which fish to analyze (can be multiple)
 M_stim = 1; % select which stimuli to use when clustering
-k2_sweep = [1]; % values of k2 to sweep
+k2_sweep = [2 3]; % values of k2 to sweep
 
 isFullData = 1; % If using all cells
 
