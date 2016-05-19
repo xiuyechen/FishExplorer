@@ -1,5 +1,5 @@
 function [cIX,gIX] = GrowClustersFromSeedsItr(thres_merge,thres_cap,thres_minsize,thres_reg,cIX,gIX,M_0)
-disp('find ROIs')
+%disp('find ROIs')
 
 % Set params
 
@@ -34,7 +34,7 @@ ROIcount = 0;
 BW = zeros(nFoxels,1); 
 
 %%
-tic
+
 while true, % loop through all qualified seeds           
     % look for next seed
     [~,ix] = min(Dist(:));
@@ -53,6 +53,9 @@ while true, % loop through all qualified seeds
 
         % find next closest cluster
         D = 1-corr(C(IX_in,:)',C(IX_out,:)'); % distance matrix between new core and the original cluster means
+        if isempty(D),
+            break;
+        end
         D2 = min(D,[],1);
         [a,ix] = min(D2);
         ix_pretend = IX_out(ix);
@@ -95,10 +98,14 @@ while true, % loop through all qualified seeds
     Dist(:,list) = NaN;
     C(list,:) = NaN;
     BW = zeros(nFoxels,1);
+    
+    if isempty(find(isnan(Dist)==0)),
+        break;
+    end
 end
 
 ROI(ROIcount+1:end) = [];
-toc
+
 %% Merge accordingly
 for i = 1:ROIcount,
     fxlist = ROI(i).fxlist;
@@ -107,23 +114,7 @@ for i = 1:ROIcount,
     end
 end
 [gIX,numU] = SqueezeGroupIX(gIX);
-disp(numU);
+%disp(numU);
 
-%% Regression with the centroid of each cluster, round 2
-% disp('auto-reg');
-% Reg = FindCentroid_Direct(gIX,M);
-% [cIX,gIX] = AllCentroidRegression_direct(M_0,thres_reg,Reg);
-
-%% size threshold
-U = unique(gIX);
-numU = length(U);
-for i=1:numU,
-    if length(find(gIX==U(i)))<thres_minsize,
-        cIX(gIX==U(i)) = [];
-        gIX(gIX==U(i)) = [];
-    end
-end
-[gIX,numU] = SqueezeGroupIX(gIX);
-disp(numU);
 end
 
