@@ -1,21 +1,22 @@
-function [cIX,gIX] = AutoClustering(cIX,gIX,M_0,isWkmeans,clusParams)
+function [cIX,gIX] = AutoClusteringAK(cIX,gIX,M_0,isWkmeans,clusParams)
 %% set params
 % correlation coeff
 thres_reg2 = clusParams.reg2;
 thres_reg = clusParams.reg1; 
 thres_merge = clusParams.merge; 
-thres_cap = 0.6; 
-thres_minsize = 10; % number of cells
-numK1 = 20;
-numK2 = 20;
+thres_cap = clusParams.cap; 
+thres_minsize = clusParams.minSize; % number of cells
+numK1 = clusParams.k1;
+numK2 = clusParams.k2;
 %%
 %M = M_0(cIX,:);
 
+autoClusStart = tic;
 %% 1. Obtain 'supervoxels'
 
 %% 1.1. kmeans (2-step)
 % step 1:
-
+k1Start = tic;
 if isWkmeans,
     disp(['kmeans k = ' num2str(numK1)]);
     tic
@@ -33,9 +34,11 @@ if isWkmeans,
 else
     [gIX, numK1] = SqueezeGroupIX(gIX);
 end
-
+k1Time = toc(k1Start);
+disp(['k1 Time: ' num2str(k1Time) ' sec']);
 %% step 2: divide the above clusters again
 % numK2 = 20;
+k2Start = tic;
 disp(['2nd tier kmeans k = ' num2str(numK2)]);
 tic
 gIX_old = gIX;
@@ -50,11 +53,13 @@ for i = 1:numK1,
     end
     gIX(IX) = (i-1)*numK2+gIX_sub;
 end
-toc
+k2Time = toc(k2Start);
+
 %% 1.2. Regression with the centroid of each cluster
+reg1Start = tic;
 disp('regression with all clusters');
 tic
-Reg = FindCentroid_Direct(gIX,M);
+Reg = FindCentroid_Direct(gIX,M_0);
 [cIX,gIX,~] = AllCentroidRegression_direct(M_0,thres_reg,Reg);
 gIX = SqueezeGroupIX(gIX);
 toc
@@ -72,16 +77,16 @@ end
 [gIX,numU] = SqueezeGroupIX(gIX);
 disp(numU);
 
-
+reg1Time = toc(reg1Start)
 
 %% 2.1 Find and Grow Seeds
-tic
+growStart = tic;
 [cIX,gIX] = GrowClustersFromSeedsItr(thres_merge,thres_cap,thres_minsize,thres_reg2,cIX,gIX,M_0);
-toc
+growTime = toc(growStart);
 %%
 % Regression with the centroid of each cluster, round 2
-disp('auto-reg');
-Reg = FindCentroid_Direct(gIX,M);
+reg2Start = tic;
+Reg = FindCentroid_Direct(gIX,M_0(cIX,:));
 [cIX,gIX] = AllCentroidRegression_direct(M_0,thres_reg2,Reg);
 
 %% size threshold
@@ -101,6 +106,7 @@ if isempty(gIX),
     return;
 end
 
+reg2Time = toc(reg2Start)
 
 
 %% update GUI
@@ -112,5 +118,8 @@ end
 % % f.RefreshFigure(hfig);
 % UpdateClustersGUI_Direct(clusgroupID,clusID,i_fish)
 
-toc
+
+autoClusTime = toc(autoClusStart)
+
+
 end

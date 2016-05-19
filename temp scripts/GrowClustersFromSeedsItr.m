@@ -1,5 +1,5 @@
 function [cIX,gIX] = GrowClustersFromSeedsItr(thres_merge,thres_cap,thres_minsize,thres_reg,cIX,gIX,M_0)
-disp('find ROIs')
+%disp('find ROIs')
 
 % Set params
 
@@ -114,7 +114,7 @@ for i = 1:ROIcount,
     end
 end
 [gIX,numU] = SqueezeGroupIX(gIX);
-disp(numU);
+%disp(numU);
 
 end
 

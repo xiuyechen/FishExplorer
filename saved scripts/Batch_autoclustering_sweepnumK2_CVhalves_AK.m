@@ -1,55 +1,59 @@
-% batch run full-clustering on all fish, sweep param with 2-fold CV
+% Batch run autoclusting, Sweep K2 with 2-fold CV
 % Need to run Batch_k20_CV12_AK first
 
-data_masterdir = GetCurrentDataDir();
+%% Initialize parameters 
 
-% range_fish = [5,6,7];
-% M_ClusGroup = [2,2,2,2];
-% M_Cluster = [1,1,1,1];
-range_fish = 2:2;
-% M_ClusGroup = 2;
-% M_Cluster = 3;
-M_stim = 1;
-% M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2];
+range_fish = 2:2; % select which fish to analyze (can be multiple)
+M_stim = 1; % select which stimuli to use when clustering
+k2_sweep = [1]; % values of k2 to sweep
 
-%%
+isFullData = 1; % If using all cells
 
-
-mergeDef = 0.6;
+mergeDef = 0.6; % Default values of clusParams
 capDef = 0.6;
 reg1Def = 0.7;
 reg2Def = 0.7;
 minSizeDef = 10;
 k1Def = 20;
-k2Def = 2;
+k2Def = 20;
 
 clusParams = struct('merge',mergeDef,'cap',capDef,'reg1',reg1Def,...
     'reg2',reg2Def,'minSize',minSizeDef,'k1',k1Def,'k2',k2Def);
 
-M_param = 2:4:10;%0.3:0.1:0.8;
+k2_nClus = zeros(length(k2_sweep),length(range_fish));
+k2_CVscore = zeros(length(k2_sweep),length(range_fish));
+k2_CVscore_raw = cell(length(k2_sweep),length(range_fish));
+k2_nCells = zeros(length(k2_sweep),length(range_fish));
+k2_compTime = zeros(length(k2_sweep),length(range_fish));
 
-Param_nClus = zeros(length(M_param),length(range_fish));
-Param_CVscore = zeros(length(M_param),length(range_fish));
-Param_CVscore_raw = cell(length(M_param),length(range_fish));
+k2_data = struct('clusParams',clusParams,'nClus',k2_nClus,'CVscore',k2_CVscore,...
+    'nCells',k2_nCells,'compTime',k2_compTime,'clusA',[],'clusB',[]);
 
-%     thres_split = M_param(k_param);
-%     setappdata(hfig,'thres_split',thres_split);
 
+
+data_masterdir = GetCurrentDataDir();
+
+%%
+disp(['Batch Script: Sweep k2, iFish']);
+scriptStart = tic;
+clear leg;
 for k_fish = 1:length(range_fish),
+    
+    %% Load fish data
     i_fish = range_fish(k_fish);
-    disp(i_fish);
-    LoadFullFish(hfig,i_fish,0);
+    leg{k_fish} = ['Fish ' num2str(range_fish(k_fish))];
+    LoadFullFish(hfig,i_fish,isFullData); % Load the data
     absIX = getappdata(hfig,'absIX');
     
-    %% partitions for CV
+    %% Partitions for CV
     timelists = getappdata(hfig,'timelists');
     timelists_names = getappdata(hfig,'timelists_names');
     periods = getappdata(hfig,'periods');
-    if length(periods)>1,
-        timelistsCV = cell(length(M_stim),2);
-        
-        k_stim = 1;
-%         for k_stim = 1:length(M_stim),
+    
+    timelistsCV = cell(length(M_stim),2);
+    
+    % Divides each stimulous in half
+    for k_stim = 1:length(M_stim),
         i_stim = M_stim(k_stim);
         TL = timelists{i_stim};
         period = periods(i_stim);
@@ -57,56 +61,81 @@ for k_fish = 1:length(range_fish),
         n = floor(nrep/2);
         timelistsCV{k_stim,1} = TL(1):TL(n*period);
         timelistsCV{k_stim,2} = TL(1+n*period):TL(2*n*period);
-%           end
     end
     
-    for k_param = 1:length(M_param),
-        clusParams.k2 = M_param(k_param);
+    %% Sweep through k2 and do clustering
+    for k2_dummy = 1:length(k2_sweep),
         
+        k2start = tic;
+        clusParams.k2 = k2_sweep(k2_dummy);
         Score = zeros(1,2);%(length(M_stim),2);
         %%
-        NumClus = zeros(1,2);
+        nClus = zeros(1,2);
         CIX = cell(1,2);
         GIX = cell(1,2);
-        for k = 1:2, % CV halves, load them from saved
+        for half = 1:2, % CV halves, load them from saved
             %%
             i_ClusGroup = 2;
-            i_Cluster = k+2;
+            i_Cluster = half+2; 
+            % this matches the assignments 
+            % in Batch_k20_CV12_AK
             [cIX,gIX] = LoadCluster_Direct(i_fish,i_ClusGroup,i_Cluster,absIX);
             
-            tIX = timelistsCV{k_stim,k};
+            tIX = timelistsCV{k_stim,half};
             M_0 = GetTimeIndexedData_Default_Direct(hfig,[],tIX,'isAllCells');
 
             isWkmeans = 0;
             [cIX,gIX] = AutoClusteringAK(cIX,gIX,M_0,isWkmeans,clusParams);
 %%
-            NumClus(k) = length(unique(gIX));
-            CIX{k} = cIX;
-            GIX{k} = gIX;
+            nClus(half) = length(unique(gIX));
+            nCells(half) = length(unique(cIX));
+            CIX{half} = cIX;
+            GIX{half} = gIX;
         end
-        % plot cell-matching figure
-        Score(1) = HungarianCV(NumClus(1),NumClus(2),CIX{1},CIX{2},GIX{1},GIX{2});% true,timelists_names{i_stim});
-        Score(2) = HungarianCV(NumClus(2),NumClus(1),CIX{2},CIX{1},GIX{2},GIX{1});% true,timelists_names{i_stim});
-        Param_CVscore(k_param,k_fish) = mean(Score);
-        Param_CVscore_raw{k_param,k_fish} = Score;
         
-        nClus1 = length(unique(GIX{1}));
-        nClus2 = length(unique(GIX{2}));
-        Param_nClus(k_param,k_fish) = mean([nClus1,nClus2]);        
+        % Perform 2x Cross Validation
+        Score(1) = HungarianCV(nClus(1),nClus(2),CIX{1},CIX{2},GIX{1},GIX{2});% true,timelists_names{i_stim});
+        Score(2) = HungarianCV(nClus(2),nClus(1),CIX{2},CIX{1},GIX{2},GIX{1});% true,timelists_names{i_stim});
+        k2_CVscore_raw{k2_dummy,k_fish} = Score;
 
-    end
+        % Save clusters and scores
+
+        k2_CVscore(k2_dummy,k_fish) = mean(Score);
+        k2_nClus(k2_dummy,k_fish) = mean([nClus(1),nClus(2)]);        
+        k2_nCells(k2_dummy,k_fish) = mean([nCells(1),nCells(2)]);
+        k2_compTime(k2_dummy,k_fish) = toc(k2start);
+        
+        k2_data(k2_dummy,k_fish).CVscore = mean(Score);
+        k2_data(k2_dummy,k_fish).nClus = mean([nClus(1),nClus(2)]);        
+        k2_data(k2_dummy,k_fish).nCells = mean([nCells(1),nCells(2)]);
+        k2_data(k2_dummy,k_fish).clusParams = clusParams;
+        k2_data(k2_dummy,k_fish).compTime = toc(k2start);
+        
+        k2_data(k2_dummy,k_fish).clusA = struct('cIX',CIX{1},'gIX',GIX{1});
+        k2_data(k2_dummy,k_fish).clusB = struct('cIX',CIX{2},'gIX',GIX{2});
+        end
 end
+scriptTime = toc(scriptStart);
+
+
+disp(['Batch Script Finished, Took ' num2str(scriptTime) ' sec']);
 
 %%
 figure;
-subplot(2,1,1)
-plot(M_param*20,Param_nClus)
+subplot(3,1,1)
+plot(k2_sweep*20,k2_nClus,'-o')
 % legend('Fish8','Fish9');
-xlabel('total k for kmeans')
+%xlabel('total k for kmeans')
 ylabel('# of auto-clusters')
-subplot(2,1,2)
-plot(M_param*20,Param_CVscore)
+subplot(3,1,2)
+plot(k2_sweep*20,k2_CVscore,'-o')
 ylim([0,1])
-legend('Fish8','Fish9');
+
 xlabel('total k for kmeans')
 ylabel('CV (overlapping cell %)')
+subplot(3,1,3)
+plot(k2_sweep*20,k2_nCells,'-o');
+%xlabel('total k for kameans')
+ylabel('total # of cells included in clusters')
+
+legend(leg,'location','best');
