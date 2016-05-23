@@ -3,7 +3,7 @@ isFullData = 1;
 numK = 20;
 data_masterdir = GetCurrentDataDir();
 
-range_fish =  1:3; 
+range_fish =  2:2; 
 % M_ClusGroup = [2,2,2,2];
 % M_Cluster = [1,1,1,1];
 const_ClusGroup = 2;

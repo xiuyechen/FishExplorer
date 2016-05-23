@@ -1,16 +1,16 @@
 % Batch run autoclusting, Sweep K2 with 2-fold CV
 % Need to run Batch_k20_CV12_AK first
 
-%% Initialize parameters 
+%% Initialize Parameters 
 
-range_fish = 2:2; % select which fish to analyze (can be multiple)
+range_fish = 1:15; % select which fish to analyze (can be multiple)
 M_stim = 1; % select which stimuli to use when clustering
-k2_sweep = [2 3]; % values of k2 to sweep
+k2_sweep = round(logspace(1,3,6)); % values of k2 to sweep
 
 isFullData = 1; % If using all cells
 
-mergeDef = 0.6; % Default values of clusParams
-capDef = 0.6;
+mergeDef = 0.7; % Default values of clusParams
+capDef = 0.7;
 reg1Def = 0.7;
 reg2Def = 0.7;
 minSizeDef = 10;
@@ -28,8 +28,6 @@ k2_compTime = zeros(length(k2_sweep),length(range_fish));
 
 k2_data = struct('clusParams',clusParams,'nClus',k2_nClus,'CVscore',k2_CVscore,...
     'nCells',k2_nCells,'compTime',k2_compTime,'clusA',[],'clusB',[]);
-
-
 
 data_masterdir = GetCurrentDataDir();
 
@@ -116,8 +114,6 @@ for k_fish = 1:length(range_fish),
         end
 end
 scriptTime = toc(scriptStart);
-
-
 disp(['Batch Script Finished, Took ' num2str(scriptTime) ' sec']);
 
 %%
