@@ -718,6 +718,12 @@ uicontrol('Parent',tab{i_tab},'Style','checkbox','String','(starting with k-mean
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',1,...
     'Callback',@checkbox_wkmeans_Callback);
 
+i=i+n+1; % longest script here. Splits clusters and prunes them, to yield only very tight clusters.
+n=3; % really pretty results, but takes a while when regressing with every centroid. Read code for details.
+uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','New Auto-Clustering',...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+    'Callback',{@pushbutton_newautoclus_Callback});
+
 %% UI row 3: Hier. clustering
 i_row = 3;
 i = 1;n = 0;
@@ -761,6 +767,12 @@ n=2; % Plots the correlation between all current clusters as a matrix
 uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Corr. plot',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',{@pushbutton_corrplot_Callback});
+
+i=i+n;
+n=2; % Plots the correlation between all current clusters as a matrix
+uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Artifacts',...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+    'Callback',{@pushbutton_finddust_Callback});
 
 %% UI ----- tab five ----- (Saved Clusters)
 i_tab = 5;
@@ -1086,6 +1098,7 @@ assignin('base', 'tIX', getappdata(hfig,'tIX'));
 assignin('base', 'numK', getappdata(hfig,'numK'));
 assignin('base', 'absIX', getappdata(hfig,'absIX'));
 assignin('base', 'i_fish', getappdata(hfig,'i_fish'));
+assignin('base', 'CellXYZ', getappdata(hfig,'CellXYZ'));
 end
 
 function pushbutton_loadVARfromworkspace_Callback(hObject,~)
@@ -3050,6 +3063,21 @@ beep;
 
 end
 
+function pushbutton_newautoclus_Callback(hObject,~)
+hfig = getParentFigure(hObject);
+cIX = getappdata(hfig,'cIX');
+gIX = getappdata(hfig,'gIX');
+i_fish = getappdata(hfig,'i_fish');
+absIX = getappdata(hfig,'absIX');
+M_0 = getappdata(hfig,'M_0');
+isWkmeans = getappdata(hfig,'isWkmeans');
+
+[cIX,gIX] = AutoClustering(cIX,gIX,absIX,i_fish,M_0,isWkmeans);
+
+UpdateIndices(hfig,cIX,gIX);
+RefreshFigure(hfig);
+end
+
 function pushbutton_thressize_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 cIX = getappdata(hfig,'cIX');
@@ -3224,6 +3252,18 @@ coeffs = corr(C');%corr(C(1,:)',C(2,:)')
 figure('Position',[1000,200,500,500]);
 isPlotText = (size(C,1)<30);
 CorrPlot(coeffs,isPlotText);
+end
+
+function pushbutton_finddust_Callback(hObject,~)
+hfig = getParentFigure(hObject);
+cIX = getappdata(hfig,'cIX');
+gIX = getappdata(hfig,'gIX');
+CellXYZ = getappdata(hfig,'CellXYZ');
+absIX = getappdata(hfig,'absIX');
+[cIX,gIX] = DustAnalysis(cIX,gIX,CellXYZ,absIX);
+[gIX,numK] = SqueezeGroupIX(gIX);
+UpdateIndices(hfig,cIX,gIX,numK);
+RefreshFigure(hfig);
 end
 
 %% ----- tab five ----- (Saved Clusters)
@@ -3723,6 +3763,11 @@ if ~exist('cIX','var'),
     cIX = getappdata(hfig,'cIX');
 end
 
+if isempty(gIX),
+    errordlg('empty set!');
+    return;
+end
+
 % update cache
 bC = getappdata(hfig,'bCache');
 cIX_last = getappdata(hfig,'cIX');
@@ -3829,6 +3874,16 @@ end
 
 % frequently used, 2 plotting functions are outside ('DrawTimeSeries.m' and 'DrawCellsOnAnatProj.m')
 function RefreshFigure(hfig)
+%% double-check if cIX is valid
+cIX = getappdata(hfig,'cIX');
+if isempty(cIX),
+    errordlg('empty set!');
+%     % GO BACK to the last step (presumably not empty)
+%     pushbutton_back_Callback(h1); % using h1 instaed of the usual 'hObject'
+    return;
+end
+
+%%
 WatchOn(hfig); drawnow;
 isPopout = 0; % with down-sampling in plots
 
@@ -3847,15 +3902,6 @@ isRefAnat = getappdata(hfig,'isRefAnat');
 
 isPlotLines = 0; %getappdata(hfig,'isPlotLines');
 isPlotBehavior = 1; %getappdata(hfig,'isPlotBehavior');
-
-% double-check if cIX is valid
-cIX = getappdata(hfig,'cIX');
-if isempty(cIX),
-    errordlg('empty set!');
-    % GO BACK to the last step (presumably not empty)
-    pushbutton_back_Callback(h1); % using h1 instaed of the usual 'hObject'
-    return;
-end
 
 % left subplot
 axes(h1);

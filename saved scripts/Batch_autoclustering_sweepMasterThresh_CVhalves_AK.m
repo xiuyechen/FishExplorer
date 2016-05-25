@@ -64,16 +64,17 @@ for k_fish = 1:length(range_fish),
     end
     
     %% Sweep through k2 and do clustering
-    for masterThresh_dummy = 1:length(masterThresh_sweep),
+    for k_masterThresh = 1:length(masterThresh_sweep),
         
         sweepStart = tic;
-        clusParams.merge = masterThresh_sweep(masterThresh_dummy);
-        clusParams.cap = masterThresh_sweep(masterThresh_dummy);
-        clusParams.reg1 = masterThresh_sweep(masterThresh_dummy);
-        clusParams.reg2 = masterThresh_sweep(masterThresh_dummy);
+        clusParams.merge = masterThresh_sweep(k_masterThresh);
+        clusParams.cap = masterThresh_sweep(k_masterThresh);
+        clusParams.reg1 = masterThresh_sweep(k_masterThresh);
+        clusParams.reg2 = masterThresh_sweep(k_masterThresh);
         Score = zeros(1,2);%(length(M_stim),2);
         %%
         nClus = zeros(1,2);
+        nCells = zeros(1,2);
         CIX = cell(1,2);
         GIX = cell(1,2);
         for half = 1:2, % CV halves, load them from saved
@@ -88,7 +89,7 @@ for k_fish = 1:length(range_fish),
             M_0 = GetTimeIndexedData_Default_Direct(hfig,[],tIX,'isAllCells');
 
             isWkmeans = 0;
-            [cIX,gIX] = AutoClusteringAK(cIX,gIX,M_0,isWkmeans,clusParams);
+            [cIX,gIX] = AutoClustering(cIX,gIX,M_0,isWkmeans,clusParams);
 %%
             nClus(half) = length(unique(gIX));
             nCells(half) = length(unique(cIX));
@@ -99,23 +100,23 @@ for k_fish = 1:length(range_fish),
         % Perform 2x Cross Validation
         Score(1) = HungarianCV(nClus(1),nClus(2),CIX{1},CIX{2},GIX{1},GIX{2});% true,timelists_names{i_stim});
         Score(2) = HungarianCV(nClus(2),nClus(1),CIX{2},CIX{1},GIX{2},GIX{1});% true,timelists_names{i_stim});
-        masterThresh_CVscore_raw{masterThresh_dummy,k_fish} = Score;
+        masterThresh_CVscore_raw{k_masterThresh,k_fish} = Score;
 
         % Save clusters and scores
 
-        masterThresh_CVscore(masterThresh_dummy,k_fish) = mean(Score);
-        masterThresh_nClus(masterThresh_dummy,k_fish) = mean([nClus(1),nClus(2)]);        
-        masterThresh_nCells(masterThresh_dummy,k_fish) = mean([nCells(1),nCells(2)]);
-        masterThresh_compTime(masterThresh_dummy,k_fish) = toc(sweepStart);
+        masterThresh_CVscore(k_masterThresh,k_fish) = mean(Score);
+        masterThresh_nClus(k_masterThresh,k_fish) = mean([nClus(1),nClus(2)]);        
+        masterThresh_nCells(k_masterThresh,k_fish) = mean([nCells(1),nCells(2)]);
+        masterThresh_compTime(k_masterThresh,k_fish) = toc(sweepStart);
         
-        masterThresh_data(masterThresh_dummy,k_fish).CVscore = mean(Score);
-        masterThresh_data(masterThresh_dummy,k_fish).nClus = mean([nClus(1),nClus(2)]);        
-        masterThresh_data(masterThresh_dummy,k_fish).nCells = mean([nCells(1),nCells(2)]);
-        masterThresh_data(masterThresh_dummy,k_fish).clusParams = clusParams;
-        masterThresh_data(masterThresh_dummy,k_fish).compTime = toc(sweepStart);
+        masterThresh_data(k_masterThresh,k_fish).CVscore = mean(Score);
+        masterThresh_data(k_masterThresh,k_fish).nClus = mean([nClus(1),nClus(2)]);        
+        masterThresh_data(k_masterThresh,k_fish).nCells = mean([nCells(1),nCells(2)]);
+        masterThresh_data(k_masterThresh,k_fish).clusParams = clusParams;
+        masterThresh_data(k_masterThresh,k_fish).compTime = toc(sweepStart);
         
-        masterThresh_data(masterThresh_dummy,k_fish).clusA = struct('cIX',CIX{1},'gIX',GIX{1});
-        masterThresh_data(masterThresh_dummy,k_fish).clusB = struct('cIX',CIX{2},'gIX',GIX{2});
+        masterThresh_data(k_masterThresh,k_fish).clusA = struct('cIX',CIX{1},'gIX',GIX{1});
+        masterThresh_data(k_masterThresh,k_fish).clusB = struct('cIX',CIX{2},'gIX',GIX{2});
         end
 end
 scriptTime = toc(scriptStart);
