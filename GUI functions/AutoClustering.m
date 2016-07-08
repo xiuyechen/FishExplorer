@@ -1,30 +1,36 @@
-function [cIX,gIX] = AutoClusteringAK(cIX,gIX,M_0,isWkmeans,clusParams)
-% [cIX,gIX] = AutoClustering(cIX,gIX,absIX,i_fish,M_0,isWkmeans,numK2)
+function [cIX,gIX] = AutoClustering(cIX,gIX,M_0,isWkmeans,clusParams,absIX,i_fish)
+% [cIX,gIX] = AutoClustering(cIX,gIX,M_0,isWkmeans,numK2)
 % automatically cluster all cells, starting with the currently selected
 % cells
 
 %% set params
+% default:
+thres_reg2 = 0.5;
+thres_reg = 0.5;
+thres_merge = 0.5;
+thres_cap = 0.3;
+thres_minsize = 10;
+numK1 = 20;
+avrFxsize = 10;
+numK2 = round(length(cIX)/avrFxsize/numK1);
+
+isShowProgress = 1;
+
+% optional override:
 if exist('clusParams','var'),
-    thres_reg2 = clusParams.reg2; % correlation coeff
-    thres_reg = clusParams.reg1; % correlation coeff
-    thres_merge = clusParams.merge; % correlation coeff
-    thres_cap = clusParams.cap; % correlation coeff
-    thres_minsize = clusParams.minSize; % number of cells
-    numK1 = clusParams.k1;
-    numK2 = clusParams.k2;
-    
-    isShowProgress = 0;
+    if ~isempty(clusParams),
+        thres_reg2 = clusParams.reg2; % correlation coeff
+        thres_reg = clusParams.reg1; % correlation coeff
+        thres_merge = clusParams.merge; % correlation coeff
+        thres_cap = clusParams.cap; % correlation coeff
+        thres_minsize = clusParams.minSize; % number of cells
+        numK1 = clusParams.k1;
+        numK2 = clusParams.k2;
+        
+        isShowProgress = 0;
+    end
 else
-    thres_reg2 = 0.5;
-    thres_reg = 0.5;
-    thres_merge = 0.5;
-    thres_cap = 0.5;
-    thres_minsize = 10;
-    numK1 = 20;
-    avrFxsize = 10;
-    numK2 = round(length(cIX)/avrFxsize/numK1);
     
-    isShowProgress = 1;
 end
 
 %%
@@ -38,7 +44,7 @@ if isWkmeans,
     if isShowProgress,
         disp(['kmeans step 1: k = ' num2str(numK1)]);
     end
-
+    
     rng('default');% default = 0, but can try different seeds if doesn't converge
     if numel(M)*numK1 < 10^7 && numK1~=1,
         disp('Replicates = 5');
@@ -61,7 +67,7 @@ end
 k2Start = tic;
 
 gIX_old = gIX;
- 
+
 % temporarily suppress kmeans warnings
 wid = 'stats:kmeans:FailedToConverge';
 orig_warn = warning('off',wid);
@@ -73,7 +79,7 @@ for i = 1:numK1,
     if numK2<length(IX),
         gIX_sub = kmeans(M_sub,numK2,'distance','correlation');
     else
-        gIX_sub = kmeans(M_sub,length(IX),'distance','correlation');     
+        gIX_sub = kmeans(M_sub,length(IX),'distance','correlation');
     end
     gIX(IX) = (i-1)*numK2+gIX_sub;
 end
@@ -89,39 +95,52 @@ end
 reg1Start = tic;
 
 Reg = FindCentroid_Direct(gIX,M_0);
-[cIX,gIX,~] = AllCentroidRegression_direct(M_0,thres_reg,Reg);
-gIX = SqueezeGroupIX(gIX);
+[cIX,gIX,numFoxels] = AllCentroidRegression_SizeThres_direct(M_0,thres_reg,Reg,thres_minsize/2);
 
 reg1Time = toc(reg1Start);
 
-%% 1.3 size thresholding
-U = unique(gIX);
-numU = length(U);
-for i=1:numU,
-    if length(find(gIX==U(i)))<thres_minsize/2,
-        cIX(gIX==U(i)) = [];
-        gIX(gIX==U(i)) = [];
-    end
-end
-[gIX,numU] = SqueezeGroupIX(gIX);
-numFoxels = numU;
+clusgroupID = 2;
+SaveCluster_Direct(cIX,gIX,absIX,i_fish,'foxels',clusgroupID);
 
 %% 2. Merge foxels to obtain fROI's (functional ROI's)
 if isShowProgress,
     disp('Merge foxels (iterative)');
 end
 growStart = tic;
-[cIX,gIX] = GrowClustersFromSeedsItr(thres_merge,thres_cap,thres_minsize,thres_reg2,cIX,gIX,M_0);
+[cIX,gIX] = GrowClustersFromSeedsItr(thres_merge,thres_cap,thres_minsize,cIX,gIX,M_0);
 growTime = toc(growStart);
+
+
+clusgroupID = 2;
+SaveCluster_Direct(cIX,gIX,absIX,i_fish,'afterGrowth',clusgroupID);
 
 %% 3. Clean-up fROI's
 %% 3.1 Regression with the centroid of each cluster (round 2)
 if isShowProgress,
-    disp('Merge foxels (iterative)');
+    disp('Regression 2');
 end
 reg2Start = tic;
 Reg = FindCentroid_Direct(gIX,M_0(cIX,:));
-[cIX,gIX] = AllCentroidRegression_direct(M_0,thres_reg2,Reg);
+[cIX,gIX,numK2] = AllCentroidRegression_SizeThres_direct(M_0,thres_reg2,Reg,thres_minsize/2);
+numK2
+
+
+clusgroupID = 2;
+SaveCluster_Direct(cIX,gIX,absIX,i_fish,'afterGrowth_RegSize',clusgroupID);
+
+
+growStart2 = tic;
+[cIX,gIX] = GrowClustersFromSeedsItr(thres_merge,thres_cap,thres_minsize,cIX,gIX,M_0);
+growTime2 = toc(growStart2);
+
+
+%% 4.
+
+
+Reg = FindCentroid_Direct(gIX,M_0(cIX,:));
+[cIX,gIX,numK1] = AllCentroidRegression_direct(M_0,thres_reg2,Reg);
+numK1
+
 reg2Time = toc(reg2Start);
 
 %% 3.2. size threshold
@@ -135,16 +154,21 @@ for i=1:numU,
 end
 [gIX,numROI] = SqueezeGroupIX(gIX);
 
+numROI
+C = FindCentroid_Direct(gIX,M_0(cIX,:));
+gIX = HierClus_Direct(C,gIX);
+
 %% report timing
 autoClusTime = toc(autoClusStart);
 
 disp([' k1:' num2str(k1Time) ...
-' k2:' num2str(k2Time) ...
-' reg1:' num2str(reg1Time) ... 
-' nFox:' num2str(numFoxels) ...
-' grow:' num2str(growTime)...
-' reg2:' num2str(reg2Time) ...
-' nROI:' num2str(numROI) ...
-' autoClus:' num2str(autoClusTime) ' sec']);
+    ' k2:' num2str(k2Time) ...
+    ' reg1:' num2str(reg1Time) ...
+    ' nFox:' num2str(numFoxels) ...
+    ' grow:' num2str(growTime)...
+    ' grow2:' num2str(growTime2)...
+    ' reg2:' num2str(reg2Time) ...
+    ' nROI:' num2str(numROI) ...
+    ' autoClus:' num2str(autoClusTime) ' sec']);
 
 end

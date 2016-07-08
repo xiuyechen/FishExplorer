@@ -3067,12 +3067,12 @@ function pushbutton_newautoclus_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
-i_fish = getappdata(hfig,'i_fish');
-absIX = getappdata(hfig,'absIX');
 M_0 = getappdata(hfig,'M_0');
 isWkmeans = getappdata(hfig,'isWkmeans');
+absIX = getappdata(hfig,'absIX');
+i_fish = getappdata(hfig,'i_fish');
 
-[cIX,gIX] = AutoClustering(cIX,gIX,absIX,i_fish,M_0,isWkmeans);
+[cIX,gIX] = AutoClustering(cIX,gIX,M_0,isWkmeans,[],absIX,i_fish);
 
 UpdateIndices(hfig,cIX,gIX);
 RefreshFigure(hfig);

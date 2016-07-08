@@ -11,7 +11,8 @@ function [U,V,A,B] = stim_coefs(Uorig,W)
 % B, coefficients of orthogonalized basis
 
 
-U = normc(Uorig);
+% U = normc(Uorig);
+U = Uorig;
 numBases = size(U,2);
 A = inv(U'*U)*U'*W;
 
