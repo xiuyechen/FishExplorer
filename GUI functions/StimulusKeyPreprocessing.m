@@ -44,7 +44,6 @@ end
 %% Manual: params for each fish
 
 % write out protocol sequence for each block; write stimulus sets within block in arrays within cell
-
 if i_fish == 8,
     nBlocks = 3;
     block_raw = cell(nBlocks,1); % number of blocks
@@ -134,7 +133,7 @@ elseif i_fish >=12 && i_fish <=14,
 %     
 %     % M_range_raw = [1,3,4] % for Fish 10
 %     M_range =       [0,3,4]; % standardized
-elseif i_fish >=15 && i_fish <=18,
+elseif ismember(i_fish,[15,17,18]),
 %     M_range_raw = [2   3   4   5  12  13  14  15  16  17  18  99]
     nBlocks = 2;
     block_raw = cell(nBlocks,1); % number of blocks
@@ -156,6 +155,26 @@ elseif i_fish >=15 && i_fish <=18,
     % M_range_raw = [2,3,4,5,12,13,14,15,16,17,18,30,31,32,99] % for Fish 12
     M_range =       [3,1,3,2, 3,10, 9,11,12, 3, 0, 3,14,15, 4]; % standardized
 
+% elseif i_fish==16,
+%     %     M_range_raw = [2   3   4   5  12  13  14  15  16  17  18  99]
+%     nBlocks = 1;
+%     block_raw = cell(nBlocks,1); % number of blocks
+%     block_raw{1} = {31,[2,3,4,5],[12,13,12,14,12,15,12,16],31};
+%         
+%     stimset = [];
+%     stimset(1).name = 'NA';
+%     stimset(1).ij = [1,1; 2,1];
+%     stimset(2).name = 'PT';
+%     stimset(2).ij = [1,1; 2,1];
+%     stimset(3).name = 'OMR';
+%     stimset(3).ij = [1,2; 2,2];
+%     stimset(4).name = 'NA';
+%     stimset(4).ij = [1,3; 2,3];
+% 
+% 
+%     % M_range_raw = [2,3,4,5,12,13,14,15,16,31] % for Fish 12
+%     M_range =       [3,1,3,2, 3,10, 9,11,12,0]; % standardized
+    
 else % inspect manually to set these manual params
     % set M_range here after first inspection of M_range_raw:
     M_range =       [3,1,3,2, 9,10,11,12, 0,13, 3,14,15, 4,16]; % standardized

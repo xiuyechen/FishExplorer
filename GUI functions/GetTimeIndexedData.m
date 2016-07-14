@@ -22,6 +22,7 @@ stimAvr = getappdata(hfig,'stimAvr');
 isAvr = getappdata(hfig,'isAvr');
 cIX = getappdata(hfig,'cIX');
 tIX = getappdata(hfig,'tIX');
+% absIX = getappdata(hfig,'absIX');
 
 %% set data
 if isAvr,

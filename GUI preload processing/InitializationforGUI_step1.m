@@ -1,4 +1,4 @@
-% Formatting_initializationforGUI
+% InitializationforGUI_step1
 % Processing nested data: one-time initialization for GUI
 
 clear all; close all
@@ -8,8 +8,7 @@ behav_fluo_shift = -2; % shift correction between fictive and fluo, manually cho
 
 %% Load data
 data_masterdir = GetNestedDataDir();
-
-range_fish = 15;
+range_fish = GetFishRange();
 
 for i_fish = range_fish,
     
@@ -66,13 +65,13 @@ for i_fish = range_fish,
         Behavior_full = Behavior_raw(:,IX_all_raw);
         
         % trimming & shift
-        CellResp = TimeSeries(:,IX_all_raw);
-        CellResp = circshift(CellResp,behav_fluo_shift,2);
+        CellResp_full = TimeSeries(:,IX_all_raw);
+        CellResp_full = circshift(CellResp_full,behav_fluo_shift,2);
         
         % averages
         period = periods;
-        numcell = size(CellResp,1);
-        CellRespAvr = mean(reshape(CellResp,numcell,period,[]),3);
+        numcell = size(CellResp_full,1);
+        CellRespAvr_full = mean(reshape(CellResp_full,numcell,period,[]),3);
         stimAvr = stim_full(1:period);
         BehaviorAvr = mean(reshape(Behavior_full,size(Behavior_full,1),period,[]),3);
         
@@ -94,16 +93,16 @@ for i_fish = range_fish,
         Behavior_full = Behavior_raw(:,IX_all_raw);
         
         % trimming & shift
-        CellResp = TimeSeries(:,IX_all_raw);
-        CellResp = circshift(CellResp,behav_fluo_shift,2); % using circshift as a shortcut for padding on one end
+        CellResp_full = TimeSeries(:,IX_all_raw);
+        CellResp_full = circshift(CellResp_full,behav_fluo_shift,2); % using circshift as a shortcut for padding on one end
         
         % averages
-        numcell = size(CellResp,1);
-        CellRespAvr = [];
+        numcell = size(CellResp_full,1);
+        CellRespAvr_full = [];
         stimAvr = [];
         BehaviorAvr = [];
         for i = 1:nTypes,
-            M = CellResp(:,timelists{i});
+            M = CellResp_full(:,timelists{i});
             if mod(numel(M),numcell*periods(i))==0,
                 avr = mean(reshape(M,numcell,periods(i),[]),3);
             else % for patterns with dummy periods where the stimulus is constant, like 'spont'
@@ -111,10 +110,10 @@ for i_fish = range_fish,
                 M2 = M(:,1:nrep*periods(i));
                 avr = mean(reshape(M2,numcell,periods(i),[]),3);
             end
-            CellRespAvr = horzcat(CellRespAvr,avr);
+            CellRespAvr_full = horzcat(CellRespAvr_full,avr); %#ok<AGROW>
             
             m = stim_full(timelists{i});
-            stimAvr = horzcat(stimAvr,m(1:periods(i)));
+            stimAvr = horzcat(stimAvr,m(1:periods(i))); %#ok<AGROW>
             
             M_behav = Behavior_full(:,timelists{i});
             if mod(numel(M_behav),size(M_behav,1)*periods(i))==0,            
@@ -124,7 +123,7 @@ for i_fish = range_fish,
                 M2_behav = M_behav(:,1:nrep*periods(i));
                 avr = mean(reshape(M2_behav,size(M_behav,1),periods(i),[]),3);
             end
-            BehaviorAvr = horzcat(BehaviorAvr,avr);
+            BehaviorAvr = horzcat(BehaviorAvr,avr); %#ok<AGROW>
         end
     end
     
@@ -144,8 +143,8 @@ for i_fish = range_fish,
     %% compute z-score
     disp('compute z-score...')
     tic
-    CellRespZ = zscore(CellResp')';
-    CellRespAvrZ = zscore(CellRespAvr')';
+    CellRespZ_full = zscore(CellResp_full')';
+    CellRespAvrZ_full = zscore(CellRespAvr_full')';
     toc
     
     %% save
@@ -159,18 +158,18 @@ for i_fish = range_fish,
     end
     
     % save time-series
-    filename = fullfile(save_dir,'TimeSeries_full.h5');
-    h5create(filename,'/CellResp',size(CellResp),'Datatype','single','ChunkSize',[1000 100]);
-    h5write(filename,'/CellResp',CellResp);
+    filename = fullfile(save_dir,'TimeSeries.h5');
+    h5create(filename,'/CellResp',size(CellResp_full(absIX,:)),'Datatype','single','ChunkSize',[1000 100]);
+    h5write(filename,'/CellResp',CellResp_full(absIX,:));
     
-    h5create(filename,'/CellRespZ',size(CellRespZ),'Datatype','single','ChunkSize',[1000 100]);
-    h5write(filename,'/CellRespZ',CellRespZ);
+    h5create(filename,'/CellRespZ',size(CellRespZ_full(absIX,:)),'Datatype','single','ChunkSize',[1000 100]);
+    h5write(filename,'/CellRespZ',CellRespZ_full(absIX,:));
     
-    h5create(filename,'/CellRespAvr',size(CellRespAvr),'Datatype','single','ChunkSize',[1000 100]);
-    h5write(filename,'/CellRespAvr',CellRespAvr);
+    h5create(filename,'/CellRespAvr',size(CellRespAvr_full(absIX,:)),'Datatype','single','ChunkSize',[1000 100]);
+    h5write(filename,'/CellRespAvr',CellRespAvr_full(absIX,:));
     
-    h5create(filename,'/CellRespAvrZ',size(CellRespAvrZ),'Datatype','single','ChunkSize',[1000 100]);
-    h5write(filename,'/CellRespAvrZ',CellRespAvrZ);
+    h5create(filename,'/CellRespAvrZ',size(CellRespAvrZ_full(absIX,:)),'Datatype','single','ChunkSize',[1000 100]);
+    h5write(filename,'/CellRespAvrZ',CellRespAvrZ_full(absIX,:));
     
     h5create(filename,'/absIX',size(absIX),'Datatype','single');
     h5write(filename,'/absIX',absIX);
@@ -183,7 +182,7 @@ for i_fish = range_fish,
         'timelists','stim_full','stimAvr','Behavior_full','BehaviorAvr'};
 %         'absIX'}; % absIX now stored in hdf5
     if length(timelists_names)>1, % M_stimset(i_fish) > 1,
-        names = [names,{'stimset'}];
+        names = [names,{'stimset'}]; %#ok<AGROW>
     end
     
     for i = 1:length(names), % use loop to save variables into fields of 'data'

@@ -65,7 +65,7 @@ if exist(fullfile(data_masterdir,name_MASKs),'file') ...
 end
 
 %% fish protocol sets (different sets have different parameters)
-M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3]; % M = Matrix
+M_fish_set = GetFishStimset(); % M = Matrix
 setappdata(hfig,'M_fish_set',M_fish_set);
 
 %% parameters / constants
@@ -101,6 +101,7 @@ setappdata(hfig,'thres_ttest',thres_ttest); % min size for clusters
 
 % variables
 % (not sure all these need to be initialized, probably not complete either)
+setappdata(hfig,'i_fish',0);
 setappdata(hfig,'clrmap','hsv');
 setappdata(hfig,'opID',0);
 setappdata(hfig,'rankID',0);
@@ -122,7 +123,7 @@ setappdata(hfig,'isShowMskOutline',0);
 setappdata(hfig,'isWeighAlpha',0);
 setappdata(hfig,'isPlotAnatomyOnly',0);
 setappdata(hfig,'isRefAnat',0);
-setappdata(hfig,'isFullData',0);
+setappdata(hfig,'isFullData',1);
 
 setappdata(hfig,'clusgroupID_view',1);
 setappdata(hfig,'clusID_view',0); % set in UpdateClusGroupGUI
@@ -267,7 +268,7 @@ hloadfish = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',temp,...
 i=i+n;
 n=2; % only centroids (~mean) of clusters shown on left-side plot, the rest is unchanged
 uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Load 100% data',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',0,...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',1,...
     'Callback',@checkbox_isFullData_Callback);
 
 % i=i+n;
@@ -707,7 +708,7 @@ uicontrol('Parent',tab{i_tab},'Style','edit','String',num2str(thres_size),...
     'Callback',{@edit_sizethres_Callback});
 
 i=i+n+1; % longest script here. Splits clusters and prunes them, to yield only very tight clusters.
-n=3; % really pretty results, but takes a while when regressing with every centroid. Read code for details.
+n=3;
 uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Full Auto-Clustering',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',{@pushbutton_autoclus_Callback});
@@ -718,11 +719,18 @@ uicontrol('Parent',tab{i_tab},'Style','checkbox','String','(starting with k-mean
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',1,...
     'Callback',@checkbox_wkmeans_Callback);
 
-i=i+n+1; % longest script here. Splits clusters and prunes them, to yield only very tight clusters.
-n=3; % really pretty results, but takes a while when regressing with every centroid. Read code for details.
-uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','New Auto-Clustering',...
+i=i+n; % longest script here. Splits clusters and prunes them, to yield only very tight clusters.
+n=3;
+uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Make foxels',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-    'Callback',{@pushbutton_newautoclus_Callback});
+    'Callback',{@pushbutton_makefoxels_Callback});
+
+i=i+n; % starting with foxels
+n=3; 
+uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Auto-Clustering from foxels',...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+    'Callback',{@pushbutton_autoclusfromfoxels_Callback});
+
 
 %% UI row 3: Hier. clustering
 i_row = 3;
@@ -769,10 +777,16 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Corr. plot',...
     'Callback',{@pushbutton_corrplot_Callback});
 
 i=i+n;
-n=2; % Plots the correlation between all current clusters as a matrix
+n=2; % find clusters that may be artifacts (small std in any dimension)
 uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Artifacts',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-    'Callback',{@pushbutton_finddust_Callback});
+    'Callback',{@pushbutton_findartifacts_Callback});
+
+i=i+n;
+n=2; % remove clusters that may be artifacts (small std in any dimension)
+uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Remove artifacts',...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+    'Callback',{@pushbutton_removeartifacts_Callback});
 
 %% UI ----- tab five ----- (Saved Clusters)
 i_tab = 5;
@@ -1198,10 +1212,12 @@ isFullData = get(hObject,'Value');
 setappdata(hfig,'isFullData',isFullData);
 i_fish = getappdata(hfig,'i_fish');
 
-WatchOn(hfig); drawnow;
-LoadFullFish(hfig,i_fish,isFullData);
-UpdateFishData(hfig,i_fish);
-WatchOff(hfig);
+if i_fish>0,
+    WatchOn(hfig); drawnow;
+    LoadFullFish(hfig,i_fish,isFullData);
+    UpdateFishData(hfig,i_fish);
+    WatchOff(hfig);
+end
 end
 
 % function pushbutton_choosefilestoload_Callback(hObject,~)
@@ -2938,132 +2954,18 @@ function pushbutton_autoclus_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
-M = getappdata(hfig,'M');
 M_0 = getappdata(hfig,'M_0');
-thres_size = 10;
-thres_split = getappdata(hfig,'thres_split');
-thres_stimlock = 1.0;
-thres_merge = getappdata(hfig,'thres_merge');
-thres_silh = 0.4;
-
 isWkmeans = getappdata(hfig,'isWkmeans');
+absIX = getappdata(hfig,'absIX');
+i_fish = getappdata(hfig,'i_fish');
 
-%% kmeans
-if isWkmeans,
-    numK = 20;
-    disp(['kmeans k = ' num2str(numK)]);
-    tic
-    rng('default');% default = 0, but can try different seeds if doesn't converge
-    if numel(M)*numK < 10^7 && numK~=1,
-        disp('Replicates = 5');
-        gIX = kmeans(M,numK,'distance','correlation','Replicates',5);
-    elseif numel(M)*numK < 10^8 && numK~=1,
-        disp('Replicates = 3');
-        gIX = kmeans(M,numK,'distance','correlation','Replicates',3);
-    else
-        gIX = kmeans(M,numK,'distance','correlation');
-    end
-    toc
-    clusgroupID = 2;
-    SaveCluster(hfig,cIX,gIX,'k=20',clusgroupID);
-end
-[gIX, numU] = SqueezeGroupIX(gIX);
+[cIX,gIX] = AutoClustering(cIX,gIX,M_0,isWkmeans,[],absIX,i_fish);
 
-%% pushbutton_iter_split(hObject,~);
-disp('iter. split all...');
-I_rest = [];
-iter = 1;
-gIX_last = gIX;
-I_clean_last = cIX;
-cIX = [];
-gIX = [];
-for i = 1:numU,
-    disp(['i = ' num2str(i)]);
-    ix = gIX_last == i;
-    IX = I_clean_last(ix);
-    M_s = M_0(IX,:);
-    [I_rest,cIX,gIX,numU] = CleanClus(M_s,IX,I_rest,cIX,gIX,numU,1-thres_split,thres_size);
-end
-[gIX, ~] = SqueezeGroupIX(gIX);
-if isempty(gIX),
-    errordlg('nothing to display!');
-    return;
-end
-% SaveCluster(hfig,cIX,gIX,['clean_round' num2str(iter)]);
-% SaveCluster(hfig,I_rest,ones(length(I_rest),1),['rest_round' num2str(iter)]);
-
-[gIX, numU] = Merge_direct(thres_merge,M_0,cIX,gIX);
-
-%% rank by stim-lock
-disp('stim-lock');
-UpdateIndices(hfig,cIX,gIX,numU);
-[gIX,rankscore] = RankByStimLock_Direct(hfig,gIX,numU);
-disp('ranking complete');
-% and threshold
-IX = find(rankscore<thres_stimlock);
-ix = ismember(gIX,IX);
-gIX = gIX(ix);
-cIX = cIX(ix);
 UpdateIndices(hfig,cIX,gIX);
-
-%% Regression with the centroid of each cluster
-[cIX,gIX,~] = AllCentroidRegression(hfig);
-disp('auto-reg-clus complete');
-
-[gIX, numU] = Merge_direct(thres_merge,M_0,cIX,gIX);
-% SaveCluster(hfig,cIX,gIX,'clean_round2');
-
-%% Silhouette
-% disp('silhouette analysis');
-% gIX_last = gIX;
-% for i = 1:numU,
-%     disp(['i = ' num2str(i)]);
-%     IX = find(gIX_last == i);
-%     cIX_2 = cIX(IX);
-%     M_s = M_0(cIX_2,:);
-%     % try k-means with k=2, see whether to keep
-%     gIX_ = kmeans(M_s,2,'distance','correlation');
-%     silh = silhouette(M_s,gIX_,'correlation');
-%     if mean(silh)>thres_silh,
-%         % keep the k-means k=2 subsplit
-%         disp('split');
-%         gIX(IX) = gIX_ + numU; % reassign (much larger) gIX
-%     end
-% end
-% [gIX, ~] = SqueezeGroupIX(gIX);
-
-%% rank by stim-lock ?? bug?
-% disp('stim-lock');
-% M = M_0(cIX,:);
-% [gIX,rankscore] = RankByStimLock_Direct(hfig,cIX,gIX,M,numU);
-% disp('ranking complete');
-% % and threshold
-% IX = find(rankscore<thres_stimlock);
-% ix = ismember(gIX,IX);
-% gIX = gIX(ix);
-% cIX = cIX(ix);
-%
-% [gIX, ~] = Merge_direct(thres_merge,M_0,cIX,gIX);
-
-% size threshold
-thres_size = getappdata(hfig,'thres_size');
-[cIX, gIX, numU] = ThresSize(cIX,gIX,thres_size);
-
-%% update GUI
-if isempty(gIX),
-    errordlg('nothing to display!');
-    return;
-end
-UpdateIndices(hfig,cIX,gIX,numU);
 RefreshFigure(hfig);
-
-clusgroupID = 3;
-SaveCluster(hfig,cIX,gIX,'clean_round3',clusgroupID);
-beep;
-
 end
 
-function pushbutton_newautoclus_Callback(hObject,~)
+function pushbutton_makefoxels_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
@@ -3072,7 +2974,23 @@ isWkmeans = getappdata(hfig,'isWkmeans');
 absIX = getappdata(hfig,'absIX');
 i_fish = getappdata(hfig,'i_fish');
 
-[cIX,gIX] = AutoClustering(cIX,gIX,M_0,isWkmeans,[],absIX,i_fish);
+[cIX,gIX] = MakeFoxels(cIX,gIX,M_0,isWkmeans,[],absIX,i_fish);
+
+UpdateIndices(hfig,cIX,gIX);
+RefreshFigure(hfig);
+end
+
+function pushbutton_autoclusfromfoxels_Callback(hObject,~)
+hfig = getParentFigure(hObject);
+cIX = getappdata(hfig,'cIX');
+gIX = getappdata(hfig,'gIX');
+M_0 = getappdata(hfig,'M_0');
+isWkmeans = getappdata(hfig,'isWkmeans');
+absIX = getappdata(hfig,'absIX');
+i_fish = getappdata(hfig,'i_fish');
+
+isMakeFoxels = false;
+[cIX,gIX] = AutoClustering(cIX,gIX,M_0,isWkmeans,[],absIX,i_fish,isMakeFoxels);
 
 UpdateIndices(hfig,cIX,gIX);
 RefreshFigure(hfig);
@@ -3254,16 +3172,44 @@ isPlotText = (size(C,1)<30);
 CorrPlot(coeffs,isPlotText);
 end
 
-function pushbutton_finddust_Callback(hObject,~)
+function pushbutton_findartifacts_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
 CellXYZ = getappdata(hfig,'CellXYZ');
 absIX = getappdata(hfig,'absIX');
-[cIX,gIX] = DustAnalysis(cIX,gIX,CellXYZ,absIX);
-[gIX,numK] = SqueezeGroupIX(gIX);
+[cIX,gIX] = ArtifactAnalysis(cIX,gIX,CellXYZ,absIX);
+if ~isempty(cIX),
+    [gIX,numK] = SqueezeGroupIX(gIX);
+    UpdateIndices(hfig,cIX,gIX,numK);
+    RefreshFigure(hfig);
+else
+    disp('No artifacts found');
+end
+end
+
+function pushbutton_removeartifacts_Callback(hObject,~)
+hfig = getParentFigure(hObject);
+cIX_last = getappdata(hfig,'cIX');
+gIX_last = getappdata(hfig,'gIX');
+CellXYZ = getappdata(hfig,'CellXYZ');
+absIX = getappdata(hfig,'absIX');
+
+[cIX,~] = ArtifactAnalysis(cIX_last,gIX_last,CellXYZ,absIX);
+if isempty(cIX),
+    disp('No artifacts found');
+end
+
+% set-difference
+[cIX,ia] = setdiff(cIX_last,cIX);
+gIX = gIX_last(ia);
+numK = length(unique(gIX));
+
+[gIX, numK] = SqueezeGroupIX(gIX);
+
 UpdateIndices(hfig,cIX,gIX,numK);
 RefreshFigure(hfig);
+
 end
 
 %% ----- tab five ----- (Saved Clusters)
@@ -3603,9 +3549,18 @@ str = get(hObject,'String');
 if ~isempty(str),
     str = strrep(str,'end',num2str(nMasks));
     range = ParseRange(str);
-    
+    Msk_IDs = range;
     setappdata(hfig,'Msk_IDs',range);
-    RefreshFigure(hfig);
+    RefreshAnat(hfig);
+    
+    % display items in debug:
+    names = MASKs.MaskDatabaseNames(Msk_IDs);
+    names_numbered = cell(size(names));
+    disp('Regions:');
+    for i = 1:length(names),
+        names_numbered{i} = [num2str(Msk_IDs(i)), ': ', names{i}];
+        disp(names_numbered{i});
+    end
 end
 end
 
@@ -3708,7 +3663,8 @@ cIX_abs = ClusGroup(clusID).cIX_abs;
 [~,cIX] = ismember(cIX_abs,absIX);
 
 if ~isempty(find(cIX==0,1)),
-    errordlg('cell index out of bound for currently loaded dataset');
+    disp('ERROR: cell index out of bound for currently loaded dataset');
+%     errordlg('cell index out of bound for currently loaded dataset');
     IX = cIX==0;
     cIX(IX) = [];
     gIX(IX) = [];
@@ -3815,11 +3771,23 @@ if opID ~= 0,
             disp('setxor');
             [IX,ia,ib] = setxor(cIX_last,cIX);
         case 6,
-            disp('smartUnion');
-            CIX = vertcat(cIX_last,cIX);
-            GIX = [gIX_last;gIX+max(gIX_last)]; % gIX to match
-            M_0 = getappdata(hfig,'M_0');
-            [cIX,gIX,numK] = SmartUnique(CIX,GIX,M_0(CIX,:));
+            disp('intersecting clusters');
+            [IX,ia,~] = intersect(cIX_last,cIX);
+            numK = length(unique(gIX_last));
+            U = unique(gIX_last(ia));
+            gIX = [];
+            cIX = [];
+            for i_U = 1:length(U),
+                ix = find(gIX_last==U(i_U));
+                gIX = [gIX;gIX_last(ix)];
+                cIX = [cIX;cIX_last(ix)];
+            end
+            
+            % 'smartUnion'??
+%             CIX = vertcat(cIX_last,cIX);
+%             GIX = [gIX_last;gIX+max(gIX_last)]; % gIX to match
+%             M_0 = getappdata(hfig,'M_0');
+%             [cIX,gIX,numK] = SmartUnique(CIX,GIX,M_0(CIX,:));
     end
     if opID<6,
         if ~isempty(IX),
@@ -3907,6 +3875,29 @@ isPlotBehavior = 1; %getappdata(hfig,'isPlotBehavior');
 axes(h1);
 DrawTimeSeries(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior);
 
+% right subplot
+axes(h2);
+DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
+WatchOff(hfig);
+end
+
+function RefreshAnat(hfig,isMaskOnly)
+% double-check if cIX is valid
+cIX = getappdata(hfig,'cIX');
+if isempty(cIX),
+    errordlg('empty set!');
+%     % GO BACK to the last step (presumably not empty)
+%     pushbutton_back_Callback(h1); % using h1 instaed of the usual 'hObject'
+    return;
+end
+
+%%
+WatchOn(hfig); drawnow;
+isPopout = 0; % with down-sampling in plots
+isRefAnat = getappdata(hfig,'isRefAnat');
+
+figure(hfig);
+h2 = axes('Position',[0.63, 0.04, 0.35, 0.83]);
 % right subplot
 axes(h2);
 DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);

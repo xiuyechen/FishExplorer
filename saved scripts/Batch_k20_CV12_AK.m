@@ -53,8 +53,8 @@ for i = 1:length(range_fish),
         
         % save        
         name = ['k20_' num2str(k)];
-        clusgroupID = 2;
-        clusIDoverride = k+2; %Saved in Group2, Clusters 3&4
+        clusgroupID = 4;
+        clusIDoverride = k; %Saved in Group5, Clusters 1%2
         SaveCluster_Direct(cIX,gIX,absIX,i_fish,name,clusgroupID,clusIDoverride);
         %     end
     end

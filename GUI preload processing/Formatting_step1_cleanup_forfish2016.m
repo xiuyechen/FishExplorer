@@ -21,7 +21,7 @@ M_fpsec = {1.97,1.97,1.97,1.97,1.97,1.97,1.97,1.97,1.97,1.97,1.97,... % Fish 1-1
 %%
 % poolobj=parpool(8);
 %%
-range_fish = 15;
+range_fish = GetFishRange();
 
 for i_fish = range_fish,
     tic
@@ -41,13 +41,6 @@ for i_fish = range_fish,
     end
     
     load(fullfile(data_dir,'cell_info.mat'));
-%     if exist(fullfile(data_dir,'cell_resp_lowcut.stackf'), 'file'),
-%         cell_resp_full = read_LSstack_fast_float(fullfile(data_dir,'cell_resp_lowcut.stackf'),cell_resp_dim);
-%     elseif exist(fullfile(data_dir,'cell_resp.stackf'), 'file'),
-%         cell_resp_full = read_LSstack_fast_float(fullfile(data_dir,'cell_resp.stackf'),cell_resp_dim);
-%     else
-%         errordlg('find data to load!');
-%     end
 
     if exist(fullfile(data_dir,'frame_turn_new.mat'), 'file'),
         load(fullfile(data_dir,'frame_turn_new.mat'));
@@ -56,7 +49,17 @@ for i_fish = range_fish,
     end
     frame_keys = frame_turn;
     
-    TimeSeries = read_LSstack_fast_float(fullfile(data_dir,'CR_detrend.stackf'),cell_resp_dim);
+    if i_fish<12,
+        if exist(fullfile(data_dir,'cell_resp_lowcut.stackf'), 'file'),
+            TimeSeries = read_LSstack_fast_float(fullfile(data_dir,'cell_resp_lowcut.stackf'),cell_resp_dim);
+        elseif exist(fullfile(data_dir,'cell_resp.stackf'), 'file'),
+            TimeSeries = read_LSstack_fast_float(fullfile(data_dir,'cell_resp.stackf'),cell_resp_dim);
+        else
+            errordlg('find data to load!');
+        end
+    else
+        TimeSeries = read_LSstack_fast_float(fullfile(data_dir,'CR_detrend.stackf'),cell_resp_dim);
+    end
     
     %% load anatomy
     tiffname = fullfile(data_dir,'ave.tif');
@@ -142,10 +145,13 @@ for i_fish = range_fish,
 %     TimeSeries = single(CR_dtr);
 
     
-    %% Place holder for registered coordinates from morphing to ZBrain
-    CellXYZ_norm = CellXYZ;
-    
-    
+    %% registered coordinates from morphing to ZBrain
+    if i_fish<12,
+        [CellXYZ_norm,IX_inval_norm] = GetNormCellCord(i_fish);
+    else % place holder
+        CellXYZ_norm = CellXYZ;
+        IX_inval_norm = [];
+    end    
     
     %% Save files
 tic
@@ -166,7 +172,7 @@ tic
     save(filename,varList{:});
     
     filename = fullfile(save_dir,'OptionalInfo.mat');
-    varList = {'numcell_full','CellXYZ_norm'};
+    varList = {'numcell_full','CellXYZ_norm','IX_inval_norm'};
     save(filename,varList{:});    
     
     filename = fullfile(save_dir,'AdditionalInfo.mat');

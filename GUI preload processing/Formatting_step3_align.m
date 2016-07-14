@@ -3,13 +3,12 @@
 clear all;close all;clc
 
 %% set manually
-M_stimset = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, ...
-    3,3,3,3];
+M_stimset = GetFishStimset();
 M_dir = GetFishDirectories();
 save_masterdir = GetNestedDataDir();
 
 %% 
-range_fish = 15;
+range_fish = GetFishRange();
 
 for i_fish = range_fish,
     disp(['i_fish = ', num2str(i_fish)]);
@@ -23,7 +22,7 @@ for i_fish = range_fish,
     %% index processing
     if M_stimset(i_fish)==1, % fish 1-7
         % 'periods'
-        M_period = {480,160,160,320,480,140,150}; %,{120,150,360}};
+        M_period = {480,160,160,320,480,140,150,8,9,10,11,12,13,14,15,200}; %,{120,150,360}};% 8-15 are place holders
         periods = M_period{i_fish};
         
         % 'timelists'
@@ -42,7 +41,7 @@ for i_fish = range_fish,
         % stimuluskey_raw
         stimuluskey_raw = round(frame_keys(:,17)');
         
-    else % fish recorded with with multiple protocols                      
+    else % fish recorded with multiple protocols                      
         % 'stimset': struct that contains all info parsed from recorded params
         [stimset,stimuluskey_raw] = StimulusKeyPreprocessing(frame_keys,i_fish); % StimulusKeyPreprocessing(frame_keys,i_fish,'isplotting') to show plot
                 

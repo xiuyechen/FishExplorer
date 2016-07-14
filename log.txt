@@ -1,0 +1,425 @@
+(master0.7 sweep, full,50%, second cycle is PT then OMR)
+>> Batch_0711_makeFoxels
+     1
+
+loaded fish 1 took 2.2154 sec
+(Size) nFox:1143
+(Time) k1:0.0074501 k2:54.2589 reg0:52.7925
+cluster saved
+(Size) nMerge1:493 nMerge2:397 nROI:166
+(Time) grow1:45.339 reg1:6.5353 grow2:6.1553 reg2:5.2997 total time:64.8271 sec
+cluster saved
+(Size) nFox:688
+(Time) k1:0.0044074 k2:15.6238 reg0:26.7729
+cluster saved
+(Size) nMerge1:166 nMerge2:114 nROI:73
+(Time) grow1:25.692 reg1:4.173 grow2:2.687 reg2:3.5549 total time:37.2495 sec
+cluster saved
+     2
+
+loaded fish 2 took 6.6278 sec
+(Size) nFox:744
+(Time) k1:0.0070933 k2:54.5092 reg0:58.6704
+cluster saved
+(Size) nMerge1:399 nMerge2:349 nROI:126
+(Time) grow1:19.0354 reg1:6.2923 grow2:3.4721 reg2:5.0535 total time:34.7147 sec
+cluster saved
+(Size) nFox:399
+(Time) k1:0.0038001 k2:17.3128 reg0:29.6727
+cluster saved
+(Size) nMerge1:110 nMerge2:72 nROI:53
+(Time) grow1:9.0341 reg1:3.5556 grow2:1.2062 reg2:3.0359 total time:17.3304 sec
+cluster saved
+     3
+
+loaded fish 3 took 6.5384 sec
+(Size) nFox:667
+(Time) k1:0.0070435 k2:41.4692 reg0:51.429
+cluster saved
+(Size) nMerge1:368 nMerge2:323 nROI:130
+(Time) grow1:10.8299 reg1:4.5294 grow2:2.0439 reg2:3.6922 total time:21.6883 sec
+cluster saved
+(Size) nFox:293
+(Time) k1:0.0038505 k2:12.7408 reg0:26.1301
+cluster saved
+(Size) nMerge1:90 nMerge2:62 nROI:48
+(Time) grow1:3.4448 reg1:2.4892 grow2:0.5871 reg2:2.1863 total time:9.0135 sec
+cluster saved
+     4
+
+loaded fish 4 took 8.0379 sec
+(Size) nFox:428
+(Time) k1:0.010913 k2:52.8746 reg0:62.0093
+cluster saved
+(Size) nMerge1:217 nMerge2:192 nROI:86
+(Time) grow1:6.3533 reg1:4.0407 grow2:1.2248 reg2:3.4867 total time:15.5988 sec
+cluster saved
+(Size) nFox:180
+(Time) k1:0.0040944 k2:15.8332 reg0:32.5077
+cluster saved
+(Size) nMerge1:48 nMerge2:32 nROI:24
+(Time) grow1:1.9627 reg1:2.6452 grow2:0.36507 reg2:2.3722 total time:7.6018 sec
+cluster saved
+     5
+
+loaded fish 5 took 8.9014 sec
+(Size) nFox:904
+(Time) k1:0.0081142 k2:62.0773 reg0:70.423
+cluster saved
+(Size) nMerge1:438 nMerge2:365 nROI:142
+(Time) grow1:24.8229 reg1:6.4586 grow2:3.8835 reg2:5.2195 total time:41.2445 sec
+cluster saved
+(Size) nFox:518
+(Time) k1:0.0042516 k2:18.3386 reg0:36.2273
+cluster saved
+(Size) nMerge1:132 nMerge2:92 nROI:69
+(Time) grow1:12.2324 reg1:3.7641 grow2:1.2979 reg2:3.2843 total time:21.1323 sec
+cluster saved
+     6
+
+loaded fish 6 took 9.7491 sec
+(Size) nFox:726
+(Time) k1:0.0077827 k2:73.5328 reg0:75.0771
+cluster saved
+(Size) nMerge1:374 nMerge2:320 nROI:145
+(Time) grow1:20.3891 reg1:6.7276 grow2:3.428 reg2:5.4527 total time:37.0019 sec
+cluster saved
+(Size) nFox:428
+(Time) k1:0.0045318 k2:21.4774 reg0:37.9587
+cluster saved
+(Size) nMerge1:141 nMerge2:85 nROI:60
+(Time) grow1:10.1564 reg1:4.5876 grow2:1.6874 reg2:3.9093 total time:20.9854 sec
+cluster saved
+     7
+
+loaded fish 7 took 5.3359 sec
+(Size) nFox:7303
+(Time) k1:0.0071748 k2:52.7932 reg0:43.1456
+cluster saved
+(Size) nMerge1:1075 nMerge2:594 nROI:79
+(Time) grow1:27152.2839 reg1:10.4974 grow2:41.4444 reg2:7.5024 total time:27216.7469 sec
+cluster saved
+(Size) nFox:3944
+(Time) k1:0.0037509 k2:15.1249 reg0:19.054
+cluster saved
+(Size) nMerge1:122 nMerge2:51 nROI:32
+(Time) grow1:1033.0164 reg1:5.7724 grow2:15.9968 reg2:5.4114 total time:1064.2572 sec
+cluster saved
+     8
+
+loaded fish 8 took 15.5508 sec
+(Size) nFox:852
+(Time) k1:0.0061666 k2:62.1664 reg0:60.594
+cluster saved
+(Size) nMerge1:467 nMerge2:415 nROI:159
+(Time) grow1:35.9846 reg1:8.6273 grow2:5.7437 reg2:7.2655 total time:58.9939 sec
+cluster saved
+(Size) nFox:544
+(Time) k1:0.0032706 k2:18.3494 reg0:34.1144
+cluster saved
+(Size) nMerge1:162 nMerge2:121 nROI:76
+(Time) grow1:21.6121 reg1:5.5022 grow2:2.2987 reg2:4.701 total time:35.0672 sec
+cluster saved
+     9
+
+loaded fish 9 took 22.4818 sec
+(Size) nFox:1206
+(Time) k1:0.0084559 k2:103.5122 reg0:98.5508
+cluster saved
+(Size) nMerge1:543 nMerge2:435 nROI:153
+(Time) grow1:73.7962 reg1:11.814 grow2:10.0708 reg2:9.2584 total time:106.8121 sec
+cluster saved
+(Size) nFox:657
+(Time) k1:0.0036929 k2:21.3225 reg0:42.6507
+cluster saved
+(Size) nMerge1:141 nMerge2:81 nROI:52
+(Time) grow1:35.428 reg1:6.9497 grow2:3.5923 reg2:5.8119 total time:53.1133 sec
+cluster saved
+    10
+
+loaded fish 10 took 12.3624 sec
+(Size) nFox:1112
+(Time) k1:0.0076517 k2:47.6845 reg0:53.2407
+cluster saved
+(Size) nMerge1:443 nMerge2:345 nROI:153
+(Time) grow1:42.086 reg1:5.9798 grow2:5.0759 reg2:4.5703 total time:58.8121 sec
+cluster saved
+(Size) nFox:924
+(Time) k1:0.0039718 k2:14.1642 reg0:27.8115
+cluster saved
+(Size) nMerge1:207 nMerge2:118 nROI:69
+(Time) grow1:36.5108 reg1:4.1393 grow2:2.7993 reg2:3.1409 total time:47.4447 sec
+cluster saved
+    11
+
+loaded fish 11 took 25.3751 sec
+(Size) nFox:1320
+(Time) k1:0.0087641 k2:128.7618 reg0:128.9113
+cluster saved
+(Size) nMerge1:572 nMerge2:481 nROI:185
+(Time) grow1:100.5625 reg1:13.5166 grow2:10.28 reg2:11.0301 total time:137.4908 sec
+cluster saved
+(Size) nFox:795
+(Time) k1:0.0062119 k2:35.6493 reg0:63.1713
+cluster saved
+(Size) nMerge1:166 nMerge2:94 nROI:74
+(Time) grow1:52.8342 reg1:8.3843 grow2:4.0652 reg2:6.7773 total time:73.5262 sec
+cluster saved
+    12
+
+loaded fish 12 took 11.5713 sec
+(Size) nFox:1064
+(Time) k1:0.0055409 k2:51.3282 reg0:49.5853
+cluster saved
+(Size) nMerge1:413 nMerge2:317 nROI:116
+(Time) grow1:82.2752 reg1:8.8322 grow2:9.4118 reg2:7.0865 total time:109.4981 sec
+cluster saved
+(Size) nFox:759
+(Time) k1:0.0037524 k2:15.9852 reg0:26.165
+cluster saved
+(Size) nMerge1:190 nMerge2:104 nROI:65
+(Time) grow1:54.4075 reg1:5.9909 grow2:5.2726 reg2:4.9975 total time:72.2548 sec
+cluster saved
+    13
+
+loaded fish 13 took 11.2118 sec
+(Size) nFox:776
+(Time) k1:0.0064555 k2:59.3502 reg0:55.9152
+cluster saved
+(Size) nMerge1:274 nMerge2:200 nROI:90
+(Time) grow1:38.0464 reg1:6.5524 grow2:4.5324 reg2:5.2363 total time:55.6109 sec
+cluster saved
+(Size) nFox:681
+(Time) k1:0.0065696 k2:18.4573 reg0:29.6533
+cluster saved
+(Size) nMerge1:144 nMerge2:89 nROI:52
+(Time) grow1:34.8911 reg1:5.5458 grow2:2.9026 reg2:4.4029 total time:48.7772 sec
+cluster saved
+    14
+
+loaded fish 14 took 9.3035 sec
+(Size) nFox:1208
+(Time) k1:0.006431 k2:48.6649 reg0:51.119
+cluster saved
+(Size) nMerge1:398 nMerge2:290 nROI:120
+(Time) grow1:73.986 reg1:6.8854 grow2:7.0019 reg2:5.5516 total time:95.0009 sec
+cluster saved
+(Size) nFox:981
+(Time) k1:0.0034928 k2:15.5751 reg0:25.7749
+cluster saved
+(Size) nMerge1:213 nMerge2:127 nROI:68
+(Time) grow1:59.1291 reg1:5.2413 grow2:4.7161 reg2:4.2271 total time:74.6564 sec
+cluster saved
+    15
+
+loaded fish 15 took 8.1094 sec
+(Size) nFox:680
+(Time) k1:0.0066683 k2:36.6364 reg0:36.2106
+cluster saved
+(Size) nMerge1:267 nMerge2:205 nROI:88
+(Time) grow1:28.5703 reg1:5.0933 grow2:4.0857 reg2:4.2449 total time:43.168 sec
+cluster saved
+(Size) nFox:505
+(Time) k1:0.0025543 k2:11.4343 reg0:19.3548
+cluster saved
+(Size) nMerge1:128 nMerge2:72 nROI:45
+(Time) grow1:21.3048 reg1:3.9264 grow2:2.7464 reg2:3.2391 total time:32.1493 sec
+cluster saved
+    16
+
+loaded fish 16 took 4.1215 sec
+(Size) nFox:695
+(Time) k1:0.0057331 k2:23.2354 reg0:26.1121
+cluster saved
+(Size) nMerge1:265 nMerge2:188 nROI:89
+(Time) grow1:13.4735 reg1:2.8318 grow2:1.9827 reg2:2.1868 total time:21.1195 sec
+cluster saved
+(Size) nFox:493
+(Time) k1:0.0029992 k2:6.8452 reg0:13.5928
+cluster saved
+(Size) nMerge1:92 nMerge2:55 nROI:41
+(Time) grow1:9.5139 reg1:1.8661 grow2:0.85893 reg2:1.5503 total time:14.2636 sec
+cluster saved
+    17
+
+loaded fish 17 took 10.2003 sec
+(Size) nFox:525
+(Time) k1:0.0074124 k2:53.3627 reg0:52.7373
+cluster saved
+(Size) nMerge1:234 nMerge2:185 nROI:82
+(Time) grow1:18.1272 reg1:5.6644 grow2:3.1 reg2:4.8955 total time:32.7518 sec
+cluster saved
+(Size) nFox:415
+(Time) k1:0.0031538 k2:16.3745 reg0:28.2552
+cluster saved
+(Size) nMerge1:113 nMerge2:62 nROI:44
+(Time) grow1:15.9073 reg1:4.4972 grow2:1.9976 reg2:3.885 total time:27.0175 sec
+cluster saved
+    18
+
+loaded fish 18 took 12.0904 sec
+(Size) nFox:515
+(Time) k1:0.0072596 k2:58.2806 reg0:52.7053
+cluster saved
+(Size) nMerge1:195 nMerge2:146 nROI:62
+(Time) grow1:23.4176 reg1:6.1893 grow2:3.4565 reg2:5.284 total time:39.5548 sec
+cluster saved
+(Size) nFox:444
+(Time) k1:0.0041451 k2:17.397 reg0:27.9618
+cluster saved
+(Size) nMerge1:90 nMerge2:44 nROI:35
+(Time) grow1:22.4721 reg1:5.0293 grow2:2.6694 reg2:4.3876 total time:35.6514 sec
+cluster saved
+     8
+
+loaded fish 8 took 15.441 sec
+(Size) nFox:826
+(Time) k1:0.0089189 k2:24.2961 reg0:32.3006
+cluster saved
+(Size) nMerge1:412 nMerge2:359 nROI:163
+(Time) grow1:13.7945 reg1:3.5665 grow2:2.191 reg2:2.8061 total time:23.046 sec
+cluster saved
+(Size) nFox:796
+(Time) k1:0.0083385 k2:32.7376 reg0:36.8708
+cluster saved
+(Size) nMerge1:405 nMerge2:355 nROI:160
+(Time) grow1:18.3368 reg1:4.5695 grow2:3.0692 reg2:3.7929 total time:30.6448 sec
+cluster saved
+     9
+
+loaded fish 9 took 22.6797 sec
+(Size) nFox:605
+(Time) k1:0.016563 k2:23.8988 reg0:42.3909
+cluster saved
+(Size) nMerge1:317 nMerge2:276 nROI:136
+(Time) grow1:4.3026 reg1:2.2988 grow2:0.99729 reg2:1.6935 total time:9.6991 sec
+cluster saved
+(Size) nFox:922
+(Time) k1:0.011485 k2:26.6164 reg0:39.9032
+cluster saved
+(Size) nMerge1:395 nMerge2:325 nROI:142
+(Time) grow1:11.9764 reg1:3.1211 grow2:1.9936 reg2:2.2507 total time:20.0732 sec
+cluster saved
+    10
+
+loaded fish 10 took 12.4641 sec
+(Size) nFox:917
+(Time) k1:0.010097 k2:11.727 reg0:25.7028
+cluster saved
+(Size) nMerge1:375 nMerge2:278 nROI:144
+(Time) grow1:6.544 reg1:1.9017 grow2:1.2431 reg2:1.1831 total time:11.3057 sec
+cluster saved
+(Size) nFox:898
+(Time) k1:0.01164 k2:16.1011 reg0:28.3047
+cluster saved
+(Size) nMerge1:392 nMerge2:307 nROI:128
+(Time) grow1:8.69 reg1:2.4294 grow2:1.663 reg2:1.7357 total time:15.0745 sec
+cluster saved
+    11
+
+loaded fish 11 took 25.5187 sec
+(Size) nFox:1026
+(Time) k1:0.014199 k2:38.2567 reg0:52.4804
+cluster saved
+(Size) nMerge1:448 nMerge2:356 nROI:164
+(Time) grow1:17.8061 reg1:4.0189 grow2:2.5685 reg2:2.8961 total time:27.9458 sec
+cluster saved
+(Size) nFox:923
+(Time) k1:0.012907 k2:30.3384 reg0:44.9343
+cluster saved
+(Size) nMerge1:456 nMerge2:380 nROI:153
+(Time) grow1:9.8942 reg1:3.4103 grow2:1.9523 reg2:2.3966 total time:18.2436 sec
+cluster saved
+    12
+
+loaded fish 12 took 11.6621 sec
+(Size) nFox:731
+(Time) k1:0.009737 k2:23.4574 reg0:26.9599
+cluster saved
+(Size) nMerge1:308 nMerge2:226 nROI:98
+(Time) grow1:17.7118 reg1:3.422 grow2:3.1279 reg2:2.6606 total time:27.7716 sec
+cluster saved
+(Size) nFox:702
+(Time) k1:0.011043 k2:18.9363 reg0:22.9323
+cluster saved
+(Size) nMerge1:302 nMerge2:229 nROI:94
+(Time) grow1:12.0352 reg1:2.8169 grow2:2.2616 reg2:2.194 total time:19.9319 sec
+cluster saved
+    13
+
+loaded fish 13 took 11.0807 sec
+(Size) nFox:608
+(Time) k1:0.012441 k2:17.7053 reg0:25.4472
+cluster saved
+(Size) nMerge1:229 nMerge2:159 nROI:77
+(Time) grow1:5.8564 reg1:1.8441 grow2:1.0687 reg2:1.3261 total time:10.4083 sec
+cluster saved
+(Size) nFox:328
+(Time) k1:0.0095112 k2:13.4483 reg0:25.1436
+cluster saved
+(Size) nMerge1:146 nMerge2:114 nROI:58
+(Time) grow1:1.4886 reg1:1.1108 grow2:0.41298 reg2:0.83901 total time:4.0222 sec
+cluster saved
+    14
+
+loaded fish 14 took 9.3517 sec
+(Size) nFox:544
+(Time) k1:0.010074 k2:22.9 reg0:29.5877
+cluster saved
+(Size) nMerge1:235 nMerge2:186 nROI:73
+(Time) grow1:6.0009 reg1:2.2344 grow2:1.0588 reg2:1.7422 total time:11.3329 sec
+cluster saved
+(Size) nFox:625
+(Time) k1:0.012365 k2:15.0589 reg0:22.9878
+cluster saved
+(Size) nMerge1:233 nMerge2:185 nROI:80
+(Time) grow1:5.8565 reg1:1.7519 grow2:0.96295 reg2:1.3299 total time:10.2359 sec
+cluster saved
+    15
+
+loaded fish 15 took 7.9226 sec
+(Size) nFox:245
+(Time) k1:0.0084194 k2:14.173 reg0:20.2924
+cluster saved
+(Size) nMerge1:130 nMerge2:111 nROI:51
+(Time) grow1:1.472 reg1:1.3216 grow2:0.45054 reg2:1.1531 total time:4.5919 sec
+cluster saved
+(Size) nFox:535
+(Time) k1:0.0071024 k2:12.1661 reg0:17.2595
+cluster saved
+(Size) nMerge1:234 nMerge2:177 nROI:72
+(Time) grow1:5.8637 reg1:1.7932 grow2:1.4637 reg2:1.3931 total time:11.0082 sec
+cluster saved
+    16
+
+loaded fish 16 took 4.1171 sec
+    17
+
+loaded fish 17 took 10.2494 sec
+(Size) nFox:287
+(Time) k1:0.010083 k2:21.02 reg0:28.6772
+cluster saved
+(Size) nMerge1:151 nMerge2:123 nROI:50
+(Time) grow1:2.359 reg1:1.8052 grow2:0.71153 reg2:1.5624 total time:6.6878 sec
+cluster saved
+(Size) nFox:434
+(Time) k1:0.0091275 k2:17.9163 reg0:24.1221
+cluster saved
+(Size) nMerge1:200 nMerge2:163 nROI:81
+(Time) grow1:4.6583 reg1:1.9283 grow2:1.0438 reg2:1.5881 total time:9.6762 sec
+cluster saved
+    18
+
+loaded fish 18 took 12.3697 sec
+(Size) nFox:224
+(Time) k1:0.0074782 k2:22.9184 reg0:27.8037
+cluster saved
+(Size) nMerge1:103 nMerge2:88 nROI:43
+(Time) grow1:1.9413 reg1:1.8414 grow2:0.43692 reg2:1.6427 total time:6.0642 sec
+cluster saved
+(Size) nFox:471
+(Time) k1:0.0081447 k2:16.4441 reg0:20.5471
+cluster saved
+(Size) nMerge1:202 nMerge2:140 nROI:65
+(Time) grow1:6.1454 reg1:2.0171 grow2:1.4342 reg2:1.5611 total time:11.7139 sec
+cluster saved
