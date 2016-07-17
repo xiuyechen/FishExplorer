@@ -1,4 +1,7 @@
-function score = HungarianCV(numClus1,numClus2,cIX1,cIX2,gIX1,gIX2,isPlotFig,name)
+function score = HungarianCV(cIX1,cIX2,gIX1,gIX2,isPlotFig,name)
+numClus1 = length(unique(gIX1));
+numClus2 = length(unique(gIX2));
+
 % CV by matching cell ID's
 CostMat = zeros(numClus1,numClus2);
 for i = 1:numClus1,

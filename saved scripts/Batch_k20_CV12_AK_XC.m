@@ -1,16 +1,4 @@
 % batch
-isFullData = 1;
-numK = 20;
-data_masterdir = GetCurrentDataDir();
-
-range_fish =  1:15;
-% M_ClusGroup = [2,2,2,2];
-% M_Cluster = [1,1,1,1];
-const_ClusGroup = 2;
-const_Cluster = 2; % This is all cells
-% M_fish_set = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2];
-M_stim = [1,2]; % PT only, for now
-
 tic
 isFullData = 1;
 data_masterdir = GetCurrentDataDir();
@@ -30,10 +18,7 @@ masterthres = 0.7;
 clusParams = struct('merge',masterthres,'cap',masterthres,'reg1',masterthres,...
     'reg2',masterthres,'minSize',10,'k1',numK1);
 
-
-% next round: change const_Cluster to 1 for FULL DATA!!!
 %%   Loop 1
-range_fish = 12:18;
 for i = 1:length(range_fish),
     i_fish = range_fish(i);
     %disp(i_fish);
@@ -43,7 +28,7 @@ for i = 1:length(range_fish),
     
     %% Cluster indexing
     i_ClusGroup = const_ClusGroup;% M_ClusGroup(i);
-    i_Cluster = const_Cluster;% M_Cluster(i);
+    i_Cluster = const_ClusGroup;% M_Cluster(i);
     [cIX_load,gIX] = LoadCluster_Direct(i_fish,i_ClusGroup,i_Cluster,absIX);
     
     %% partitions for CV
@@ -80,7 +65,7 @@ for i = 1:length(range_fish),
         M = GetTimeIndexedData_Default_Direct(hfig,cIX_load,tIX);
         M_0 = GetTimeIndexedData_Default_Direct(hfig,[],tIX,'isAllCells');
                 
-        gIX = Kmeans_Direct(M,numK);
+        gIX = Kmeans_Direct(M,numK1);
         
         % save
         name = ['k20_defS_CV' num2str(k)];
@@ -149,7 +134,7 @@ for i = 1:length(range_fish),
         M = GetTimeIndexedData_Default_Direct(hfig,cIX_load,tIX);
         M_0 = GetTimeIndexedData_Default_Direct(hfig,[],tIX,'isAllCells');
                 
-        gIX = Kmeans_Direct(M,numK);
+        gIX = Kmeans_Direct(M,numK1);
         
         % save
         name = ['k20_PT_CV' num2str(k)];
@@ -170,7 +155,7 @@ for i = 1:length(range_fish),
     end
 end
 
-SaveVARwithBackup();
+SaveVARwithBackup('VAR');
 
 %% Loop 3
 
@@ -218,7 +203,7 @@ for i = 1:length(range_fish),
         M = GetTimeIndexedData_Default_Direct(hfig,cIX_load,tIX);
         M_0 = GetTimeIndexedData_Default_Direct(hfig,[],tIX,'isAllCells');
                 
-        gIX = Kmeans_Direct(M,numK);
+        gIX = Kmeans_Direct(M,numK1);
         
         % save
         name = ['k20_OMR_CV' num2str(k)];
@@ -239,6 +224,6 @@ for i = 1:length(range_fish),
     end
 end
 
-SaveVARwithBackup();
+SaveVARwithBackup('VAR');
 
 

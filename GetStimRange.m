@@ -1,7 +1,7 @@
-function M_stimrange = GetStimRange()
+function M_stimrange = GetStimRange(option)
 % Fish 1-5: 16-stim PT/Black/White
 % Fish 6-7: PT/White
-% Fish 8: 
+% Fish 8:
 %     stimset(1).name = 'PT';
 %     stimset(2).name = 'OMR';
 %     stimset(3).name = 'Spontaneous';
@@ -24,14 +24,67 @@ function M_stimrange = GetStimRange()
 %     stimset(3).name = 'DF';
 %     stimset(4).name = 'Spontaneous';
 %     stimset(5).name = 'Looming';
+% Fish 16
+%     stimset(1).name = 'PT';
+%     stimset(2).name = 'OMR';
+%     [stimset(3).name = may be 'Spontaneous' but not credible, not used]
 
-M_stimrange = {1,1,1,1,1,1,1,... 1-7
-    1:3,... 8
-    1:5,1:5,1:5,... 9-11
-    1:5,1:5,1:5,1:5,...12-15
-    1,...16
-    1:5,1:5}; % 17-18
-
+if ~exist('option','var'),
+    % default range:
+    M_stimrange = {1,1,1,1,1,1,1,... 1-7
+        1:3,... 8
+        1:5,1:5,1:5,... 9-11
+        1:5,1:5,1:5,1:5,...12-15
+        1,...16
+        1:5,1:5}; % 17-18
+    
+elseif option == 'P', % PT = phototaxis
+    M_stimrange = {[],[],[],[],[],[],[],... 1-7
+        1,... 8
+        1,1,1,... 9-11
+        1,1,1,1,...12-15
+        1,...16
+        1,1};  % 17-18
+    
+elseif option == 'O', % OMR
+    M_stimrange = {[],[],[],[],[],[],[],... 1-7
+        2,... 8
+        2,2,2,... 9-11
+        2,2,2,2,...12-15
+        2,...16
+        2,2};  % 17-18
+elseif option == 'S', % Spontaneuous
+        M_stimrange = {[],[],[],[],[],[],[],... 1-7
+        3,... 8
+        3,3,3,... 9-11
+        4,4,4,4,...12-15
+        [],...16
+        4,4};  % 17-18
+    
+elseif option == 'D', % DF, Dark flash
+    M_stimrange = {[],[],[],[],[],[],[],... 1-7
+        [],... 8
+        [],[],[],... 9-11
+        3,3,3,3,...12-15
+        [],...16
+        3,3};  % 17-18
+    
+elseif option == 'L', % Looming
+        M_stimrange = {[],[],[],[],[],[],[],... 1-7
+        [],... 8
+        5,5,5,... 9-11
+        5,5,5,5,...12-15
+        [],...16
+        5,5};  % 17-18
+    
+elseif option == 'Y', % Dot/Prey
+        M_stimrange = {[],[],[],[],[],[],[],... 1-7
+        [],... 8
+        4,4,4,... 9-11
+        [],[],[],[],...12-15
+        [],...16
+        [],[]};  % 17-18    
+end
 
 end
 

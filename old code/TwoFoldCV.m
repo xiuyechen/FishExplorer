@@ -17,11 +17,12 @@ timelists_names = getappdata(hfig,'timelists_names');
 % end
 
 %% CV loop: auto-clustering with the partitions
+absIX = getappdata(hfig,'absIX');
+
 Score = zeros(length(M_stim),2);
 
 for k_stim = 1:length(M_stim), % :3
     i_stim = M_stim(k_stim);
-    NumClus = zeros(1,2);
     CIX = cell(1,2);
     GIX = cell(1,2);
     for k = 1:2,
@@ -40,13 +41,11 @@ for k_stim = 1:length(M_stim), % :3
         
         isWkmeans = 1;
         [cIX,gIX] = AutoClustering(cIX,gIX,absIX,i_fish,M_0,isWkmeans,numK2);
-
-        NumClus(k) = length(unique(gIX));
         CIX{k} = cIX;
         GIX{k} = gIX;
     end
     % plot cell-matching figure
-    Score(k_stim,1) = HungarianCV(NumClus(1),NumClus(2),CIX{1},CIX{2},GIX{1},GIX{2},timelists_names{i_stim});
-    Score(k_stim,2) = HungarianCV(NumClus(2),NumClus(1),CIX{2},CIX{1},GIX{2},GIX{1},timelists_names{i_stim});
+    Score(k_stim,1) = HungarianCV(CIX{1},CIX{2},GIX{1},GIX{2},timelists_names{i_stim});
+    Score(k_stim,2) = HungarianCV(CIX{2},CIX{1},GIX{2},GIX{1},timelists_names{i_stim});
 end
 end

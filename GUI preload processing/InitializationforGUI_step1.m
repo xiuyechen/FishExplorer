@@ -22,7 +22,7 @@ for i_fish = range_fish,
     load(filename);% {'periods','timelists','timelists_names','stimuluskey_raw','CellXYZ','anat_stack','fpsec'};
     
     filename = fullfile(data_dir,'OptionalInfo.mat');
-    load(filename); % {'Behavior_raw','numcell_full','CellXYZ_norm','IX_inval','anat_stack_norm'};
+    load(filename); % {'Behavior_raw','numcell_full','CellXYZ_norm','IX_inval'};
     
     filename = fullfile(data_dir,'AdditionalInfo.mat');
     load(filename); % {'frame_keys','IX_inval_anat'} and if exist, 'stimset';

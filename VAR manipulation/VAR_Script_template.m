@@ -17,9 +17,9 @@ for i_fish = range_fish,
 
 %     VAR = RenameClusGroup(VAR,i_fish,1,'Selection');
 
-    VAR = RenameCluster(VAR,i_fish,[3,4],'Auto_OMR_M0.7');
+    VAR = RenameCluster(VAR,i_fish,[4,1],'k20_hf_defS_CV1');
 
-%     VAR = CopyCluster(VAR,i_fish,[2,1],[6,1]);  
+    VAR = CopyCluster(VAR,i_fish,[2,1],[6,1]);  
 %     VAR = CopyCluster(VAR,i_fish,[2,2],[6,2]);  
 %     VAR = CopyCluster(VAR,i_fish,[6,2],[2,1]);  
 %     VAR = CopyCluster(VAR,i_fish,[6,1],[2,2]);  

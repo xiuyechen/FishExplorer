@@ -32,7 +32,7 @@ if isShowMasks,
     MASKs = getappdata(hfig,'MASKs');
     Msk_IDs = getappdata(hfig,'Msk_IDs');   
     if Msk_IDs == 0,
-        newMask = getappdata(hfig,'newMask');
+        
     end    
 end
 isWeighAlpha = getappdata(hfig,'isWeighAlpha');
@@ -129,11 +129,7 @@ if isShowMasks,
     for i = 1:nMasks,
         clr = cmap2(i,:);
         % get masks from database
-        if Msk_IDs(i)==0,
-            msk = full(newMask);
-        else
-            msk = full(MASKs.MaskDatabase(:,Msk_IDs(i)));
-        end
+        msk = full(MASKs.MaskDatabase(:,Msk_IDs(i)));
         mask_3D = reshape(msk, [MASKs.height, MASKs.width, MASKs.Zs]);
         
         % Y-X

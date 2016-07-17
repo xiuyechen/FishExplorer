@@ -159,7 +159,7 @@ grid = 0:bwidth+0.001:1;
 global hback hfwd hclusgroupmenu hclusgroupname hclusmenu hclusname...
     hstimrangemenu hopID hloadfish hstimreg hmotorreg...
     hcentroidreg hcentroid hstimrange hmasklistbox hshowrefanat...
-    h_isavr h_israwtime h_iszscore hisshowmasks; % hfishnum
+    h_isavr h_israwtime h_iszscore; % hfishnum
 
 %% UI ----- tab one ----- (General)
 i_tab = 1;
@@ -939,7 +939,7 @@ i = 1;n = 0;
 
 i=i+n+5;
 n=3; % if checked, show thresholded masks on right-side plot
-hisshowmasks = uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show masks',...
+uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show masks',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',1,...
     'Callback',@checkbox_showmasks_Callback);
 
@@ -1403,7 +1403,7 @@ hfig = getParentFigure(hObject);
 setappdata(hfig,'isRefAnat',get(hObject,'Value'));
 global hisshowmasks;
 set(hisshowmasks,'Value',0);
-setappdata(hfig,'isShowMasks',0);
+setappdata(hfig,'isShowMasks',0));
 RefreshFigure(hfig);
 end
 
