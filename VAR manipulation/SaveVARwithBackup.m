@@ -6,5 +6,5 @@ arcmatfolder = fullfile(save_dir, 'arc mat');
 save(fullfile(arcmatfolder,matname),'VAR','-v6');
 
 save(fullfile(save_dir,'VAR_new.mat'),'VAR','-v6');
-
+disp('saved VAR with backup');
 end

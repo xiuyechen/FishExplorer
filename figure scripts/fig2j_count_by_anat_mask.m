@@ -55,7 +55,7 @@ for i = 1:length(range_fish),
     %% ------custom code here---------          
     nClus = length(unique(gIX));
     nMasks = length(anat_list);
-    Grid = zeros(nClus,length(anat_list),3);
+    Grid = zeros(nClus,length(anat_list),3); % matrix of all clusters x all masks
     for i_anat = 1:nMasks,
         Msk_IDs = anat_list{i_anat};
         [~,gIX_out] = ScreenCellsWithMasks(Msk_IDs,cIX,gIX,MASKs,CellXYZ_norm,absIX);
@@ -77,7 +77,7 @@ for i = 1:length(range_fish),
     AnatScreen{i_fish} = Grid;
     
     %%
-    clusscore = max(Grid(:,:,2),[],2);    
+%     clusscore = max(Grid(:,:,2),[],2);    
 %     figure;imagesc(mean(Grid(:,:,2:3),3))
 
     figure;

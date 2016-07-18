@@ -10,7 +10,7 @@ clear all;close all;clc
 code_dir = GetCurrentCodeDir();
 addpath(genpath(code_dir));
 
-global data_masterdir name_MASKs name_ReferenceBrain VAR;
+global data_masterdir name_MASKs name_ReferenceBrain VAR; %#ok<NUSED>
 
 data_masterdir = GetCurrentDataDir();%'C:\Janelia2014'; %[pwd '\example data']; % 'F:\Janelia2014';%
 

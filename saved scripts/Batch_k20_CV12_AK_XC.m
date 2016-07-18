@@ -136,11 +136,11 @@ for i = 1:length(range_fish),
                 
         gIX = Kmeans_Direct(M,numK1);
         
-        % save
-        name = ['k20_PT_CV' num2str(k)];
-        clusgroupID = 4;
-        clusIDoverride = 4+k; %Saved in Group5, Clusters 1%2
-        SaveCluster_Direct(cIX_load,gIX,absIX,i_fish,name,clusgroupID,clusIDoverride);
+%         % save
+%         name = ['k20_PT_CV' num2str(k)];
+%         clusgroupID = 4;
+%         clusIDoverride = 4+k; %Saved in Group5, Clusters 1%2
+%         SaveCluster_Direct(cIX_load,gIX,absIX,i_fish,name,clusgroupID,clusIDoverride);
         
         % ------custom code here---------
         [cIX,gIX] = MakeFoxels(cIX_load,gIX,M_0,isWkmeans,clusParams);
@@ -149,7 +149,7 @@ for i = 1:length(range_fish),
         % save cluster
         name = ['Auto_PT_M0.7_CV' num2str(k)];
         clusgroupID = 4;
-        clusIDoverride = 6+k;
+        clusIDoverride = 4+k;
         SaveCluster_Direct(cIX,gIX,absIX,i_fish,name,clusgroupID,clusIDoverride);
         
     end

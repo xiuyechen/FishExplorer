@@ -43,15 +43,15 @@ save(fullfile(save_dir,'VAR_new.mat'),'VAR','-v6');
 
 
 %% view all names
-i_fish = 1;
-nClusGroup = length(VAR(1).ClusGroupName);
-
-VAR(i_fish).AllNames = [];
-for i = 1:nClusGroup,
-    head = VAR(i_fish).ClusGroupName(i);
-    col = vertcat(head, {VAR(i_fish).ClusGroup{i}.name}');
-    for j = 1:length(col),
-        VAR(i_fish).AllNames{j,i} = col{j};
+for i_fish = 1:18;
+    nClusGroup = length(VAR(i_fish).ClusGroupName);
+    
+    VAR(i_fish).AllNames = [];
+    for i = 1:nClusGroup,
+        head = VAR(i_fish).ClusGroupName(i);
+        col = vertcat(head, {VAR(i_fish).ClusGroup{i}.name}');
+        for j = 1:length(col),
+            VAR(i_fish).AllNames{j,i} = col{j};
+        end
     end
 end
-
