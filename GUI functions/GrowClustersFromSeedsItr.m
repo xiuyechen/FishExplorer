@@ -1,4 +1,4 @@
-function [cIX,gIX] = GrowClustersFromSeedsItr(thres_merge,thres_cap,thres_minsize,cIX,gIX,M_0)
+function [gIX] = GrowClustersFromSeedsItr(thres_merge,thres_cap,thres_minsize,gIX,M)
 %disp('find ROIs')
 
 % Set params
@@ -12,7 +12,6 @@ function [cIX,gIX] = GrowClustersFromSeedsItr(thres_merge,thres_cap,thres_minsiz
 
 %%
 gIX = SqueezeGroupIX(gIX);
-M = M_0(cIX,:);
 C = FindCentroid_Direct(gIX,M); % import functional supervoxels ('foxel')
 nFoxels = size(C,1);
 

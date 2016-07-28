@@ -230,20 +230,35 @@ end
 
 %% Standardized stimulus key:
 % (Define normalized code, e.g. same stimulus under different raw stim keys can be unified)
-
-% 0 = all black; 1 = black/white; 2 = white/black; 3 = all white; 4 = all gray;
+    
+% 0 = all black; 1 = phototaxis R; 2 = phototaxis L; 3 = all white; 4 = all gray;
 % 5 = gray/black; 6 = white/gray; 7 = black/gray; 8 = gray/white.
-% 9 = backward grating... %%OMR baseline = not moving?? grey??
+% 9 = backward grating
 % 10 = forward grating (very slow, more for calibration)
 % 11 = rightward grating
 % 12 = leftward grating
 % 13 = Dot
-% 14 = Blob R
-% 15 = Blob L
+% 14 = looming L %Blob R
+% 15 = looming R %Blob L
 
 % 16 = electric shock (spike)
 
-% 21,22,23 = 'red|blue','blue|red','red|red'
+% 21,22,23 = 'red|blue R','blue|red L','red|red'
+
+% % 0 = all black; 1 = black/white; 2 = white/black; 3 = all white; 4 = all gray;
+% % 5 = gray/black; 6 = white/gray; 7 = black/gray; 8 = gray/white.
+% % 9 = backward grating... %%OMR baseline = not moving?? grey??
+% % 10 = forward grating (very slow, more for calibration)
+% % 11 = rightward grating
+% % 12 = leftward grating
+% % 13 = Dot
+% % 14 = Blob R
+% % 15 = Blob L
+% 
+% % 16 = electric shock (spike)
+% 
+% % 21,22,23 = 'red|blue','blue|red','red|red'
+
 
 %% correct transient frames
 % short method: st_rounded = interp1(M_range,M_range,st,'nearest');

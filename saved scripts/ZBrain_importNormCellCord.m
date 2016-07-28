@@ -32,7 +32,7 @@ end
 
 %% Save norm cell cord into dataset\OptionalInfo.mat
 
-range_fish = 1:11;
+range_fish = 12:18;
 
 for i_fish = range_fish,
     tic
@@ -91,7 +91,7 @@ end
 
 %% Save norm cell cord into GUI_data\data_full
 
-range_fish = 1:11;
+range_fish = 12:18;
 
 for i_fish = range_fish,
     %% load data
@@ -110,17 +110,18 @@ for i_fish = range_fish,
     
     %%
     data = [];
-    names = {'periods','timelists_names','stimuluskey_raw','CellXYZ','anat_stack','fpsec',...
-        'Behavior_raw','numcell_full','CellXYZ_norm','IX_inval_norm','IX_inval_anat',...
-        'anat_yx','anat_yz','anat_zx',...
-        'timelists','stim_full','stimAvr','Behavior_full','BehaviorAvr'};
+    names2 = [names;{'IX_inval_norm'}];
+%     names = {'periods','timelists_names','stimuluskey_raw','CellXYZ','anat_stack','fpsec',...
+%         'Behavior_raw','numcell_full','CellXYZ_norm','IX_inval_norm','IX_inval_anat',...
+%         'anat_yx','anat_yz','anat_zx',...
+%         'timelists','stim_full','stimAvr','Behavior_full','BehaviorAvr'};
     %         'absIX'};
-    if length(timelists_names)>1, % M_stimset(i_fish) > 1,
-        names = [names,{'stimset'}];
-    end
+%     if length(timelists_names)>1, % M_stimset(i_fish) > 1,
+%         names = [names,{'stimset'}];
+%     end
     
-    for i = 1:length(names), % use loop to save variables into fields of 'data'
-        eval(['data.',names{i},'=', names{i},';']);
+    for i = 1:length(names2), % use loop to save variables into fields of 'data'
+        eval(['data.',names2{i},'=', names2{i},';']);
     end
     
     save(fullfile(save_dir,'data_full.mat'),'data');

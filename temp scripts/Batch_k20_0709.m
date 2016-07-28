@@ -7,7 +7,7 @@ const_Cluster = 1; % This is all cells
 M_fishset = GetFishStimset();
 M_stimrange = GetStimRange();
 
-range_fish =  8:18; % range_fish = GetFishRange();
+range_fish =  1:18; % range_fish = GetFishRange();
 
 %% custom params here:
 numK = 20;
@@ -39,9 +39,9 @@ for i = 1:length(range_fish),
     gIX = Kmeans_Direct(M,numK);
     
     % save cluster
-    name = 'k20_full_defaultStimRange';
-    clusgroupID = 2;
-    clusIDoverride = 3;
+    name = 'k20_full_defS';
+    clusgroupID = 3;
+    clusIDoverride = 1;
     SaveCluster_Direct(cIX,gIX,absIX,i_fish,name,clusgroupID,clusIDoverride);
 
 	%% 2. 
@@ -58,9 +58,9 @@ for i = 1:length(range_fish),
     gIX = Kmeans_Direct(M,numK);
     
     % save cluster
-    name = 'k20_50%_defaultStimRange';
-    clusgroupID = 2;
-    clusIDoverride = 4;
+    name = 'k20_half_defS';
+    clusgroupID = 3;
+    clusIDoverride = 2;
     SaveCluster_Direct(cIX,gIX,absIX,i_fish,name,clusgroupID,clusIDoverride);
     
    	%% 3. 
@@ -80,8 +80,8 @@ for i = 1:length(range_fish),
         
         % save cluster
         name = 'k20_full_PT';
-        clusgroupID = 2;
-        clusIDoverride = 5;
+        clusgroupID = 3;
+        clusIDoverride = 3;
         SaveCluster_Direct(cIX,gIX,absIX,i_fish,name,clusgroupID,clusIDoverride);
         
         %%
@@ -100,10 +100,10 @@ for i = 1:length(range_fish),
         
         % save cluster
         name = 'k20_full_OMR';
-        clusgroupID = 2;
-        clusIDoverride = 6;
+        clusgroupID = 3;
+        clusIDoverride = 4;
         SaveCluster_Direct(cIX,gIX,absIX,i_fish,name,clusgroupID,clusIDoverride);
     end
 end
 
-
+SaveVARwithBackup();

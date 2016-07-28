@@ -1,4 +1,7 @@
-function regressors = GetMotorRegressor(behavior)
+function [regressors,name_array,M_regressor] = GetMotorRegressor(behavior)
+% M_regressor is only for 3 channels - the extracted turns, without the 2
+% raw signal channels
+
 %% generate GCaMP6f kernel
 % GCaMP6f: decay half-time: 400±41; peak: 80±35
 % GCaMP6s: 1796±73, 480±24
@@ -37,7 +40,7 @@ regressor_0={ % rows = [7,8,9,13,14];
     behavior(4,:)+behavior(5,:);   %analog: average
     };
 nRegType = length(regressor_0);
-name_array = {'w_right','w_left','w_fwd','raw_right','raw_left','raw_all'};
+name_array = {'w_left','w_right','w_fwd','raw_right','raw_left','raw_all'};
 
 % segment length and round off, for shuffled control
 segLength = floor(tlen/80);
@@ -73,6 +76,13 @@ for j=1:nRegType, %run_StimRegType_subset,
         regressors(idx).ctrl = gen_reg_im(gc6, t_gc6, t_im, shffreg);
         
     end
+end
+
+%% dense format
+range_motorreg = [1,3,2];
+M_regressor = zeros(length(range_motorreg),length(regressors(1).im));
+for i = range_motorreg,
+    M_regressor(i,:) = regressors(range_motorreg(i)).im;
 end
 
 end

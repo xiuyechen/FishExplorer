@@ -14,6 +14,7 @@ figure;
 n = round(numK*1.1);
 cmap = hsv(max(1,n));
 gscatter(mappedA(:,1),mappedA(:,2),gIX,cmap,'.',[],'off');
+
 %%
 figure;hold on;%image([1,2],[3,4],pic)
 

@@ -33,14 +33,13 @@ cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
 absIX = getappdata(hfig,'absIX');
 
-% initialize image stack
-anat_stack2 = zeros([size(anat_stack),3]);
-dimv_yxz = size(anat_stack);
-
 segment = 8;
 % nPlanes = size(anat_stack,3);
 nPlanes = ceil(max(gIX)/segment);
 
+% initialize image stack
+dimv_yxz = size(anat_stack);
+anat_stack2 = zeros([dimv_yxz(1:2),nPlanes,3]);
 
 % make cell-shaped circular mask
 radius_xy = 7;
@@ -52,7 +51,7 @@ clrmap = hsv(round(double(numK)*1.1));
 % set transparency
 alpha = ones(size(cIX))*0.5;
 
-% main: coloring of stack
+%% main: coloring of stack
 cIX_abs = absIX(cIX);
 M_xyz = CellXYZ(cIX_abs,:);
 stack_alpha = 0.25;

@@ -1,5 +1,5 @@
 function [CellXYZ_norm,IX_inval_norm] = GetNormCellCord(i_fish)
-if i_fish<12,
+if i_fish<=18,
     filename = fullfile('C:\Janelia2015\norm cell coord',['F' num2str(i_fish) '_XYZ_norm.txt']);
     delimiter = ' ';
     formatSpec = '%f%f%f%s%[^\n\r]';

@@ -1,4 +1,4 @@
-function score = HungarianCV(cIX1,cIX2,gIX1,gIX2,isPlotFig,name)
+function [score,im1] = HungarianCV(cIX1,cIX2,gIX1,gIX2,isPlotFig,name)
 numClus1 = length(unique(gIX1));
 numClus2 = length(unique(gIX2));
 
@@ -21,11 +21,20 @@ if exist('isPlotFig','var'),
     if isPlotFig,
         figure;
         imagesc(im1)
-        title(name);
+        if exist('name','var'),
+            title(name);
+        end
         colormap(bluewhitered)
-        axis equal; axis tight
+        axis equal; axis tight;axis xy
     end
 end
 
 score = trace(im1)/sum(sum(im1));
 end
+
+%% 
+% set(gcf,'Position',[50,100,250,250])
+% axis xy
+% title('Cross-validation')
+% xlabel('PT+OMR clusters')
+% ylabel('OMR clusters')

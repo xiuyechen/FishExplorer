@@ -1,4 +1,4 @@
-function [cIX,gIX] = MakeFoxels(cIX,gIX,M_0,isWkmeans,clusParams,absIX,i_fish)
+function [cIX,gIX] = MakeFoxels(cIX,gIX,M_0,cIX_reg,isWkmeans,clusParams,absIX,i_fish)
 % Obtain foxels (functional voxels)
 
 %% set params
@@ -54,7 +54,7 @@ end
     
     for i = 1:numK1,
         IX = find(gIX_old == i);
-        M_sub = M_0(IX,:);
+        M_sub = M_0(cIX(IX),:);
         rng('default');
         if numK2<length(IX),
             gIX_sub = kmeans(M_sub,numK2,'distance','correlation');
@@ -74,15 +74,15 @@ end
     end
     reg0Start = tic;
     
-    Reg = FindCentroid_Direct(gIX,M_0);
-    [cIX,gIX,numFoxels] = AllCentroidRegression_SizeThres_direct(M_0,thres_reg,Reg,thres_minsize/2);
+    Reg = FindCentroid_Direct(gIX,M_0(cIX,:));
+    [cIX,gIX,numFoxels] = AllCentroidRegression_SizeThres_direct(M_0(cIX_reg,:),cIX_reg,thres_reg,Reg,thres_minsize/2);
     
     reg0Time = toc(reg0Start);
     
-    if exist('absIX','var') && exist('i_fish','var'),
-        clusgroupID = 2;
-        SaveCluster_Direct(cIX,gIX,absIX,i_fish,'foxels',clusgroupID);
-    end
+%     if exist('absIX','var') && exist('i_fish','var'),
+%         clusgroupID = 2;
+%         SaveCluster_Direct(cIX,gIX,absIX,i_fish,'foxels',clusgroupID);
+%     end
     
     %% (3. report timing)
     disp(['(Size) nFox:' num2str(numFoxels)]);

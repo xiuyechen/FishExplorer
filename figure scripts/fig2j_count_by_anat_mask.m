@@ -5,28 +5,41 @@
 isFullData = 1;
 data_masterdir = GetCurrentDataDir();
 
-const_ClusGroup = 3;
-const_Cluster = 1; % Auto_defStim_M0.5
+const_ClusGroup = 6;
+const_Cluster = 2; % Auto_defStim_M0.5
 M_fishset = GetFishStimset();
 M_stimrange = GetStimRange();
 
-range_fish =  1:18; % range_fish = GetFishRange();
+range_fish = 6;% 1:18; % range_fish = GetFishRange();
 
 %% custom params here:
 % load:
 MASKs = load(fullfile(data_masterdir,'MaskDatabase.mat'));
 
 % manually selected mask lists
-anat_list1 = {1,94,114,275, 77:93}; % gross divisions
+anat_list1 = {275,1,94,114,77:93}; % gross divisions
+anat_list1_names = {'Telencephalon','Diencephalon','Mesencephalon','Rhombencephalon','Ganglia'};
+    
 anat_list2 = {[5,35,74],[13,76],15,60,66,97,108,110,131,175,176,...
 217,218,279,283,291}; % secondary anat features
+anat_list2_names = {'Hypothalamus','Thalamus','Habenula','Preoptic Area','Pretectum','NucMLF','Tegmentum',...
+    'Torus Semicircularis','Cerebellum','Inferior Olive','Interpeduncular Nucleus',...
+    'Raphe (inferior)','Raphe (superior)','Olfactory Bulb','Pallium','Subpallium'};
+
+anat_list3 = {[13,76],15,60,66,108,110,131,175,...
+218,279,283,291}; % secondary anat features
+anat_list3_names = {'Thalamus','Habenula','Preoptic Area','Pretectum','Tegmentum',...
+    'Torus Semicircularis','Cerebellum','Inferior Olive',...
+   'Raphe (superior)','Olfactory Bulb','Pallium','Subpallium'};
+
 anat_listm = {201,117}; % collection of small masks with known matching clusters
 anat_list_full = num2cell(1:294);
 
 AnatScreen = cell(1,length(range_fish));
 
 % chose:
-anat_list = anat_list2;
+anat_list = anat_list3;
+anat_list_names = anat_list3_names;
 
 %%
 for i = 1:length(range_fish),
@@ -76,21 +89,31 @@ for i = 1:length(range_fish),
         
     AnatScreen{i_fish} = Grid;
     
-    %%
-%     clusscore = max(Grid(:,:,2),[],2);    
-%     figure;imagesc(mean(Grid(:,:,2:3),3))
-
-    figure;
-    subplot(1,2,1);imagesc(Grid(:,:,2));
-    title('non-prmsc mask')
-    subplot(1,2,2);imagesc(Grid(:,:,3))
-    title('non-prmsc cluster')
-    
-    %% save cluster
-    name = 'k20_full_defaultStimRange';
-    clusgroupID = 2;
-    clusIDoverride = 3;
-    SaveCluster_Direct(cIX,gIX,absIX,i_fish,name,clusgroupID,clusIDoverride);
+%     %%
+% %     clusscore = max(Grid(:,:,2),[],2);    
+% %     figure;imagesc(mean(Grid(:,:,2:3),3))
+% 
+%     figure;
+%     subplot(1,2,1);imagesc(Grid(:,:,2));
+%     title('non-prmsc mask')
+%     subplot(1,2,2);imagesc(Grid(:,:,3))
+%     title('non-prmsc cluster')
+%     
+%     %% save cluster
+%     name = '?';
+%     clusgroupID = 2;
+%     clusIDoverride = 3;
+%     SaveCluster_Direct(cIX,gIX,absIX,i_fish,name,clusgroupID,clusIDoverride);
 end
 
-
+%%
+figure;
+% imagesc(Grid(:,:,1));
+% Count = zeros(1,length(anat_list));
+% for i = 1:length(anat_list),
+%     Count(i) = sum(Grid(:,anat_list{i},1),1);
+% end
+bar(sum(Grid(:,:,1),1),'FaceColor',[0.5,0.5,0.5],'EdgeColor',[1,1,1])
+title('# of cells by anatomical region')
+set(gca,'XTick',1:length(anat_list),'XTickLabel',anat_list_names,'XTickLabelRotation',45);
+xlim([0.5,length(anat_list)+0.5]);

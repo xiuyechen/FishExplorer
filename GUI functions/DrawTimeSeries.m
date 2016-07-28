@@ -3,7 +3,7 @@ function DrawTimeSeries(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior)
 numK = getappdata(hfig,'numK');
 behavior = getappdata(hfig,'behavior');
 stim = getappdata(hfig,'stim');
-clrmap = getappdata(hfig,'clrmap');
+clrmap_name = getappdata(hfig,'clrmap_name');
 rankscore = getappdata(hfig,'rankscore');
 rankID = getappdata(hfig,'rankID');
 iswrite = (rankID>=2);
@@ -47,13 +47,7 @@ if isPlotLines,
         xv = 1:nFrames;        
                 
         %% Set colormap        
-        if strcmp(clrmap,'jet'),
-            clr = flipud(jet(double(numK)))*0.8; % make darker by *0.8
-        else % if strcmp(clrmap,'hsv'), 
-            clr = hsv(round(double(numK)*1.1))*0.7; % make darker by *0.7
-        end
-        % clr = lines(nLines);
-        % clr = ones(nLines,3)*0.3; % uniform charcoal
+        clrmap = GetColormap(clrmap_name,numK)*0.8; % make darker by *0.8
         
         %% draw stimulus bar
         stimbar = GetStimBar(1,stim);
@@ -82,10 +76,10 @@ if isPlotLines,
             sub_pos = [pos(1),pos(2)+pos(4)-lineH*(j+1),len,lineH*0.95];
             axes('Position',sub_pos); hold on;
             % draw std
-            h = fill([xv fliplr(xv)], [ySTD_upper fliplr(ySTD_lower)],0.5+0.3*clr(k,:));
+            h = fill([xv fliplr(xv)], [ySTD_upper fliplr(ySTD_lower)],0.5+0.3*clrmap(k,:));
             set(h, 'EdgeColor','none')
             % draw mean
-            plot(xv,ymean,'-','Linewidth',1,'color',clr(k,:))
+            plot(xv,ymean,'-','Linewidth',1,'color',clrmap(k,:))
             axis tight;axis off
         end
         
@@ -148,20 +142,9 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
     RGB = ImageToRGB(im,cmap,minlim,maxlim); % map image matrix to range of colormap
     
     %% add vertical color code
-    if exist('clrmap','var'),
-        if strcmp(clrmap,'jet'),
-%             temp = zeros(numK,3);
-%             temp(:,1) = linspace(1,0,numK);
-%             temp(:,2) = linspace(0,0,numK);
-%             temp(:,3) = linspace(0,0,numK);
-            temp = flipud(jet(numK));
-        else % 'hsv'
-            temp = hsv(round(numK*1.1));
-        end
-    else % 'hsv'
-        temp = hsv(round(numK*1.1));
-    end
-    cmap2 = vertcat(temp(1:numK,:),[0,0,0]); % extend colormap to include black
+     
+    clrmap0 = GetColormap(clrmap_name,numK);
+    clrmap = vertcat(clrmap0,[0,0,0]); % extend colormap to include black
     bwidth = max(round(nFrames/30),1);
     
     idx = gIX_(I);
@@ -175,7 +158,7 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
             bars(ix_div(i-1)+1:ix_div(i),:) = idx(ix_div(i));
         end
     end
-    im_bars = reshape(cmap2(bars,:),[size(bars),3]);
+    im_bars = reshape(clrmap(bars,:),[size(bars),3]);
     % add a white division margin
     div = ones(nLines,round(bwidth/2),3);
     % put 3 parts together

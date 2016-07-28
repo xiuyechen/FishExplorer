@@ -13,9 +13,14 @@
 % phototrans: 6    11    13     7    15    12     0     1     5     4     3    14     8     2    10     9
 
 %%
-function [regressors, names] = GetStimRegressor(stim,fishset)
-
-fpsec = 1.97; % should import from data...
+function [regressors,names,M_regressor] = GetStimRegressor(stim,fishset,i_fish)
+if ~exist('i_fish','var'),
+    fpsec = 1.97; % should import from data...
+    disp('fpsec missing, using default 1.97');
+else
+    fpsec = GetFishFreq(i_fish);
+    disp(['fpsec = ',num2str(fpsec)]);
+end
 
 %% generate GCaMP6f kernel
 % GCaMP6f: decay half-time: 400±41; peak: 80±35 (ms)
@@ -47,12 +52,19 @@ if fishset == 1,
 %         'OMR forward','OMR left','OMR right',...
 %         'left PT&OMR','right PT&OMR'};
 else%if fishset == 2,
-    States = [0,1,2,3,4,9,10,11,12,13,14,15,21,22,23];
-    singleNames = {'black','phototaxis R','phototaxis L','white','grey',...
-        'OMR baseline', 'OMR forward','OMR right','OMR left',...
-        'Dot','looming L','looming R',...
+       States = [0,1,2,3,4,9,10,11,12,13,14,15,21,22,23];
+    singleNames = {'black','phototaxis R','phototaxis L','white','grey',...% 0-4
+        'OMR backward', 'OMR forward','OMR right','OMR left',... % 9-12
+        'Dot','looming L','looming R',... % 13-15
         'red/blue R','red/blue L','red/red',...
         };
+
+%     States = [0,1,2,3,4,9,10,11,12,13,14,15,21,22,23];
+%     singleNames = {'black','phototaxis R','phototaxis L','white','grey',...
+%         'OMR baseline', 'OMR forward','OMR right','OMR left',...
+%         'Dot','looming L','looming R',...
+%         'red/blue R','red/blue L','red/red',...
+%         };
 end
 tlen=length(stim);
 impulse = 6; % in frames % arbiturary at this point
@@ -233,6 +245,13 @@ for j=1:nRegType, %run_StimRegType_subset,
         regressors(idx).ctrl = gen_reg_im(gc6, t_gc6, t_im, shffreg);
     end    
 end
+
+%% dense format
+M_regressor = zeros(length(regressors),length(regressors(1).im));
+for i = 1:length(regressors),
+    M_regressor(i,:) = regressors(i).im;
+end
+
 end
 
 function reg_im = gen_reg_im(gc6, t_gc6, t_im, reg)

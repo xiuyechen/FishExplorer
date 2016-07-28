@@ -1,4 +1,8 @@
-
+% AllCentroids{i_fish}.Centroids = C;
+%     AllCentroids{i_fish}.XYZn = XYZn;
+%     AllCentroids{i_fish}.stim = getappdata(hfig,'stim');
+%     AllCentroids{i_fish}.behavior = getappdata(hfig,'behavior');
+    
 data_dir = GetCurrentDataDir();
 
 load(fullfile(data_dir,'AllCentroids.mat'));

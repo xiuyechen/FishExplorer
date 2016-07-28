@@ -12,9 +12,10 @@ M_tcutoff = {3500,[],[],3500,3600,4000,1800,[],... % Fish 1-8
     [],5000,[],7000,6500,4500, ... % fish 9-14 % fish 12 last ran with []! 1/22/16
     [],2200,[],7000}; % fish 15-18 with GAD in red channel
 
-M_fpsec = {1.97,1.97,1.97,1.97,1.97,1.97,1.97,1.97,1.97,1.97,1.97,... % Fish 1-11
-    2.56,2.33,...
-    2.33,2.33,2,38,2,38}; % Hz
+M_fpsec = {1.97,1.97,1.97,1.97,1.97,1.97,1.97,...% in Hz % Fish 1-7
+    1.97,1.93,1.97,1.84,... % Fish 8-11 % Actually Fish 10 freq unrecorded
+    2.56,2.33,2.27,... % Fish 12-14
+    2.33,2.33,2.38,2.38}; % Fish 15-18
 
 % also check manual frame-correction section below
 
@@ -71,17 +72,17 @@ for i_fish = range_fish,
     for i=1:nPlanes,
         ave_stack(:,:,i) = imread(tiffname,i);
     end
-
+    
     %% fix the left-right flip in the anatomy stack and subsequent cell_info
     anat_stack = fliplr(ave_stack);
-%     anat_stack(:,113:1092,:) = anat_stackCopy;
-
+    %     anat_stack(:,113:1092,:) = anat_stackCopy;
+    
     [s1,s2,~] = size(anat_stack);
     for i_cell = 1:length(cell_info),
         % fix '.center'
         cell_info(i_cell).center(2) = s2-cell_info(i_cell).center(2)+1; %#ok<*SAGROW>
     end
-    
+
     %% reformat coordinates
     numcell_full = cell_resp_dim(1);
     temp = [cell_info(:).center];
@@ -146,7 +147,7 @@ for i_fish = range_fish,
 
     
     %% registered coordinates from morphing to ZBrain
-    if i_fish<12,
+    if i_fish<=18,
         [CellXYZ_norm,IX_inval_norm] = GetNormCellCord(i_fish);
     else % place holder
         CellXYZ_norm = CellXYZ;

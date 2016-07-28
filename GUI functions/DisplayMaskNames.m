@@ -1,4 +1,4 @@
-function DisplayMaskNames(Msk_IDs,MASKs)
+function names_numbered = DisplayMaskNames(Msk_IDs,MASKs)
 if Msk_IDs ~= 0,
     names = MASKs.MaskDatabaseNames(Msk_IDs);
     names_numbered = cell(size(names));

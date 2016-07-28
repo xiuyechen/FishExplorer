@@ -5,7 +5,7 @@ save_dir = data_masterdir;
 
 % range_fish = GetFishRange();
 range_fish = 1:18;
-
+global VAR;
 
 %% (Optional) Load fresh from file
 
@@ -13,23 +13,24 @@ range_fish = 1:18;
 
 
 %%
+range_fish = 11:18;
 for i_fish = range_fish,
 
-%     VAR = RenameClusGroup(VAR,i_fish,1,'Selection');
+    
+%     VAR = RenameClusGroup(VAR,i_fish,6,'Auto_M0.7_woA');
+%     VAR = DeleteCluster(VAR,i_fish,{2,3:5});
+%     VAR = RenameCluster(VAR,i_fish,[4,1],'k20_hf_defS_CV1'); % 1 at a time
 
-    VAR = RenameCluster(VAR,i_fish,[4,1],'k20_hf_defS_CV1');
+%     VAR = CopyCluster(VAR,i_fish,{2,3:6},{3,1:4});  
 
-    VAR = CopyCluster(VAR,i_fish,[2,1],[6,1]);  
-%     VAR = CopyCluster(VAR,i_fish,[2,2],[6,2]);  
-%     VAR = CopyCluster(VAR,i_fish,[6,2],[2,1]);  
-%     VAR = CopyCluster(VAR,i_fish,[6,1],[2,2]);  
-
-%     VAR = MakeNewClusGroup(VAR,i_fish,'Other');
+%     VAR = MoveCluster(VAR,i_fish,{2,3:7},{1,1:5});
+    VAR = MakeNewClusGroup(VAR,i_fish,'Conserved');
 
 end
-
+VAR = CompileVARnames(VAR);
 %%
-save(fullfile(save_dir,'VAR_new.mat'),'VAR','-v6');
+SaveVARwithBackup();
+% save(fullfile(save_dir,'VAR_new.mat'),'VAR','-v6');
 % disp('saved updated ''VAR''');
 
 %% save with backup
@@ -41,17 +42,3 @@ save(fullfile(arcmatfolder,matname),'VAR','-v6');
 
 save(fullfile(save_dir,'VAR_new.mat'),'VAR','-v6');
 
-
-%% view all names
-for i_fish = 1:18;
-    nClusGroup = length(VAR(i_fish).ClusGroupName);
-    
-    VAR(i_fish).AllNames = [];
-    for i = 1:nClusGroup,
-        head = VAR(i_fish).ClusGroupName(i);
-        col = vertcat(head, {VAR(i_fish).ClusGroup{i}.name}');
-        for j = 1:length(col),
-            VAR(i_fish).AllNames{j,i} = col{j};
-        end
-    end
-end

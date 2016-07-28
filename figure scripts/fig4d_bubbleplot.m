@@ -1,13 +1,14 @@
- 
- %%
+
+cIX_in = getappdata(hfig,'cIX');
+gIX_in = getappdata(hfig,'gIX_betas');
+
+%% get coefficients from multiple linear regression
+betas = getappdata(hfig,'betas');
 stimcorr = max(betas(:,1:end-3),[],2);
 motorcorr = max(betas(:,end-2:end),[],2);
 % figure;scatter(stimcorr,motorcorr)%scatter(motorcorr,stimcorr)
 
-%%
-% multi-motor
-
-% make colormap
+%% draw custom 2-D colormap illustration (square)
 res = 100;
 grad = linspace(0,1,res);
 rev_grad = linspace(1,0,res);
@@ -20,48 +21,85 @@ grid(:,:,2) = repmat(grad',1,res)';
 
 clrmap_2D = reshape(grid,res*res,3);
 
-figure;imagesc(grid)
-axis xy
-axis off
-axis equal
-%%
-% get new gIX to use with this custom colormap
+% figure;imagesc(grid)
+% axis xy
+% axis off
+% axis equal
+
+%% get new gIX with matching custom colormap 'cmap_U'
 gIX_x = round((stimcorr-min(stimcorr))/(max(stimcorr)-min(stimcorr))*(res-1))+1;
 gIX_y = round((motorcorr-min(motorcorr))/(max(motorcorr)-min(motorcorr))*(res-1))+1;
 
-gIX_old = gIX;
+gIX_old = gIX_in;
 U = unique(gIX_old);
-% % gIX = zeros(size(gIX_old));
-% % for i = 1:length(U);
-% %     ix = gIX_old == U(i);
-% %     gIX(ix) = sub2ind([res,res],gIX_x(U(i))',gIX_y(U(i))');
-% % end
-
-%%
 U_size = zeros(size(gIX_x));
-cmap_U = zeros(length(gIX_x),3);
+clrmap = zeros(length(gIX_x),3);
 for i = 1:length(U);
     ix = find(gIX_old == U(i));
     U_size(i) = length(ix);
     ix = sub2ind([res,res],gIX_y(U(i))',gIX_x(U(i))');
-    cmap_U(i,:) = clrmap_2D(ix,:);
+    clrmap(i,:) = clrmap_2D(ix,:);
 end
-%%
-% figure('Position',[500,500,250,200]);scatter(stimcorr,motorcorr,U_size)%,cmap)
-% xlabel('stimulus corr.');ylabel('motor corr.');
-%%
-figure('Position',[500,500,250,200]);scatter(stimcorr,motorcorr,U_size,cmap_U)
+
+%% bubble plot in 2-D color (plot of all clusters, cluster size indicated by circular marker size) 
+figure('Position',[500,500,250,200]);scatter(stimcorr,motorcorr,U_size,clrmap)
 xlabel('stimulus corr.');ylabel('motor corr.');
 
-%%
+%% Anat plot with custom colormap
+isRefAnat = 1;
+isPopout = 1;
+figure
+DrawCellsOnAnatProj(hfig,isRefAnat,isPopout,cIX_in,gIX_in,clrmap);
+% DrawCellsOnAnatProj_othercolor(hfig,cIX_in,gIX_in,cmap_U,isRefAnat,isPopout);
+
+%% threshold the bubble plot with chosen radius
+thres_rad = 0.25;
+
 radius = sqrt(stimcorr.^2 + motorcorr.^2);
 [A,U_sorted] = sort(radius,'descend');
-i_end = find(A>0.5,1,'last')
+i_end = find(A>thres_rad,1,'last');
+disp(i_end)
+IX_passrad = U_sorted(1:i_end);
+
 cIX_plot = []; gIX_plot = [];
-cIX = getappdata(hfig,'cIX');
-gIX = getappdata(hfig,'gIX');
-for i = 1:i_end,
-    IX = find(gIX == U_sorted(i));
-    cIX_plot = [cIX_plot; cIX(IX)];
-    gIX_plot = [gIX_plot; gIX(IX)] ;   
+for i = 1:length(IX_passrad),
+    IX = find(gIX_in==IX_passrad(i));
+    cIX_plot = [cIX_plot; cIX_in(IX)];
+    gIX_plot = [gIX_plot; gIX_in(IX)];
 end
+%% Anat plot of only clusters > radius, same colormap
+isRefAnat = 1;
+isPopout = 1;
+figure
+[tot_image, dim_totimage] = DrawCellsOnAnatProj_othercolor(hfig,cIX_plot,gIX_plot,clrmap,isRefAnat,isPopout);
+
+%% bubble plot in 2-D color, with radius drawn
+figure('Position',[500,500,300,250]);hold on;
+scatter(stimcorr,motorcorr,U_size,clrmap)
+xlabel('stimulus corr.');ylabel('motor corr.');
+theta = -1:0.01:pi/2;
+X = cos(theta)*thres_rad;
+Y = sin(theta)*thres_rad;
+plot(X,Y,'k--','Linewidth',1.5)
+axis equal
+ylim([-0.15,0.4])
+xlim([0,0.6])
+set(gca,'YTick',[-0.2:0.2:0.4])
+
+%%
+thres_x = 0.2;
+[A,U_sorted] = sort(stimcorr,'ascend');
+i_end = find(A<thres_x,1,'last');
+disp(i_end)
+IX_smallstim = U_sorted(1:i_end);
+IX_plot = intersect(IX_smallstim,IX_passrad,'stable');
+
+cIX_out = []; gIX_out = [];
+for i = 1:length(IX_plot),
+    IX = find(gIX_in==IX_plot(i));
+    cIX_out = [cIX_out; cIX_in(IX)];
+    gIX_out = [gIX_out; i*ones(size(IX))];
+end
+%%
+cIX = cIX_out;
+gIX = gIX_out;
