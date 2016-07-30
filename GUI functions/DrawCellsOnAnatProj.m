@@ -170,7 +170,6 @@ if isShowMasks,
         anat_YX = DrawMasksInRGB(anat_YX,[],masks_fit,clr,1,msk_alpha,white_alpha);
 
         % Y-Z
-        outline_radius = 6;
         masks_YZ = squeeze(max(mask_3D,[],2));
         masks_fit = logical(imresize(masks_YZ,[size(anat_yz,1),size(anat_yz,2)]));
         if isShowMskOutline,

@@ -1,6 +1,12 @@
 function [cIX,gIX] = MakeFoxels(cIX,gIX,M_0,cIX_reg,isWkmeans,clusParams,absIX,i_fish)
 % Obtain foxels (functional voxels)
 
+% if isAutoclusWithAllCells,
+%     cIX_reg = (1:size(M_0,1))';
+% else
+%     cIX_reg = cIX;
+% end
+
 %% set params
 % default:
 % thres_reg2 = 0.5;

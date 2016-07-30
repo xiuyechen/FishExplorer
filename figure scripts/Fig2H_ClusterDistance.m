@@ -9,7 +9,8 @@ N_sim = N;
 Avr = zeros(numFish,1);
 Avr_sim = Avr;
 
- k_um = 0.798; % 0.406 um per pixel for XY res FOR NON-REGISTERED FISH
+ k_xy_um = 0.798; % 0.406 um per pixel for XY res FOR NON-REGISTERED FISH
+ k_z_um = 2;
 %   ZBrain: x/y/z = 0.798/0.798/2um
 
 % k_um = 0.406; % um per pixel
@@ -27,8 +28,10 @@ for i_fish = range_fish,
         clus_XYZ = M_xyz_norm(IX,:);
         
         % scale X/Y/Z distance from coordinates (Z res is lower)
-        clus_XYZ_scaled = clus_XYZ*k_um;
-        clus_XYZ_scaled(:,3) = k_zres_toXYratio*clus_XYZ_scaled(:,3);
+        clus_XYZ_scaled = zeros(size(clus_XYZ));
+        clus_XYZ_scaled(:,1) = clus_XYZ(:,1)*k_xy_um;
+        clus_XYZ_scaled(:,2) = clus_XYZ(:,2)*k_xy_um;
+        clus_XYZ_scaled(:,3) = clus_XYZ(:,3)*k_z_um;
         
         sd = std(clus_XYZ_scaled);
         sd_tot(i_clus) = sqrt(sd(1)^2 + sd(2)^2 + sd(3)^2);
@@ -47,8 +50,10 @@ for i_fish = range_fish,
         sim_clus_XYZ = CellXYZ_norm(sim_cIX_abs,:);
         
         % scale X/Y/Z distance from coordinates (Z res is lower)
-        sim_clus_XYZ_scaled = sim_clus_XYZ*k_um;
-        sim_clus_XYZ_scaled(:,3) = k_zres_toXYratio*sim_clus_XYZ_scaled(:,3);
+        sim_clus_XYZ_scaled = zeros(size(sim_clus_XYZ));
+        sim_clus_XYZ_scaled(:,1) = sim_clus_XYZ(:,1)*k_xy_um;
+        sim_clus_XYZ_scaled(:,2) = sim_clus_XYZ(:,2)*k_xy_um;
+        sim_clus_XYZ_scaled(:,3) = sim_clus_XYZ(:,3)*k_z_um;
         
         sd = std(sim_clus_XYZ_scaled);
         sim_sd_tot(i_clus) = sqrt(sd(1)^2 + sd(2)^2 + sd(3)^2);
@@ -66,7 +71,7 @@ for i_fish = range_fish,
 end
 
 %% Plot figure
-figure('Position',[100,400,150,200]);hold on;
+figure('Position',[100,400,150,160]);hold on;
 scatter(ones(numFish,1),Avr,20,'MarkerEdgeColor',[0,0,0],'MarkerEdgeAlpha',0.5,'MarkerFaceColor',[0.8,0.8,0.8],'MarkerFaceAlpha',0.5);
 scatter(2*ones(numFish,1),Avr_sim,20,'MarkerEdgeColor',[0,0,0],'MarkerEdgeAlpha',0.5,'MarkerFaceColor',[0.8,0.8,0.8],'MarkerFaceAlpha',0.5);
 inc1 = 0.2;
@@ -93,9 +98,9 @@ plot([x-inc,x+inc],[mean(Y)-err,mean(Y)-err],'color',[1,0.5,0.5]);
 % errorbar(1+inc,mean(Avr),std(Avr)/sqrt(length(Avr)),'k','Linewidth',1.5)
 % errorbar(2+inc,mean(Avr_sim),std(Avr_sim)/sqrt(length(Avr)),'k','Linewidth',1.5)
 xlim([0.5,2.5])
-ylim([0,110])
+ylim([0,220])
 set(gca,'XTickLabels',{'Data','Shuffled'},'XTickLabelRotation',45);
-ylabel('average spread (um)')
+ylabel('avr. spread (um)')
 
 %%
 % figure;hold on;

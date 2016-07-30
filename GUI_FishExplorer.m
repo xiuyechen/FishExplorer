@@ -3070,8 +3070,6 @@ cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
 M_0 = getappdata(hfig,'M_0');
 isWkmeans = getappdata(hfig,'isWkmeans');
-absIX = getappdata(hfig,'absIX');
-i_fish = getappdata(hfig,'i_fish');
 masterthres = getappdata(hfig,'thres_reg');
 isMakeFoxels = true;
 
@@ -3084,7 +3082,7 @@ end
 
 WatchOn(hfig);
 [cIX,gIX] = AutoClustering(cIX,gIX,M_0,cIX_reg,isWkmeans,[],...
-    absIX,i_fish,isMakeFoxels,masterthres,isAutoclusWithAllCells);
+    isMakeFoxels,masterthres);
 WatchOff(hfig);
 
 UpdateIndices(hfig,cIX,gIX);
@@ -3120,21 +3118,22 @@ RefreshFigure(hfig);
 end
 
 function pushbutton_autoclusfromfoxels_Callback(hObject,~)
-hfig = getParentFigure(hObject);
-cIX = getappdata(hfig,'cIX');
-gIX = getappdata(hfig,'gIX');
-M_0 = getappdata(hfig,'M_0');
-isWkmeans = getappdata(hfig,'isWkmeans');
-absIX = getappdata(hfig,'absIX');
-i_fish = getappdata(hfig,'i_fish');
-
-WatchOn(hfig);
-isMakeFoxels = false;
-[cIX,gIX] = AutoClustering(cIX,gIX,M_0,isWkmeans,[],absIX,i_fish,isMakeFoxels);
-WatchOff(hfig);
-
-UpdateIndices(hfig,cIX,gIX);
-RefreshFigure(hfig);
+disp('obsolete!');
+% hfig = getParentFigure(hObject);
+% cIX = getappdata(hfig,'cIX');
+% gIX = getappdata(hfig,'gIX');
+% M_0 = getappdata(hfig,'M_0');
+% isWkmeans = getappdata(hfig,'isWkmeans');
+% absIX = getappdata(hfig,'absIX');
+% i_fish = getappdata(hfig,'i_fish');
+% 
+% WatchOn(hfig);
+% isMakeFoxels = false;
+% [cIX,gIX] = AutoClustering(cIX,gIX,M_0,isWkmeans,[],absIX,i_fish,isMakeFoxels);
+% WatchOff(hfig);
+% 
+% UpdateIndices(hfig,cIX,gIX);
+% RefreshFigure(hfig);
 end
 
 function pushbutton_thressize_Callback(hObject,~)

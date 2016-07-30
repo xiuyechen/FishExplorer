@@ -7,7 +7,7 @@ clear all;close all;clc
 % scriptName = mfilename('fullpath');
 % [currentpath, filename, fileextension]= fileparts(scriptName);
 % code_dir = currentpath;
-code_dir = GetCurrentCodeDir();
+code_dir = 'C:\Users\Xiu\Dropbox\FishExplorer2';
 addpath(genpath(code_dir));
 
 global data_masterdir name_MASKs name_ReferenceBrain VAR; %#ok<NUSED>

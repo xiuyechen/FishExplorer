@@ -11,14 +11,14 @@ maxlim = 1; %max(max(im));
 
 RGB = ImageToRGB(im,cmap,minlim,maxlim); % map image matrix to range of colormap
 
-image(RGB); axis equal; axis tight; %axis off 
+image(RGB); axis equal; axis tight;
 set(gca,'XTick',1:length(im),'YTick',1:length(im));
 
 if exist('isPlotText','var'),
     if isPlotText,
-        for i = 1:size(im,2), % horizontal.. because of image axis
-            for j = 1:size(im,1),
-                text(i-0.3, j, num2str(round(im(i,j)*100)/100));%, 'Units', 'data')
+        for i = 1:size(im,1),
+            for j = 1:size(im,2),
+                text(i-0.3, j, num2str(round(im(j,i)*100)/100));%, 'Units', 'data') % flipped i/j necessary
             end
         end
     end

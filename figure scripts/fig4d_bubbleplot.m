@@ -71,7 +71,7 @@ end
 isRefAnat = 1;
 isPopout = 1;
 figure
-[tot_image, dim_totimage] = DrawCellsOnAnatProj_othercolor(hfig,cIX_plot,gIX_plot,clrmap,isRefAnat,isPopout);
+DrawCellsOnAnatProj(hfig,isRefAnat,isPopout,cIX_plot,gIX_plot,clrmap);
 
 %% bubble plot in 2-D color, with radius drawn
 figure('Position',[500,500,300,250]);hold on;

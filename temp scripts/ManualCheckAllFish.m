@@ -1,7 +1,7 @@
 % Check all fish!
 range_fish = 1:18;
 data_masterdir = GetCurrentDataDir();
-M_stimrange = GetStimRange('O');
+M_stimrange = GetStimRange();%'O');
 M_fishset = GetFishStimset();
 
 TF = zeros(length(range_fish),2);
@@ -9,7 +9,7 @@ for i_fish = range_fish,
     LoadFullFish(hfig,i_fish,-1);
     absIX = getappdata(hfig,'absIX');
     numcell_full = getappdata(hfig,'numcell_full');
-    TF(i_fish,1) = length(absIX) ==numcell_full;
+    TF(i_fish,1) = numcell_full;%length(absIX) ==numcell_full;
     
     stimrange = M_stimrange{i_fish};
     fishset = M_fishset(i_fish);

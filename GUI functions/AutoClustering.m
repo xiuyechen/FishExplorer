@@ -1,4 +1,4 @@
-function [cIX,gIX] = AutoClustering(cIX,gIX,M_0,cIX_reg,isWkmeans,clusParams,absIX,i_fish,isMakeFoxels,masterthres,isAutoclusWithAllCells)
+function [cIX,gIX] = AutoClustering(cIX,gIX,M_0,cIX_reg,isWkmeans,clusParams,isMakeFoxels,masterthres)%,isAutoclusWithAllCells)
 % [cIX,gIX] = AutoClustering(cIX,gIX,M_0,isWkmeans,clusParams,absIX,i_fish,isMakeFoxels,masterthres,isAutoclusWithAllCells)
 % automatically cluster all cells, starting with the currently selected
 % cells
@@ -11,9 +11,9 @@ end
 if ~exist('isMakeFoxels','var'),
     masterthres = 0.5;
 end
-if ~exist('isAutoclusWithAllCells','var'),
-    isAutoclusWithAllCells = true;
-end
+% if ~exist('isAutoclusWithAllCells','var'),
+%     isAutoclusWithAllCells = true;
+% end
 
 thres_reg2 = masterthres;
 thres_reg = masterthres;
@@ -83,14 +83,15 @@ reg2Time = toc(reg2Start);
 % SaveCluster_Direct(cIX,gIX,absIX,i_fish,'afterGrowth',clusgroupID);
 
 %% 
-% U = unique(gIX);
-% numU = length(U);
-% for i=1:numU,
-%     if length(find(gIX==U(i)))<thres_minsize,
-%         cIX(gIX==U(i)) = [];
-%         gIX(gIX==U(i)) = [];
-%     end
-% end
+U = unique(gIX);
+numU = length(U);
+for i=1:numU,
+    if length(find(gIX==U(i)))<thres_minsize,
+        cIX(gIX==U(i)) = [];
+        gIX(gIX==U(i)) = [];
+    end
+end
+
 C = FindCentroid_Direct(gIX,M_0(cIX,:));
 gIX = HierClus_Direct(C,gIX);
 [gIX,numROI] = SqueezeGroupIX(gIX);

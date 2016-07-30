@@ -1,4 +1,4 @@
-function [score,im1,cIX_int,gIX_A,gIX_B] = HungarianCV(cIX1,cIX2,gIX1,gIX2,isPlotFig,name)
+function [score,im1] = HungarianCV(cIX1,cIX2,gIX1,gIX2,isPlotFig,name)
 numClus1 = length(unique(gIX1));
 numClus2 = length(unique(gIX2));
 
@@ -45,10 +45,9 @@ for i = 1:length(I),
             
             A = cIX1(gIX1==I(i));
             B = cIX2(gIX2==J(j));
-            C = intersect(A,B);
-            cIX_int = [cIX_int;C]; %#ok<*AGROW>
-            gIX_A = [gIX_A;I(i)*ones(size(C))];
-            gIX_B = [gIX_B;J(j)*ones(size(C))];
+            [C,ia,ib] = intersect(A,B);
+            cIX_int = [cIX_int;C];
+            gIX_A = [
         end
     end
 end

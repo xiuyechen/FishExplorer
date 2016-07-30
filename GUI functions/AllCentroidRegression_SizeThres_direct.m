@@ -7,7 +7,7 @@ S = sum(TF,2);
 RegIX = find(S>=thres_minsize);
 
 S2 = sum(TF(RegIX,:),1);
-cIX_lc = find(S2>0)';
+cIX_lc = find(S2>0)'; % local index
 [~,IX] = max(Corr(RegIX,:),[],1);
 gIX = IX(cIX_lc)';
 numK = length(unique(gIX));

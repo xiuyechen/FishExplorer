@@ -3,12 +3,15 @@ totaltime = tic; %#ok<NASGU>
 isFullData = 1;
 data_masterdir = GetCurrentDataDir();
 
+% const_ClusGroup = 2;
+% const_Cluster = 1; % This is all cells
+% M_fishset = GetFishStimset();
 M_stimrange = GetStimRange();
 
 range_fish =  1:18; % range_fish = GetFishRange();
 
 %% custom params here:
-% numK1 = 20; 
+% numK1 = 20;
 masterthres = 0.7;
 
 %%
@@ -56,13 +59,17 @@ for i_count = 1,%%%%%%%%%
             %% 1.
             % setup
             absIX = getappdata(hfig,'absIX');
-
+%             fishset = M_fishset(i_fish);
+            %     i_count = 1;
             i_ClusGroup = 2;
             i_Cluster = 1;
-
+            
+            %             timelists = getappdata(hfig,'timelists');
+            
             % Load cluster data
             [cIX_load,gIX] = LoadCluster_Direct(i_fish,i_ClusGroup,i_Cluster,absIX);
-                        
+            
+            
             %% partitions for CV
             timelists = getappdata(hfig,'timelists');
             timelists_names = getappdata(hfig,'timelists_names');
@@ -96,7 +103,15 @@ for i_count = 1,%%%%%%%%%
                 tIX = timelistsCV{k};
                 M = GetTimeIndexedData_Default_Direct(hfig,cIX_load,tIX);
                 M_0 = GetTimeIndexedData_Default_Direct(hfig,[],tIX,'isAllCells');
-
+                
+%                 gIX = Kmeans_Direct(M,numK1);
+                
+                %         % save
+                %         name = ['k20_defS_CV' num2str(k)];
+                %         clusgroupID = 4;
+                %         clusIDoverride = k; %Saved in Group5, Clusters 1%2
+                %         SaveCluster_Direct(cIX_load,gIX,absIX,i_fish,name,clusgroupID,clusIDoverride);
+                
                 % ------custom code here---------
                 isWkmeans = true;
                 isMakeFoxels = true;
@@ -112,6 +127,7 @@ for i_count = 1,%%%%%%%%%
             end
         end
     end
+%     SaveVARwithBackup();
 end
 SaveVARwithBackup();
 totaltime = toc;
