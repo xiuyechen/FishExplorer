@@ -15,8 +15,8 @@ for i=1:numU,
     B(i,2) = mean(m);
 %     B(i,3) = median(m);
 end
-
-figure;
+%%
+figure('Position',[500,500,250,150]);
 hist(B(:,2))
 h = findobj(gca,'Type','patch');
 h.FaceColor = [0.5 0.5 0.5];
@@ -36,13 +36,13 @@ for i=1:numU,
 end
 [N,edges] = histcounts(C,10:10:2100);
 
-figure;hold on;
+figure('Position',[500,500,350,300]);hold on;
 for i = 1:length(N),
     plot([edges(i),edges(i)],[0,N(i)],'color',[1,0.5,0.5],'linewidth',6)
 end
 set(gca,'XScale','log')
 % set(gca,'YScale','log')
-xlim([5,1000])
+xlim([5,2000])
 ylim([0,85])
 xlabel('cluster size')
 ylabel('count')

@@ -1,3 +1,5 @@
+function [cIX,gIX] = BubblePlot(hfig)
+isplotfig = 0;
 
 cIX_in = getappdata(hfig,'cIX');
 gIX_in = getappdata(hfig,'gIX_betas');
@@ -41,22 +43,18 @@ for i = 1:length(U);
     clrmap(i,:) = clrmap_2D(ix,:);
 end
 
-%% bubble plot in 2-D color (plot of all clusters, cluster size indicated by circular marker size) 
-figure('Position',[500,500,300,250]);
-scatter(stimcorr,motorcorr,U_size,clrmap)
-xlabel('stimulus corr.');ylabel('motor corr.');
-axis equal
-xlim([0,0.7]);
-ylim([-0.22,0.6]);
-% set(gca,'YTick',-0.2:0.2:0.6);
+%% bubble plot in 2-D color (plot of all clusters, cluster size indicated by circular marker size)
+% figure('Position',[500,500,250,200]);scatter(stimcorr,motorcorr,U_size,clrmap)
+% xlabel('stimulus corr.');ylabel('motor corr.');
 
 %% Anat plot with custom colormap
-isRefAnat = 1;
-isPopout = 1;
-figure
-DrawCellsOnAnatProj(hfig,isRefAnat,isPopout,cIX_in,gIX_in,clrmap);
-% DrawCellsOnAnatProj_othercolor(hfig,cIX_in,gIX_in,cmap_U,isRefAnat,isPopout);
-
+if isplotfig,
+    isRefAnat = 1;
+    isPopout = 1;
+    figure
+    DrawCellsOnAnatProj(hfig,isRefAnat,isPopout,cIX_in,gIX_in,clrmap);
+    % DrawCellsOnAnatProj_othercolor(hfig,cIX_in,gIX_in,cmap_U,isRefAnat,isPopout);
+end
 %% threshold the bubble plot with chosen radius
 thres_rad = 0.3;
 
@@ -73,28 +71,32 @@ for i = 1:length(IX_passrad),
     gIX_radthres = [gIX_radthres; gIX_in(IX)];
 end
 %% Anat plot of only clusters > radius, same colormap
-isRefAnat = 1;
-isPopout = 1;
-figure
-DrawCellsOnAnatProj(hfig,isRefAnat,isPopout,cIX_radthres,gIX_radthres,clrmap);
+if isplotfig,
+    isRefAnat = 1;
+    isPopout = 1;
+    figure
+    DrawCellsOnAnatProj(hfig,isRefAnat,isPopout,cIX_radthres,gIX_radthres,clrmap);
+end
 
 %% bubble plot in 2-D color, with radius drawn
-figure('Position',[500,500,300,250]);hold on;
-scatter(stimcorr,motorcorr,U_size,clrmap)
-xlabel('stimulus corr.');ylabel('motor corr.');
-theta = -1:0.01:pi/2;
-X = cos(theta)*thres_rad;
-Y = sin(theta)*thres_rad;
-plot(X,Y,'k--','Linewidth',1.5)
-axis equal
-% ylim([-0.15,0.4])
-% xlim([0,0.6])
-xlim([0,0.7]);
-ylim([-0.22,0.6]);
-set(gca,'YTick',-0.2:0.2:0.6);
+if isplotfig,
+    figure('Position',[500,500,300,250]);hold on;
+    scatter(stimcorr,motorcorr,U_size,clrmap)
+    xlabel('stimulus corr.');ylabel('motor corr.');
+    theta = -1:0.01:pi/2;
+    X = cos(theta)*thres_rad;
+    Y = sin(theta)*thres_rad;
+    plot(X,Y,'k--','Linewidth',1.5)
+    axis equal
+    % ylim([-0.15,0.4])
+    % xlim([0,0.6])
+    xlim([0,0.7]);
+    ylim([-0.18,0.5]);
+    set(gca,'YTick',[-0.2:0.2:0.4])
+end
 
 %%
-thres_x = 0.3;% 0.1; for fish8 figure
+thres_x = 0.4;% 0.1; for fish8 figure
 [A,U_sorted] = sort(stimcorr,'ascend');
 i_end = find(A<thres_x,1,'last');
 IX_smallstim = U_sorted(1:i_end);

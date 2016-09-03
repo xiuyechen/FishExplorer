@@ -32,6 +32,7 @@ function DrawTiledPics(hfig)
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
 absIX = getappdata(hfig,'absIX');
+clrmap_name = getappdata(hfig,'clrmap_name');
 
 % initialize image stack
 anat_stack2 = zeros([size(anat_stack),3]);
@@ -44,14 +45,15 @@ circlemaskIX = MakeCircularMask(radius_xy,dimv_yxz(1:2));
 
 % make color-map
 numK = double(max(gIX));
-clrmap = hsv(round(double(numK)*1.1));
+clrmap = GetColormap(clrmap_name,numK);
+% clrmap = hsv(round(double(numK)*1.1));
 % set transparency
 alpha = ones(size(cIX))*0.4;
 
 %% main: coloring of stack
 cIX_abs = absIX(cIX);
 M_xyz = CellXYZ(cIX_abs,:);
-stack_alpha = 0;%0.25;
+stack_alpha = 0.25;
 for i = 1:nPlanes,
     anat_plane = stack_alpha*repmat(squeeze(imNormalize99(anat_stack(:,:,i))),[1 1 3]);
     IX = find(M_xyz(:,3)==i);

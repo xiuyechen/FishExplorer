@@ -127,6 +127,7 @@ setappdata(hfig,'isShowMskOutline',0);
 setappdata(hfig,'isFindMaskNorm',1);
 setappdata(hfig,'isPlotMskHist',1);
 setappdata(hfig,'isScreenMskFromAllCells',0);
+setappdata(hfig,'isPlotRegWithTS',0);
 
 setappdata(hfig,'isWeighAlpha',0);
 setappdata(hfig,'isPlotAnatomyOnly',0);
@@ -247,6 +248,12 @@ n=2; % popupplot option: whether to only plot anatomy map (right half)
 uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Plot anatomy only',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@checkbox_isPlotAnatomyOnly_Callback);
+
+i=i+n;
+n=3; % popupplot option: whether to plot regressor
+uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Plot Regressor',...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+    'Callback',@checkbox_isPlotRegressorWithTS_Callback);
 
 %% UI row 2: Load
 i_row = 2;
@@ -464,6 +471,17 @@ hloadfish = uicontrol('Parent',tab{i_tab},'Style','popupmenu',...
     'String',{'hsv(new)','jet','greedy hsv','hsv(old)'},...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@popup_chooseclrmap_Callback);
+
+i=i+n;
+n=2; % Choose range of clusters to exclude. format: e.g. '1:2,4-6,8:end'
+uicontrol('Parent',tab{i_tab},'Style','text','String','numK:',...
+    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
+
+i=i+n;
+n=1;
+uicontrol('Parent',tab{i_tab},'Style','edit',...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+    'Callback',@edit_manualsetnumK_Callback);
 
 %% UI row 3: Anatomy
 i_row = 3;
@@ -1208,17 +1226,22 @@ end
 
 function pushbutton_loadVARfromworkspace_Callback(hObject,~)
 % (code copied from UpdateFishData)
-disp('import VAR from workspace');
+% disp('import VAR from workspace');
+% hfig = getParentFigure(hObject);
+% 
+% clusgroupID = 1;
+% setappdata(hfig,'clusgroupID',clusgroupID);
+% setappdata(hfig,'clusgroupID_view',clusgroupID);
+% UpdateClusGroupGUI(hfig,clusgroupID);
+% 
+% setappdata(hfig,'clusID',1);
+% UpdateClustersGUI(hfig);
+% LoadNewClusters(hfig);
+
 hfig = getParentFigure(hObject);
-
-clusgroupID = 1;
-setappdata(hfig,'clusgroupID',clusgroupID);
-setappdata(hfig,'clusgroupID_view',clusgroupID);
-UpdateClusGroupGUI(hfig,clusgroupID);
-
-setappdata(hfig,'clusID',1);
-UpdateClustersGUI(hfig);
-LoadNewClusters(hfig);
+[cIX,gIX] = BubblePlot(hfig);
+UpdateIndices(hfig,cIX,gIX);
+RefreshFigure(hfig);
 end
 
 function pushbutton_loadCurrentClustersfromworkspace_Callback(hObject,~)
@@ -1243,16 +1266,18 @@ isRefAnat = getappdata(hfig,'isRefAnat');
 isPlotLines = getappdata(hfig,'isPlotLines');
 isPlotBehavior = getappdata(hfig,'isPlotBehavior');
 isPlotAnatomyOnly = getappdata(hfig,'isPlotAnatomyOnly');
+isPlotRegWithTS = getappdata(hfig,'isPlotRegWithTS');
 
 if ~isPlotAnatomyOnly,
-    figure('Position',[50,50,1600,800],'color',[1 1 1],...
+    figure('Position',[50,50,600,800],... % [50,50,1600,800],
+        'color',[1 1 1],...
         'Name',['Fish#' num2str(i_fish)]);
     h1 = axes('Position',[0.05, 0.03, 0.53, 0.94]); % left ~subplot
     h2 = axes('Position',[0.61, 0.03, 0.35, 0.94]); % right ~subplot
     
     % left subplot
     axes(h1);
-    DrawTimeSeries(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior);
+    DrawTimeSeries(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior,isPlotRegWithTS);
     
     % right subplot
     axes(h2);
@@ -1281,6 +1306,11 @@ end
 function checkbox_isPlotAnatomyOnly_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 setappdata(hfig,'isPlotAnatomyOnly',get(hObject,'Value'));
+end
+
+function checkbox_isPlotRegressorWithTS_Callback(hObject,~)
+hfig = getParentFigure(hObject);
+setappdata(hfig,'isPlotRegWithTS',get(hObject,'Value'));
 end
 
 %% row 2: Load
@@ -1810,19 +1840,21 @@ for i = 1:numU,
         %             [H(i),I] = max(xcorr(C(i,:),reg(3,:),'coeff'));
         %             shift(i) = I - length(behavior);
         case 1, % 'motor'
-            R = zeros(1,4);
+%             regressor = regressors(3).im;
+%             H(i) = corr(regressor',C(i,:)');
+            R = zeros(1,5);
             for j = 1:3,
                 regressor = regressors(j).im;
                 R(j) = corr(regressor',C(i,:)');
             end
-            regressor = 0.5*(regressors(4).im+regressors(5).im);
-            H(4) = corr(regressor',C(i,:)');
+%             regressor = 0.5*(regressors(4).im+regressors(5).im);
+%             R(4) = corr(regressor',C(i,:)');
             H(i) = max(R);
         case 2, % 'L motor'
-            regressor = regressors(1).im;
+            regressor = regressors(4).im;
             H(i) = corr(regressor',C(i,:)');
         case 3, % 'R motor'
-            regressor = regressors(2).im;
+            regressor = regressors(5).im;
             H(i) = corr(regressor',C(i,:)');
         case 4, % 'L+R motor'
             regressor = 0.5*(regressors(4).im+regressors(5).im);
@@ -1838,6 +1870,10 @@ function [gIX,rankscore,betas] = RankByMultiRegression_Direct(hfig,gIX,numU,opti
 fishset = getappdata(hfig,'fishset');
 stim = getappdata(hfig,'stim');
 behavior = getappdata(hfig,'behavior');
+
+% C = getappdata(hfig,'M');
+% gIX = (1:size(C,1))';
+
 C = FindCentroid(hfig);
 nClus = size(C,1);
 
@@ -1955,33 +1991,38 @@ end
 %% rank and plot
 [gIX,rankscore] = SortH(H,gIX,numU,'descend');
 
-figure;
-h1 = subplot(2,1,1);
-imagesc(orthonormal_basis);
-title('All orthonormal bases');
-xlabel('orthonormal basis #');
-% make x-lables
-nBases = size(orthonormal_basis,2);
-s = [];
-for i_basis = 1:nBases-3,
-    s = [s,{['stim.' num2str(i_basis)]}];
-end
-s = [s,{'motor.R','motor.L','motor.F'}];
-h1.XTick = 1:nBases;
-h1.TickLength = [0,0];
-h1.XTickLabel = s;
-h1.XTickLabelRotation = 45;
-ylabel('time ~ frames');
+% gIX = ceil(gIX/10);
+% rankscore = 
 
-h2 = subplot(2,1,2);
-imagesc(betas)
-title('multi-regression coefficients');
-xlabel('orthonormal basis #');
-h2.XTick = 1:nBases;
-h2.TickLength = [0,0];
-h2.XTickLabel = s;
-h2.XTickLabelRotation = 45;
-ylabel('cluster ID');
+if false,
+    figure;
+    h1 = subplot(2,1,1);
+    imagesc(orthonormal_basis);
+    title('All orthonormal bases');
+    xlabel('orthonormal basis #');
+    % make x-lables
+    nBases = size(orthonormal_basis,2);
+    s = [];
+    for i_basis = 1:nBases-3,
+        s = [s,{['stim.' num2str(i_basis)]}];
+    end
+    s = [s,{'motor.R','motor.L','motor.F'}];
+    h1.XTick = 1:nBases;
+    h1.TickLength = [0,0];
+    h1.XTickLabel = s;
+    h1.XTickLabelRotation = 45;
+    ylabel('time ~ frames');
+    
+    h2 = subplot(2,1,2);
+    imagesc(betas)
+    title('multi-regression coefficients');
+    xlabel('orthonormal basis #');
+    h2.XTick = 1:nBases;
+    h2.TickLength = [0,0];
+    h2.XTickLabel = s;
+    h2.XTickLabelRotation = 45;
+    ylabel('cluster ID');
+end
 
 setappdata(hfig,'betas',betas);
 end
@@ -2037,6 +2078,21 @@ elseif i_clr==4,
     setappdata(hfig,'clrmap_name','hsv_old');
 end
 RefreshFigure(hfig);
+end
+
+function edit_manualsetnumK_Callback(hObject,~)
+hfig = getParentFigure(hObject);
+cIX = getappdata(hfig,'cIX');
+gIX = getappdata(hfig,'gIX');
+str = get(hObject,'String');
+if ~isempty(str),
+    str = strrep(str,'end',num2str(max(gIX)));
+    numK = ParseRange(str);
+    if numK>=max(gIX),
+        UpdateIndices(hfig,cIX,gIX,numK);
+        RefreshFigure(hfig);
+    end    
+end
 end
 
 %% row 3: Anatomy
@@ -2355,44 +2411,6 @@ set(hcentroidreg,'BackgroundColor',[1,1,0.8]); % yellow
 end
 
 %% row 2: regression
-
-function regressor = GetRegressor(hObject)
-hfig = getParentFigure(hObject);
-regchoice = getappdata(hfig,'regchoice');
-stim = getappdata(hfig,'stim');
-
-if regchoice{1}==1, % stim Regressor
-    fishset = getappdata(hfig,'fishset');
-    regressors = GetStimRegressor(stim,fishset);
-    if length(regchoice{2})>1,
-        regressor = zeros(length(regchoice{2}),length(regressors(1).im));
-        for i = 1:length(regchoice{2}),
-            regressor(i,:) = regressors(regchoice{2}(i)).im;
-        end
-    else
-        regressor = regressors(regchoice{2}).im;
-    end
-    
-elseif regchoice{1}==2, % motor Regressor
-    behavior = getappdata(hfig,'behavior');
-    regressors = GetMotorRegressor(behavior);
-    regressor = regressors(regchoice{2}).im;
-    
-else % regchoice{1}==3, from Centroid
-    ctrdID = regchoice{2};
-    gIX = getappdata(hfig,'gIX');
-    
-    i = find(unique(gIX)==ctrdID);
-    if isempty(i),
-        disp('input is empty!');beep;
-        regressor = [];
-        return;
-    end
-    C = FindCentroid(hfig);
-    regressor = C(i,:);
-end
-
-end
 
 function pushbutton_thres_regression_Callback(hObject,~)
 disp('regression...');
@@ -4105,11 +4123,16 @@ isPlotBehavior = 1; %getappdata(hfig,'isPlotBehavior');
 
 % left subplot
 axes(h1);
-DrawTimeSeries(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior);
+gIX = getappdata(hfig,'gIX');
+if length(unique(gIX))<500,
+    DrawTimeSeries(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior);
+end
 
 % right subplot
 axes(h2);
-DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
+% if length(unique(gIX))<500,
+    DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
+% end
 WatchOff(hfig);
 end
 

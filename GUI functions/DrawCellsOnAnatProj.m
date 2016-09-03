@@ -1,6 +1,6 @@
 function  [tot_image, dim_totimage] = DrawCellsOnAnatProj(hfig,isRefAnat,isPopout,cIX_plot,gIX_plot,clrmap)
 %% load
-if ~isRefAnat,
+if ~isRefAnat, % raw images
     CellXYZ = getappdata(hfig,'CellXYZ');
     anat_yx = getappdata(hfig,'anat_yx');
     anat_yz = getappdata(hfig,'anat_yz');
@@ -9,7 +9,7 @@ if ~isRefAnat,
     radius_xy = 5;%7;
     width_z = 10;
     thickness_z = 1;
-else
+else % registered to ZBrain
     CellXYZ = getappdata(hfig,'CellXYZ_norm');
     anat_yx = getappdata(hfig,'anat_yx_norm');
     anat_yz = getappdata(hfig,'anat_yz_norm');
@@ -24,6 +24,11 @@ else
     isShowFishOutline = getappdata(hfig,'isShowFishOutline');
     if isShowFishOutline,
         FishOutline = getappdata(hfig,'FishOutline');
+        % option with some background showing
+%         anat_yx = 0.5*anat_yx + 0.5*repmat(FishOutline.outline_XY,[1,1,3]);
+%         anat_yz = 0.5*anat_yz + 0.5*repmat(FishOutline.outline_YZ,[1,1,3]);
+%         anat_zx = 0.5*anat_zx + 0.5*repmat(FishOutline.outline_ZX,[1,1,3]);
+        
         anat_yx = repmat(FishOutline.outline_XY,[1,1,3]);
         anat_yz = repmat(FishOutline.outline_YZ,[1,1,3]);
         anat_zx = repmat(FishOutline.outline_ZX,[1,1,3]);
@@ -106,7 +111,7 @@ anat_zx2=zeros(dimv_zx(1)*k_zres_ratio,dimv_zx(2),3);
 
 if isRefAnat && isPopout,
     % crop lengthwise (most of tail), and scale k_zres
-    y_range = 81:990;% 81:1104; % max 1406
+    y_range = 81:1000;%81:990;% 81:1104; % max 1406
     z_range = z_range_ventral:345; % max 138*k_zres
     dimv_yx3 = size(anat_YX(y_range,:,:));
     dimv_yz3 = [length(y_range),length(z_range),3];
@@ -124,7 +129,7 @@ yzmaskIX = MakeSquareMask(width_z,thickness_z,dimv_yz);
 zxmaskIX = MakeSquareMask(thickness_z,width_z,dimv_zx);
 
 % set transparancy
-alpha_max = 0.3-min(length(cIX)/1000/100,0.1);
+alpha_max = 0.4;%0.3-min(length(cIX)/1000/100,0.1);
 if isWeighAlpha,    
     wIX = getappdata(hfig,'wIX');
     alpha = wIX*alpha_max;
@@ -149,8 +154,8 @@ if isShowMasks,
 %     cmap2 = rand(nMasks,3);
     cmap2 = hsv(nMasks);%jet(nMasks);
     outline_radius = 3;
-    msk_alpha = 0.15; %0.25 for all projections
-    white_alpha = 0.25; % 0 for all projections
+    msk_alpha = 0.1;%0.15 %0.25 for all projections
+    white_alpha = 0.15;%0.25 % 0 for all projections
     for i = 1:nMasks,
         clr = cmap2(i,:);
         % get masks from database

@@ -12,7 +12,7 @@ stim = stim(3001:3600);
 behavior = behavior(:,3001:3600);%(2,3001:3600);
 C = C(:,3001:3600);
 
-% stim 
+% stim z
 regressors_s = GetStimRegressor(stim,fishset);
 reg_s = regressors_s(8).im;
 % motor

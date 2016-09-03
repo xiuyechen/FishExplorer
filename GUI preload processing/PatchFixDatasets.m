@@ -5,7 +5,7 @@ dataset_masterdir = GetNestedDataDir();
 dim_norm = [1406,621,138];
 
 %% 
-range_fish = 15%GetFishRange();
+range_fish = 12:18;%GetFishRange();
 
 for i_fish = range_fish,
     disp(['i_fish = ', num2str(i_fish)]);

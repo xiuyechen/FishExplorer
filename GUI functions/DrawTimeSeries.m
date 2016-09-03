@@ -1,4 +1,4 @@
-function DrawTimeSeries(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior)
+function DrawTimeSeries(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior,isPlotRegWithTS)
 % load
 numK = getappdata(hfig,'numK');
 behavior = getappdata(hfig,'behavior');
@@ -6,9 +6,16 @@ stim = getappdata(hfig,'stim');
 clrmap_name = getappdata(hfig,'clrmap_name');
 rankscore = getappdata(hfig,'rankscore');
 rankID = getappdata(hfig,'rankID');
+fpsec = getappdata(hfig,'fpsec');
 iswrite = (rankID>=2);
 cIX = getappdata(hfig,'cIX');
 nCells = length(cIX);
+regressor = GetRegressor(hfig);
+
+isPlotRegSameRow = 0;
+if ~exist('isPlotRegWithTS','var'),
+    isPlotRegWithTS = 0;
+end    
 
 M = getappdata(hfig,'M');
 gIX = getappdata(hfig,'gIX');
@@ -33,16 +40,23 @@ if isPlotLines,
     if 1, % (just to collapse isPlotLines = true)               
         %% settings
         len = pos(3);
-        fpsec = getappdata(hfig,'fpsec');%1.97;
+%         fpsec = getappdata(hfig,'fpsec');%1.97;
         
         % set position grid
-        nLines = length(unique(gIX));
+        nClus = length(unique(gIX));
+        
         if isPlotBehavior,
             nExtraRows = 3; % number of extra rows
         else
             nExtraRows = 2;
         end        
-        nRows = max(8,nLines)+nExtraRows;
+        if isPlotRegWithTS && ~isPlotRegSameRow,
+            nLines = nClus + 1;
+            nRows = max(8,nLines)+nExtraRows+1;
+        else
+            nLines = nClus;
+            nRows = max(8,nLines)+nExtraRows;
+        end
         lineH = pos(4)/nRows;
         xv = 1:nFrames;        
                 
@@ -64,7 +78,22 @@ if isPlotLines,
                 
         %% draw cluster means
         U = unique(gIX);
-        for j = 1:nLines,
+        
+        j_pos = 0;
+        if isPlotRegWithTS,
+            if ~isPlotRegSameRow,
+                j_pos = 1;
+            end
+            
+            j = 1;
+            % draw regressor
+            sub_pos = [pos(1),pos(2)+pos(4)-lineH*(j+1),len,lineH*0.95];
+            axes('Position',sub_pos); hold on;
+            plot(xv,regressor,'-','Linewidth',1,'color','k')
+            axis tight;axis off
+        end
+        
+        for j = 1:nClus,
             k = U(j);
             Ys = M(gIX==k,:);            
             ymean = mean(Ys,1);
@@ -73,10 +102,10 @@ if isPlotLines,
             ySTD_lower=ymean-ySTD;
             
             % Draw
-            sub_pos = [pos(1),pos(2)+pos(4)-lineH*(j+1),len,lineH*0.95];
+            sub_pos = [pos(1),pos(2)+pos(4)-lineH*(j+1+j_pos),len,lineH*0.95];
             axes('Position',sub_pos); hold on;
             % draw std
-            h = fill([xv fliplr(xv)], [ySTD_upper fliplr(ySTD_lower)],0.5+0.3*clrmap(k,:));
+            h = fill([xv fliplr(xv)], [ySTD_upper fliplr(ySTD_lower)],0.7+0.2*clrmap(k,:));
             set(h, 'EdgeColor','none')
             % draw mean
             plot(xv,ymean,'-','Linewidth',1,'color',clrmap(k,:))
@@ -86,24 +115,24 @@ if isPlotLines,
         %% plot scale bar
         axes('Position',[pos(1),pos(2)+pos(4)-lineH*(nLines+2),len,lineH]); hold on;
         if nFrames<600, % <~10 min, plot 1min scale bar
-            plot([1,20*fpsec],[0.75,0.75],'k-');
-            text(pos(1),0.5,'20 sec','HorizontalAlignment','left')
+            plot([1,10*fpsec],[0.75,0.75],'k-');
+            text(pos(1),0.5,'10 sec','HorizontalAlignment','left')
         elseif nFrames<2400, % <~10 min, plot 1min scale bar
             plot([1,60*fpsec],[0.75,0.75],'k-');
             text(pos(1)+60*fpsec/2,0.5,'1 min','HorizontalAlignment','center')
-        else % >~10 min, plot 10min scale bar
-            plot([1,600*fpsec],[0.75,0.75],'k-');
-            text(pos(1)+600*fpsec/2,0.5,'10 min','HorizontalAlignment','center')
+        else % >~10 min, plot 5 min scale bar
+            plot([1,300*fpsec],[0.75,0.75],'k-');
+            text(pos(1)+300*fpsec/2,0.5,'5 min','HorizontalAlignment','center')
         end
         xlim([xv(1),xv(end)]);ylim([0,1]);
         axis off
                 
         %% draw behavior bar
         if isPlotBehavior,
-            h = axes('Position',[pos(1),pos(2)+pos(4)-lineH*(nLines+3),len,0.7/(nLines+nExtraRows)]);
+            h = axes('Position',[pos(1),pos(2)+pos(4)-lineH*(nLines+3),len,0.7/nRows]);
             DrawBehaviorBar(h,behavior);
             
-            axes('Position',[0.02,pos(2)+pos(4)-lineH*(nLines+3),pos(1)-0.02,0.7/(nLines+nExtraRows)]);
+            axes('Position',[0.02,pos(2)+pos(4)-lineH*(nLines+3),pos(1)-0.02,0.7/nRows]);
             DrawArrowsIcon(isPopout);
         end
 
@@ -276,13 +305,13 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
         h = h1;
     end
 
-    % label horizontal axis: approximate time length, assuming 1.97 fps
-    set(h,'XColor',[1 1 1]);
-    if s2/2/60<5, % <5 min
-        xlabel(['Time ~ ' num2str(round(s2/1.97)) 'sec'],'Color',[0 0 0]);
-    else
-        xlabel(['Time ~ ' num2str(round(s2/1.97/60)) 'min'],'Color',[0 0 0]);
-    end
+%     % label horizontal axis: approximate time length
+%     set(h,'XColor',[1 1 1]);
+%     if s2/2/60<5, % <5 min
+%         xlabel(['Time ~ ' num2str(round(s2/fpsec)) 'sec'],'Color',[0 0 0]);
+%     else
+%         xlabel(['Time ~ ' num2str(round(s2/fpsec/60)) 'min'],'Color',[0 0 0]);
+%     end
     
     %% Draw fish icon:
     if ~isPopout,

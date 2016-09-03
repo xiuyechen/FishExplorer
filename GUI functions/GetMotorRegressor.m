@@ -81,7 +81,7 @@ end
 %% dense format
 range_motorreg = [1,3,2];
 M_regressor = zeros(length(range_motorreg),length(regressors(1).im));
-for i = range_motorreg,
+for i = 1:length(range_motorreg),
     M_regressor(i,:) = regressors(range_motorreg(i)).im;
 end
 
