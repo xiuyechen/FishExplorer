@@ -17,7 +17,7 @@ for i=1:numU,
 end
 %%
 figure('Position',[500,500,250,150]);
-hist(B(:,2))
+hist(B(:,2),0:0.02:1)
 h = findobj(gca,'Type','patch');
 h.FaceColor = [0.5 0.5 0.5];
 h.EdgeColor = 'w';

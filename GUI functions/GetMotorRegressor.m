@@ -1,4 +1,4 @@
-function [regressors,name_array,M_regressor] = GetMotorRegressor(behavior)
+function [regressors,name_array,M_regressor,name_array_short] = GetMotorRegressor(behavior,i_fish)
 % M_regressor is only for 3 channels - the extracted turns, without the 2
 % raw signal channels
 
@@ -6,7 +6,13 @@ function [regressors,name_array,M_regressor] = GetMotorRegressor(behavior)
 % GCaMP6f: decay half-time: 400±41; peak: 80±35
 % GCaMP6s: 1796±73, 480±24
 
-fpsec = 1.97;
+if ~exist('i_fish','var'),
+    fpsec = 1.97; % should import from data...
+    disp('fpsec missing, using default 1.97');
+else
+    fpsec = GetFishFreq(i_fish);
+    disp(['fpsec = ',num2str(fpsec)]);
+end
 
 tlen=size(behavior,2);
 t=0:0.05:8; % sec
@@ -85,6 +91,7 @@ for i = 1:length(range_motorreg),
     M_regressor(i,:) = regressors(range_motorreg(i)).im;
 end
 
+name_array_short = name_array(range_motorreg);
 end
 
 function reg_im = gen_reg_im(gc6, t_gc6, t_im, reg)
