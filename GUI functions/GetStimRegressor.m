@@ -19,7 +19,7 @@ if ~exist('i_fish','var'),
     disp('fpsec missing, using default 1.97');
 else
     fpsec = GetFishFreq(i_fish);
-    disp(['fpsec = ',num2str(fpsec)]);
+%     disp(['fpsec = ',num2str(fpsec)]);
 end
 
 %% generate GCaMP6f kernel

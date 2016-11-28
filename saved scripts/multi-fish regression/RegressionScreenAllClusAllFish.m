@@ -2,7 +2,7 @@
 
 range_fish = 8:18;
 Coeff_Allfish = cell(1,length(range_fish));
-Coeff_names = cell(1,10);
+Coeff_names = cell(1,9);
 %%
 for i_fishnum = 1:length(range_fish),
     i_fish = range_fish(i_fishnum);
@@ -21,7 +21,7 @@ for i_fishnum = 1:length(range_fish),
     numK = length(unique(gIX));
     Coeff = zeros(numK,9);
     %%
-    for i_stim = 1,
+    for i_stim = 1:3,
         if i_stim == 1,
             M_stimrange = GetStimRange('P'); % Phototaxis
             regrange = 1:3;

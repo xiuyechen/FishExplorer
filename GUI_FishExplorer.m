@@ -167,7 +167,7 @@ grid = 0:bwidth+0.001:1;
 %% global variables: various UI element handles
 global hback hfwd hclusgroupmenu hclusgroupname hclusmenu hclusname...
     hstimrangemenu hopID hloadfish hstimreg hmotorreg...
-    hcentroidreg hcentroid hstimrange hmasklistbox hshowrefanat...
+    hcentroidreg hcentroid hstimrange hmasklistbox hshowrefanat hshowfishoutline...
     h_isavr h_israwtime h_iszscore hisshowmasks; % hfishnum
 
 %% UI ----- tab one ----- (General)
@@ -357,7 +357,7 @@ hshowrefanat = uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show n
 
 i=i+n;
 n=3; % only centroids (~mean) of clusters shown on left-side plot, the rest is unchanged
-hshowrefanat = uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show fish outline',...
+hshowfishoutline = uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show fish outline',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',0,...
     'Callback',@checkbox_showfishoutline_Callback);
 
@@ -1256,10 +1256,11 @@ RefreshFigure(hfig);
 end
 
 function pushbutton_popupplot_Callback(hObject,~)
+hfig = getParentFigure(hObject);
 % very similar as function RefreshFigure(hfig)
 isPopout = 1; % no down-sampling in plots
+setappdata(hfig,'isPopout',1);
 % load
-hfig = getParentFigure(hObject);
 i_fish = getappdata(hfig,'i_fish');
 isCentroid = getappdata(hfig,'isCentroid');
 isRefAnat = getappdata(hfig,'isRefAnat');
@@ -1281,14 +1282,18 @@ if ~isPlotAnatomyOnly,
     
     % right subplot
     axes(h2);
-    DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
+    I = LoadCurrentFishForAnatPlot(hfig);
+    DrawCellsOnAnat(I);
+%     DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
     
 else
     figure('Position',[600,50,600,900],'color',[1 1 1],...
         'Name',['Fish#' num2str(i_fish)]);
     axes('Position',[0.03, 0.03, 0.94, 0.94]); % right ~subplot
     % right subplot
-    DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
+    I = LoadCurrentFishForAnatPlot(hfig);
+    DrawCellsOnAnat(I);
+%     DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
 end
 end
 
@@ -1485,7 +1490,11 @@ end
 
 function checkbox_showfishoutline_Callback(hObject,~)
 hfig = getParentFigure(hObject);
-setappdata(hfig,'isShowFishOutline',get(hObject,'Value'));
+isShowFishOutline = get(hObject,'Value');
+setappdata(hfig,'isShowFishOutline',isShowFishOutline);
+global hshowrefanat;
+set(hshowrefanat,'Value',1);
+setappdata(hfig,'isRefAnat',1);
 RefreshAnat(hfig);
 end
 
@@ -4104,6 +4113,7 @@ end
 %%
 WatchOn(hfig); drawnow;
 isPopout = 0; % with down-sampling in plots
+setappdata(hfig,'isPopout',0);
 
 % clean-up canvas
 allAxesInFigure = findall(hfig,'type','axes');
@@ -4131,7 +4141,9 @@ end
 % right subplot
 axes(h2);
 % if length(unique(gIX))<500,
-    DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
+I = LoadCurrentFishForAnatPlot(hfig);
+DrawCellsOnAnat(I);
+%     DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
 % end
 WatchOff(hfig);
 end
