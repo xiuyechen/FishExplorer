@@ -1,4 +1,4 @@
-function I = LoadCurrentFishForAnatPlot(hfig,cIX_plot,gIX_plot,clrmap)
+function I = LoadCurrentFishForAnatPlot(hfig,cIX_plot,gIX_plot,clrmap,wIX_plot)
 I = [];
 
 I.isRefAnat = getappdata(hfig,'isRefAnat');
@@ -19,15 +19,22 @@ end
 I.absIX = getappdata(hfig,'absIX');
 if exist('cIX_plot','var'),
     I.cIX = cIX_plot;
+    cIX = I.cIX;
 else
     I.cIX = getappdata(hfig,'cIX');
     cIX = I.cIX;
 end
 if exist('gIX_plot','var'),
     I.gIX = gIX_plot;
+    gIX = I.gIX;
 else
     I.gIX = getappdata(hfig,'gIX');
     gIX = I.gIX;
+end
+if exist('wIX','var'),
+    wIX = wIX_plot;
+else
+    wIX = getappdata(hfig,'wIX');
 end
 
 % get colormap
@@ -45,7 +52,9 @@ end
 I.isShowMasks = getappdata(hfig,'isShowMasks');
 if I.isShowMasks,
     isShowMskOutline = getappdata(hfig,'isShowMskOutline');
+    I.isShowMskOutline = isShowMskOutline;
     MASKs = getappdata(hfig,'MASKs');
+    I.MASKs = MASKs;
     Msk_IDs = getappdata(hfig,'Msk_IDs');
     I.Msk_IDs = Msk_IDs;
     if Msk_IDs == 0,
@@ -57,7 +66,7 @@ end
 isWeighAlpha = getappdata(hfig,'isWeighAlpha');
 alpha_max = 0.4;%0.3-min(length(cIX)/1000/100,0.1);
 if isWeighAlpha,
-    wIX = getappdata(hfig,'wIX');
+%     wIX = getappdata(hfig,'wIX');
     I.clr_alpha = wIX*alpha_max;
 else
     I.clr_alpha = ones(size(cIX))*alpha_max;

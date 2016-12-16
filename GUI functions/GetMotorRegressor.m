@@ -46,7 +46,7 @@ regressor_0={ % rows = [7,8,9,13,14];
     behavior(4,:)+behavior(5,:);   %analog: average
     };
 nRegType = length(regressor_0);
-name_array = {'w_left','w_right','w_fwd','raw_right','raw_left','raw_all'};
+name_array = {'motor-left','motor-right','motor-fwd','raw_right','raw_left','raw_all'};
 
 % segment length and round off, for shuffled control
 segLength = floor(tlen/80);

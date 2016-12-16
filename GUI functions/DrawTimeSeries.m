@@ -130,7 +130,7 @@ if isPlotLines,
                 
         %% draw behavior bar
         if isPlotBehavior,
-            h = axes('Position',[pos(1),pos(2)+pos(4)-lineH*(nLines+3),len,0.7/nRows]);
+            h = axes('Position',[pos(1),pos(2)+pos(4)-lineH*(nLines+3),len,0.7/nRows]);    
             DrawBehaviorBar(h,behavior,i_fish);
             
             axes('Position',[0.02,pos(2)+pos(4)-lineH*(nLines+3),pos(1)-0.02,0.7/nRows]);
@@ -299,7 +299,7 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
     %% Draw behavior
     if isPlotBehavior,
         h = axes('Position',[pos(1),pos(2),pos(3),pos(4)*barratio*2]);        
-        DrawBehaviorBar(h,behavior,barlength,i_fish);        
+        DrawBehaviorBar(h,behavior,i_fish,barlength);        
         axes('Position',[0.015,pos(2),0.03,pos(4)*barratio*2]);
         DrawArrowsIcon(isPopout);
     else
@@ -366,7 +366,7 @@ else
 end
 end
 
-function DrawBehaviorBar(h,behavior,barlength,i_fish)
+function DrawBehaviorBar(h,behavior,i_fish,barlength)
 regressors = GetMotorRegressor(behavior,i_fish);
 m = reshape([regressors(1:5).im],length(behavior),[])';
 m = AutoScaleImage0to1(m);

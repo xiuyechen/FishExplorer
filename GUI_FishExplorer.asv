@@ -438,7 +438,7 @@ i=i+n; % 'hier' is the same as default (used after every k-means);'stim-lock' us
 n=2; % motor stuff uses the best alignment (by cross-correlation) with the behavior trace;
 % L+R is average of L & R; stim-motor is combines 'stim-lock' w 'motor' with arbituary weighting.
 menu = {'(choose)','hier.','size','stim-lock','corr','motor','L motor','R motor','L+R motor',...
-    'multi-motor','multi-motor least-stim','multi-motor w/ stim-avr','multi-stim w/ stim-avr'};
+    'multi-motor','multi-motor w/ stim-avr','multi-stim w/ stim-avr'};
 uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',menu,'Value',1,...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',{@popup_ranking_Callback});
@@ -1617,7 +1617,7 @@ C = textscan(str,'%d','delimiter',{',',';'});
 m = C{:};
 range = [];
 for i = 1:length(m),
-    if m(i)>0,
+    if m(i)>=0,
         range = [range,m(i)];
     else % have '-'sign,
         range = [range,m(i-1)+1:-m(i)];
@@ -1731,12 +1731,9 @@ switch rankID,
         disp('multi-motor');
         [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,1);
     case 10,
-        disp('multi-motor least-stim');
-        [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,2);
-    case 11,
         disp('multi-motor w/ stim-avr');
         [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,3);
-    case 12,
+    case 11,
         disp('multi-stim w/ stim-avr');
         [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,4);
 end
@@ -1971,23 +1968,7 @@ switch option
         % get ranking score: combined of motor coeffs
 %         H = -sqrt(sum((betas(:,1:end-3)).^2,2)); % least stim-dependent
         H = sqrt(sum((betas(:,end-2:end)).^2,2));
-        
-    case 2;
-        regs = vertcat(regressor_s,regressor_m);
-        orthonormal_basis = Gram_Schmidt_Process(regs'); % actually is transposed?
-        
-        betas = zeros(nClus,size(orthonormal_basis,2)+1);
-        X = [ones(size(orthonormal_basis,1),1),orthonormal_basis];
-        tic
-        for i_clus = 1:nClus,
-            y = C(i_clus,:)';
-            betas(i_clus,:) = regress(y,X)';
-        end
-        t=toc
-        % get ranking score: combined of motor coeffs
-        H = -sqrt(sum((betas(:,1:end-3)).^2,2)); % least stim-dependent
-        
-    case 3; % regression with stim-avr reg before motor regs
+    case {2,3}; % regression with stim-avr reg before motor regs
         betas = zeros(nClus,2+length(motorregset)); %size(regressor_s,1)+1);
         for i_clus = 1:nClus,
             regs = vertcat(regressor_s_allclus(i_clus,:),regressor_m);

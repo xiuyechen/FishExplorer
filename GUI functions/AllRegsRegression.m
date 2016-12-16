@@ -23,10 +23,11 @@ behavior = getappdata(hfig,'behavior');
 cIX_in = getappdata(hfig,'cIX');
 gIX_in = getappdata(hfig,'gIX');
 numK = getappdata(hfig,'numK');
+i_fish = getappdata(hfig,'i_fish');
 
 % get stim/motor regressors
-[~,~,regressor_s] = GetStimRegressor(stim,fishset);
-[~,~,regressor_m] = GetMotorRegressor(behavior);
+[~,~,regressor_s] = GetStimRegressor(stim,fishset,i_fish);
+[~,~,regressor_m] = GetMotorRegressor(behavior,i_fish);
 Reg = vertcat(regressor_s,regressor_m);
 
 % regression

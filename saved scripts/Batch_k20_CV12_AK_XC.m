@@ -5,7 +5,7 @@ data_masterdir = GetCurrentDataDir();
 
 M_stimrange = GetStimRange();
 
-range_fish =  1:18; % range_fish = GetFishRange();
+range_fish =  8:18; % range_fish = GetFishRange();
 
 %% custom params here:
 % numK1 = 20; 
@@ -80,16 +80,17 @@ for i_count = 1,%%%%%%%%%
                 nrep = size(TL,2)/periods(i_stim); % integer
                 n = floor(nrep/2);
                 if n>0,
-                    timelistsCV_raw{k_stim,1} = TL(1):TL(n*period);
-                    timelistsCV_raw{k_stim,2} = TL(1+n*period):TL(2*n*period);
+                    timelistsCV_raw{k_stim,1} = TL(1:n*period);
+                    timelistsCV_raw{k_stim,2} = TL(1+n*period:2*n*period);% before 12/5/16: TL(1+n*period):TL(2*n*period);
                 else % for spont, only one period
                     halfperiod = floor(period/2);
-                    timelistsCV_raw{k_stim,1} = TL(1):TL(halfperiod);
-                    timelistsCV_raw{k_stim,2} = TL(1+halfperiod):TL(2*halfperiod);
+                    timelistsCV_raw{k_stim,1} = TL(1:halfperiod);
+                    timelistsCV_raw{k_stim,2} = TL(1+halfperiod:2*halfperiod);
                 end
             end
             timelistsCV{1} = horzcat(timelistsCV_raw{:,1});
             timelistsCV{2} = horzcat(timelistsCV_raw{:,2});
+            assert(length(timelistsCV{1})==length(timelistsCV{2}));
             
             %%
             for k = 1:2,% CV halves
