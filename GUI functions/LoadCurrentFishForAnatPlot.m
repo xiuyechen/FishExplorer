@@ -1,22 +1,10 @@
-function I = LoadCurrentFishForAnatPlot(hfig,cIX_plot,gIX_plot,clrmap,wIX_plot)
+function I = LoadCurrentFishForAnatPlot(hfig,cIX_plot,gIX_plot,clrmap,wIX_plot,opts)
 I = [];
-
 I.isRefAnat = getappdata(hfig,'isRefAnat');
 I.isPopout = getappdata(hfig,'isPopout');
+I.isShowMasks = getappdata(hfig,'isShowMasks');
+I.isShowFishOutline = getappdata(hfig,'isShowFishOutline');
 
-if ~I.isRefAnat, % raw images
-    I.CellXYZ = getappdata(hfig,'CellXYZ');
-    I.anat_yx = getappdata(hfig,'anat_yx');
-    I.anat_yz = getappdata(hfig,'anat_yz');
-    I.anat_zx = getappdata(hfig,'anat_zx');
-else % registered to ZBrain
-    I.CellXYZ = getappdata(hfig,'CellXYZ_norm');
-    I.anat_yx = getappdata(hfig,'anat_yx_norm');
-    I.anat_yz = getappdata(hfig,'anat_yz_norm');
-    I.anat_zx = getappdata(hfig,'anat_zx_norm');
-end
-
-I.absIX = getappdata(hfig,'absIX');
 if exist('cIX_plot','var'),
     I.cIX = cIX_plot;
     cIX = I.cIX;
@@ -36,6 +24,30 @@ if exist('wIX','var'),
 else
     wIX = getappdata(hfig,'wIX');
 end
+if exist('opts','var'),
+   fields = fieldnames(opts);
+   for i = 1:length(fields),
+       I.(fields{i}) = opts.(fields{i});
+   end
+   if isfield(I,'isShowFishOutline'),
+       I.isRefAnat = true;
+   end
+end
+
+if ~I.isRefAnat, % raw images
+    I.CellXYZ = getappdata(hfig,'CellXYZ');
+    I.anat_yx = getappdata(hfig,'anat_yx');
+    I.anat_yz = getappdata(hfig,'anat_yz');
+    I.anat_zx = getappdata(hfig,'anat_zx');
+else % registered to ZBrain
+    I.CellXYZ = getappdata(hfig,'CellXYZ_norm');
+    I.anat_yx = getappdata(hfig,'anat_yx_norm');
+    I.anat_yz = getappdata(hfig,'anat_yz_norm');
+    I.anat_zx = getappdata(hfig,'anat_zx_norm');
+end
+
+I.absIX = getappdata(hfig,'absIX');
+
 
 % get colormap
 if exist('clrmap','var'),
@@ -49,7 +61,6 @@ else
 end
 
 % anat masks
-I.isShowMasks = getappdata(hfig,'isShowMasks');
 if I.isShowMasks,
     isShowMskOutline = getappdata(hfig,'isShowMskOutline');
     I.isShowMskOutline = isShowMskOutline;
@@ -73,8 +84,7 @@ else
 end
 
 % fish outline
-I.isShowFishOutline = getappdata(hfig,'isShowFishOutline');
-I.FishOutline = getappdata(hfig,'FishOutline');
+% I.FishOutline = getappdata(hfig,'FishOutline');
     if I.isShowFishOutline,
         FishOutline = getappdata(hfig,'FishOutline');
         % option with some background showing

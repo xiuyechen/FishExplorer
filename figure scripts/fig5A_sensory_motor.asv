@@ -26,57 +26,65 @@ reg_thres = 0.3;
 % Left
 i_reg = 2;
 Reg = regressor_s(i_reg,:);
-Corr = corr(Reg',M');
+Corr_L = corr(Reg',M');
 
-IX_L = find(Corr>reg_thres);
-corr_L = Corr(IX_L);
+IX_L = find(Corr_L>reg_thres);
+corr_L = Corr_L(IX_L);
 cIX_L = cIX(IX_L);
 gIX_L = ceil((corr_L-0.3)*63/(1.0-0.3))+1;
 
 % Right 
 i_reg = 3;
 Reg = regressor_s(i_reg,:);
-Corr = corr(Reg',M');
+Corr_R = corr(Reg',M');
 
-IX_R = find(Corr>reg_thres);
-corr_R = Corr(IX_R);
+IX_R = find(Corr_R>reg_thres);
+corr_R = Corr_R(IX_R);
 cIX_R = cIX(IX_R);
 gIX_R = ceil((corr_R-0.3)*63/(1.0-0.3))+1;
 
-cIX_plot = cIX_L;
-gIX_plot = gIX_L;
-clrmap = jet(64);
+% cIX_plot = cIX_L;
+% gIX_plot = gIX_L;
+% clrmap = jet(64);
 
-figure; 
-I = LoadCurrentFishForAnatPlot(hfig,cIX_plot,gIX_plot,clrmap)
-DrawCellsOnAnat(I);
-
-%% colormap??
-% m = 64;
-% new = [bottom; botmiddle; middle; topmiddle; top];
-% % x = 1:m;
-% 
-% oldsteps = linspace(0, 1, 5);
-% newsteps = linspace(0, 1, m);
-% newmap = zeros(m, 3);
-% 
-% for i=1:3
-%     % Interpolate over RGB spaces of colormap
-%     newmap(:,i) = min(max(interp1(oldsteps, new(:,i), newsteps)', 0), 1);
-% end
-% 
-% % set(gcf, 'colormap', newmap), colorbar
+[cIX_plot,ia,ib] = union(cIX_L,cIX_R);
+corr_plot_L = [Corr_L(IX_L(ia)),Corr_L(IX_R(ib))];
+corr_plot_R = [Corr_R(IX_L(ia)),Corr_R(IX_R(ib))];
 
 %%
 
-clr1 = [1,0,0];
-clr2 = [1,1,1];
-function makeColormap(clr1,clr2,numC)
-cmap = zeros(numC,3);
-for i = 1:3,
-    cmap(:,i) = linspace(clr1(i),clr2(i),numC);
+clr1 = [1,1,1];
+clr2 = [1,0,0];
+numC = 64;
+clrmap = makeColormap(clr1,clr2,numC);
+
+% cmap = clrmap(unique(gIX_plot),:);
+figure; 
+I = LoadCurrentFishForAnatPlot(hfig,cIX_plot,gIX_plot,cmap);
+DrawCellsOnAnat(I);
+
+%% colormap??
+m = 64;
+% new = [bottom; botmiddle; middle; topmiddle; top];
+bottom = [1 0 0];middle = [0 0 0]; top = [0 1 0];
+new = [bottom; middle; top];
+% x = 1:m;
+
+oldsteps = linspace(0, 1, 3);
+newsteps = linspace(0, 1, m);
+newmap = zeros(m, 3);
+
+for i=1:3
+    % Interpolate over RGB spaces of colormap
+    newmap(:,i) = min(max(interp1(oldsteps, new(:,i), newsteps)', 0), 1); % confine between range [0,1]
 end
-end
+
+figure
+set(gcf, 'colormap', newmap), colorbar
+
+%%
+
+
 % % red-white-blue colormap
 % cmap = zeros(64,3);
 % cmap(:,1) = [linspace(0,1,32), linspace(1,1,32)];

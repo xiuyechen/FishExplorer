@@ -1,3 +1,6 @@
 function data_dir = GetCurrentDataDir()
-data_dir = 'C:\Janelia2015\GUI_data';
+if ispc,
+    data_dir = 'C:\Janelia2015\GUI_data';
+elseif isunix
+    data_dir = '/home/xiuye/Research/GUI_data';
 end

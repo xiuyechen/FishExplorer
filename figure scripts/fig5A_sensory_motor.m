@@ -31,7 +31,7 @@ Corr_L = corr(Reg',M');
 IX_L = find(Corr_L>reg_thres);
 corr_L = Corr_L(IX_L);
 cIX_L = cIX(IX_L);
-gIX_L = ceil((corr_L-0.3)*63/(1.0-0.3))+1;
+gIX_L = (ceil((corr_L-0.3)*63/(1.0-0.3))+1)';
 
 % Right 
 i_reg = 3;
@@ -42,14 +42,14 @@ IX_R = find(Corr_R>reg_thres);
 corr_R = Corr_R(IX_R);
 cIX_R = cIX(IX_R);
 gIX_R = ceil((corr_R-0.3)*63/(1.0-0.3))+1;
+%%
+cIX_plot = cIX_L;
+gIX_plot = gIX_L;
+clrmap = jet(64);
 
-% cIX_plot = cIX_L;
-% gIX_plot = gIX_L;
-% clrmap = jet(64);
-
-[cIX_plot,ia,ib] = union(cIX_L,cIX_R);
-corr_plot_L = [Corr_L(IX_L(ia)),Corr_L(IX_R(ib))];
-corr_plot_R = [Corr_R(IX_L(ia)),Corr_R(IX_R(ib))];
+% [cIX_plot,ia,ib] = union(cIX_L,cIX_R);
+% corr_plot_L = [Corr_L(IX_L(ia)),Corr_L(IX_R(ib))];
+% corr_plot_R = [Corr_R(IX_L(ia)),Corr_R(IX_R(ib))];
 
 %%
 
@@ -58,26 +58,29 @@ clr2 = [1,0,0];
 numC = 64;
 clrmap = makeColormap(clr1,clr2,numC);
 
-% cmap = clrmap(unique(gIX_plot),:);
+cmap = clrmap;%(unique(gIX_plot),:);
 figure; 
 I = LoadCurrentFishForAnatPlot(hfig,cIX_plot,gIX_plot,cmap);
 DrawCellsOnAnat(I);
 
-%% colormap??
-% m = 64;
+%% interpolate 1-D colormap
+m = 64;
 % new = [bottom; botmiddle; middle; topmiddle; top];
-% % x = 1:m;
-% 
-% oldsteps = linspace(0, 1, 5);
-% newsteps = linspace(0, 1, m);
-% newmap = zeros(m, 3);
-% 
-% for i=1:3
-%     % Interpolate over RGB spaces of colormap
-%     newmap(:,i) = min(max(interp1(oldsteps, new(:,i), newsteps)', 0), 1);
-% end
-% 
-% % set(gcf, 'colormap', newmap), colorbar
+bottom = [1 0 0];middle = [0 0 0]; top = [0 1 0];
+new = [bottom; middle; top];
+% x = 1:m;
+
+oldsteps = linspace(0, 1, 3);
+newsteps = linspace(0, 1, m);
+newmap = zeros(m, 3);
+
+for i=1:3
+    % Interpolate over RGB spaces of colormap
+    newmap(:,i) = min(max(interp1(oldsteps, new(:,i), newsteps)', 0), 1); % confine between range [0,1]
+end
+
+figure
+set(gcf, 'colormap', newmap), colorbar
 
 %%
 
@@ -87,9 +90,3 @@ DrawCellsOnAnat(I);
 % cmap(:,1) = [linspace(0,1,32), linspace(1,1,32)];
 % cmap(:,2) = [linspace(0,1,32), linspace(1,0,32)];
 % cmap(:,3) = [linspace(1,1,32), linspace(1,0,32)];
-
-%%
-r = sqrt(a^2+b^2);
-theta = atan(a/b);
-x = cos(theta);
-y = sin(theta);

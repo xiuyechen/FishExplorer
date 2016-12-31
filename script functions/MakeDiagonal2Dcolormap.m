@@ -37,9 +37,9 @@ for i = 1:res
     end
 end
 
-figure;imagesc(grid)
-axis xy
-axis off
-axis equal
+% figure;imagesc(grid)
+% axis xy
+% axis off
+% axis equal
 
 end

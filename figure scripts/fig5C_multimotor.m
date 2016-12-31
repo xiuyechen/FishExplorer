@@ -48,7 +48,7 @@ for i = 1:numU,
 end
 % end
 % setappdata(hfig,'gIX',gIX);
-%%
+%% 1D colormap to visualize H-score ...
 thres_multimotor = 0;
 IX = find(H>thres_multimotor);
 cIX_plot = cIX(IX);
