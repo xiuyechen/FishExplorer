@@ -18,6 +18,7 @@ setappdata(h0,'gIX',gIX);
 %% load cluster time-series data
 % set params
 setappdata(h0,'isAvr',0);
+setappdata(h0,'isRefAnat',1);
 % setappdata(h0,'isZsore',0); % this is the default
 
 % load

@@ -56,7 +56,11 @@ else
     % get colormap
     clrmap_name = getappdata(hfig,'clrmap_name');
     numK = getappdata(hfig,'numK');
-    numK = double(max(numK,max(gIX)));% sadly this is not always true
+    if isempty(numK),
+        numK = max(gIX);
+    else
+        numK = double(max(numK,max(gIX)));% sadly this is not always true
+    end
     I.clrmap = GetColormap(clrmap_name,numK);
 end
 

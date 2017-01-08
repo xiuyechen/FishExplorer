@@ -1,7 +1,8 @@
 
-setappdata(h0,'isRefAnat',1);
+h0 = figure;
+InitializeAppData(h0);
 % range_fish = [1:3,5:18];
-for i_fish = range_fish;
+for i_fish = range_fish
     [cIX,gIX,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,h0);
     
     % tic
@@ -34,8 +35,8 @@ for i_fish = range_fish;
     dataDir = GetCurrentDataDir;
     saveDir = fullfile(dataDir,'motorsourceplot');
     if ~exist(saveDir, 'dir'), mkdir(saveDir), end;
-    fn = fullfile(saveDir, num2str(i_fish));
-    saveas(gcf, fn, 'png');
+    filename = fullfile(saveDir, num2str(i_fish));
+    saveas(gcf, filename, 'png');
     close(gcf)
     % figure;DrawTimeSeries(h0,cIX_plot,gIX_plot);
 end
