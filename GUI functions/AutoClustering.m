@@ -5,11 +5,14 @@ function [cIX,gIX] = AutoClustering(cIX,gIX,M_0,cIX_reg,isWkmeans,clusParams,isM
 
 %% set params
 % default:
+if ~exist('isWkmeans','var'),
+    isWkmeans = false;
+end
 if ~exist('isMakeFoxels','var'),
     isMakeFoxels = true;
 end
-if ~exist('isMakeFoxels','var'),
-    masterthres = 0.5;
+if ~exist('masterthres','var'),
+    masterthres = 0.7;
 end
 % if ~exist('isAutoclusWithAllCells','var'),
 %     isAutoclusWithAllCells = true;

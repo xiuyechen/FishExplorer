@@ -56,3 +56,6 @@ end
 %%
 % to recover after closing figure:
 % global EXPORT_autorecover;
+
+%%
+h0 = GUI_FishExplorer;

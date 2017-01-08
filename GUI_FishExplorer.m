@@ -1278,7 +1278,7 @@ if ~isPlotAnatomyOnly,
     
     % left subplot
     axes(h1);
-    DrawTimeSeries(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior,isPlotRegWithTS);
+    DrawTimeSeries(hfig,[],[],h1,isPopout,isCentroid,isPlotLines,isPlotBehavior,isPlotRegWithTS);
     
     % right subplot
     axes(h2);
@@ -4169,9 +4169,10 @@ isPlotBehavior = 1; %getappdata(hfig,'isPlotBehavior');
 
 % left subplot
 axes(h1);
+cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
 if length(unique(gIX))<500,
-    DrawTimeSeries(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior);
+    DrawTimeSeries(hfig,cIX,gIX,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior);
 end
 
 % right subplot

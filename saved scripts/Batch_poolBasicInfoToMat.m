@@ -9,8 +9,11 @@ cIX_Auto07_multi = emptycells;
 gIX_Auto07_multi = emptycells;
 cIX_Auto05_multi = emptycells;
 gIX_Auto05_multi = emptycells;
-Centroids_Auto07_multi = emptycells;
-Centroids_Auto05_multi = emptycells;
+Clusmean_Auto07_multi = emptycells;
+Clusmean_Auto05_multi = emptycells;
+
+% Centroids_Auto07_multi = emptycells;
+% Centroids_Auto05_multi = emptycells;
 Behavior_multi = emptycells;
 Stim_multi = emptycells;
 numClus_multi = zeros(length(range_fish),1);
@@ -43,7 +46,7 @@ for i_fishnum = 1:length(range_fish),
     tIX = GetTimeIndex_Direct(stimrange,timelists,fishset);
     [M,behavior,stim] = GetTimeIndexedData_Default_Direct(hfig,cIX,tIX);
     
-    Centroids_Auto07_multi{i_fishnum} = FindCentroid_Direct(gIX,M);
+    Clusmean_Auto07_multi{i_fishnum} = FindClustermeans(gIX,M);
     Behavior_multi{i_fishnum} = behavior;
     Stim_multi{i_fishnum} = stim;
     
@@ -62,9 +65,9 @@ for i_fishnum = 1:length(range_fish),
     tIX = GetTimeIndex_Direct(stimrange,timelists,fishset);
     M = GetTimeIndexedData_Default_Direct(hfig,cIX,tIX);
     
-    Centroids_Auto05_multi{i_fishnum} = FindCentroid_Direct(gIX,M);
+    Clusmean_Auto05_multi{i_fishnum} = FindClustermeans(gIX,M);
 end
 currdir = GetCurrentDataDir();
 save(fullfile(currdir,'BasicMultiFishInfo.mat'),'CellXYZ_multi','CellXYZ_norm_multi',...
     'cIX_Auto07_multi','gIX_Auto07_multi','cIX_Auto05_multi','gIX_Auto05_multi',...
-    'Centroids_Auto07_multi','Centroids_Auto05_multi');
+    'Clusmean_Auto07_multi','Clusmean_Auto05_multi');

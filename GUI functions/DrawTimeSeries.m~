@@ -1,33 +1,7 @@
-function DrawTimeSeries(hfig,cIX_plot,gIX_plot,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior,isPlotRegWithTS)
-if ~exist('cIX_plot','var'),
-    cIX = getappdata(hfig,'cIX');
-else
-    cIX = cIX_plot;
-end
-if ~exist('gIX_plot','var'),
-    gIX = getappdata(hfig,'gIX');
-else
-    gIX = gIX_plot;
-end
-if ~exist('h1','var'),
-    h1 = gca;
-end
-if ~exist('isPopout','var'),
-    isPopout = 1;
-end
-if ~exist('isCentroid','var'),
-    isCentroid = 0;
-end
-if ~exist('isPlotLines','var'),
-    isPlotLines = 0;
-end
-if ~exist('isPlotBehavior','var'),
-    isPlotBehavior = 1;
-end
-if ~exist('isPlotRegWithTS','var'),
-    isPlotRegWithTS = 0;
-end
+function DrawTimeSeries(hfig,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior,isPlotRegWithTS)
 
+if exist('isPopout','var'),
+    isPopout = 
 % load
 numK = getappdata(hfig,'numK');
 behavior = getappdata(hfig,'behavior');
@@ -37,7 +11,7 @@ rankscore = getappdata(hfig,'rankscore');
 rankID = getappdata(hfig,'rankID');
 fpsec = getappdata(hfig,'fpsec');
 iswrite = (rankID>=2);
-
+cIX = getappdata(hfig,'cIX');
 nCells = length(cIX);
 regressor = GetRegressor(hfig);
 i_fish = getappdata(hfig,'i_fish');
@@ -48,7 +22,7 @@ if ~exist('isPlotRegWithTS','var'),
 end    
 
 M = getappdata(hfig,'M');
-
+gIX = getappdata(hfig,'gIX');
 nFrames = size(M,2);
 
 if isPopout, % ...for isCentroid, skipping before getting Centroid causes trouble...
