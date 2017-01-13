@@ -12,24 +12,30 @@ end
 if ~exist('h1','var'),
     h1 = gca;
 end
+if isempty(h1),
+    h1 = gca;
+end
 if ~exist('isPopout','var'),
-    isPopout = 1;
+    isPopout = getappdata(hfig,'isPopout');
 end
 if ~exist('isCentroid','var'),
-    isCentroid = 0;
+    isCentroid = getappdata(hfig,'isCentroid');
 end
 if ~exist('isPlotLines','var'),
-    isPlotLines = 0;
+    isPlotLines = getappdata(hfig,'isPlotLines');
 end
 if ~exist('isPlotBehavior','var'),
-    isPlotBehavior = 1;
+    isPlotBehavior = getappdata(hfig,'isPlotBehavior');
 end
 if ~exist('isPlotRegWithTS','var'),
-    isPlotRegWithTS = 0;
+    isPlotRegWithTS = getappdata(hfig,'isPlotRegWithTS');
 end
 
 % load
 numK = getappdata(hfig,'numK');
+if isempty(numK),
+    numK = max(gIX);
+end
 behavior = getappdata(hfig,'behavior');
 stim = getappdata(hfig,'stim');
 clrmap_name = getappdata(hfig,'clrmap_name');
@@ -170,7 +176,7 @@ if isPlotLines,
     
 else % ~isPlotLines, i.e. plot all traces as grayscale map
     if isCentroid,
-        M_ = FindCentroid(hfig);
+        M_ = FindClustermeans(gIX,M);
         gIX_ = unique(gIX);
     else
         M_ = M;
@@ -351,6 +357,8 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
     end
     DrawFishIcon;
 end
+
+set(gcf,'Color','w');
 end
 
 %% Internal Functions

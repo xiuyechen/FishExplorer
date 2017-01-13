@@ -22,13 +22,13 @@ set(0, 'defaultTextFontName', 'Arial');
 
 %% Start GUI
 % Run this, or press F5 in 'GUI_FishExplorer.m'
-[hfig,fcns] = GUI_FishExplorer;
+[hGUI,fcns] = GUI_FishExplorer;
 
 % to push new functions to GUI, called with function 'push_cIX_gIX':
 % hfig = GUI_FishExplorer(data_dir,name_CONSTs,name_MASKs,VAR,flag_script,var_script)
 
 %%
-% to get handle of local functions from GUI to use in workspace 
+% to get handle of local functions from GUI to use in workspace
 % (call by using 'f.FunctionName')
 f = [];
 for i = 1:length(fcns),
@@ -40,15 +40,17 @@ end
 % global EXPORT_autorecover;
 
 %% demo: load data without visualizaing in GUI (only using same infrastructure)
-h0 = figure;
-InitializeAppData(h0);
-i_fish = 3;
-[cIX,gIX,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,h0);
-
-figure('Position',[50,100,800,1000]);
-I = LoadCurrentFishForAnatPlot(h0);
-DrawCellsOnAnat(I);
-
-% filename = fullfile(saveDir, num2str(i_fish));
-% saveas(gcf, filename, 'png');
-
+if false,
+    %%
+    h0 = figure;
+    InitializeAppData(h0);
+    i_fish = 3;
+    [cIX,gIX,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,h0);
+    
+    figure('Position',[50,100,800,1000]);
+    I = LoadCurrentFishForAnatPlot(h0);
+    DrawCellsOnAnat(I);
+    
+    % filename = fullfile(saveDir, num2str(i_fish));
+    % saveas(gcf, filename, 'png');
+end

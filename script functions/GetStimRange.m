@@ -1,4 +1,4 @@
-function M_stimrange = GetStimRange(option)
+function [M_stimrange,stimrange] = GetStimRange(option,i_fish)
 % Fish 1-5: 16-stim PT/Black/White
 % Fish 6-7: PT/White
 % Fish 8:
@@ -30,6 +30,14 @@ function M_stimrange = GetStimRange(option)
 %     [stimset(3).name = may be 'Spontaneous' but not credible, not used]
 
 if ~exist('option','var'),
+    % default range:
+    M_stimrange = {1,1,1,1,1,1,1,... 1-7
+        1:3,... 8
+        1:5,1:5,1:5,... 9-11
+        1:5,1:5,1:5,1:5,...12-15
+        1:3,...16
+        1:5,1:5}; % 17-18
+elseif isempty(option), % same as above, 
     % default range:
     M_stimrange = {1,1,1,1,1,1,1,... 1-7
         1:3,... 8
@@ -110,6 +118,11 @@ elseif option == 'Y', % Dot/Prey
         [],[]};  % 17-18    
 end
 
+if exist('i_fish','var'),
+    stimrange = M_stimrange{i_fish};
+else
+    stimrange = 1;
+end
 end
 
 

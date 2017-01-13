@@ -37,6 +37,8 @@ hm1_2 = uimenu(hm1,'Label','Save to file (default path)');
 
 %% general setup (import external data, initialize all GUI flags etc)
 InitializeAppData(hfig); % (stored under main figure handle appdata)
+M_fish_set = getappdata(hfig,'M_fish_set');
+nFish = length(M_fish_set);
 
 %% setup for GUI
 % GUI cache
@@ -76,7 +78,7 @@ grid = 0:bwidth+0.001:1;
 global hback hfwd hclusgroupmenu hclusgroupname hclusmenu hclusname...
     hstimrangemenu hopID hloadfish hstimreg hmotorreg...
     hcentroidreg hcentroid hstimrange hmasklistbox hshowrefanat hshowfishoutline...
-    h_isavr h_israwtime h_iszscore hisshowmasks; % hfishnum
+    h_isStimAvr h_israwtime h_iszscore hisshowmasks; % hfishnum
 
 %% UI ----- tab one ----- (General)
 i_tab = 1;
@@ -224,7 +226,7 @@ i = 1;n = 0;
 
 i=i+n;
 n=2; % only centroids (~mean) of clusters shown on left-side plot, the rest is unchanged
-h_isavr = uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show stim-avr',...
+h_isStimAvr = uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show stim-avr',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',1,...
     'Callback',@checkbox_isStimAvr_Callback);
 
@@ -237,7 +239,7 @@ h_israwtime = uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show ra
 i=i+n;
 n=2; % showing z-scored version (each cell normalized to mean=0, std=1) on left-side plot
 h_iszscore = uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show z-score',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',0,...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',1,...
     'Callback',@checkbox_isZscore_Callback);
 
 i=i+n;
@@ -290,14 +292,14 @@ hfwd = uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Forward',...
 
 i=i+n;
 n=3; % Choose range of clusters to keep. format: e.g. '1:2,4-6,8:end'
-uicontrol('Parent',tab{i_tab},'Style','text','String','Choose cluster range:',...
+uicontrol('Parent',tab{i_tab},'Style','text','String','Select cluster range:',...
     'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 i=i+n;
 n=1;
 uicontrol('Parent',tab{i_tab},'Style','edit',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-    'Callback',@edit_choose_range_Callback);
+    'Callback',@edit_selectclusterrange_Callback);
 
 i=i+n;
 n=2; % Choose range of clusters to exclude. format: e.g. '1:2,4-6,8:end'
@@ -506,6 +508,7 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Corr. threshold:',.
 
 i=i+n;
 n=1;
+thres_reg = getappdata(hfig,'thres_reg');
 uicontrol('Parent',tab{i_tab},'Style','edit','String',num2str(thres_reg),...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@edit_regthres_Callback);
@@ -580,6 +583,7 @@ uicontrol('Parent',tab{i_tab},'Style','text','String','t-test thres:',...
 
 i=i+n;
 n=1;
+thres_ttest = getappdata(hfig,'thres_ttest');
 uicontrol('Parent',tab{i_tab},'Style','edit','String',num2str(thres_ttest),...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@edit_ttestthres_Callback);
@@ -655,6 +659,7 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Merge thres. (corr.
 
 i=i+n;
 n=1;
+thres_merge = getappdata(hfig,'thres_merge');
 uicontrol('Parent',tab{i_tab},'Style','edit','String',num2str(thres_merge),...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',{@edit_mergethres_Callback});
@@ -667,6 +672,7 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Iter. split',...
 
 i=i+n;
 n=1;
+thres_split = getappdata(hfig,'thres_split');
 uicontrol('Parent',tab{i_tab},'Style','edit','String',num2str(thres_split),...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',{@edit_splitthres_Callback});
@@ -679,6 +685,7 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Cluster size thres.
 
 i=i+n;
 n=1;
+thres_size = getappdata(hfig,'thres_size');
 uicontrol('Parent',tab{i_tab},'Style','edit','String',num2str(thres_size),...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',{@edit_sizethres_Callback});
@@ -1186,7 +1193,9 @@ if ~isPlotAnatomyOnly,
     
     % left subplot
     axes(h1);
-    DrawTimeSeries(hfig,[],[],h1,isPopout,isCentroid,isPlotLines,isPlotBehavior,isPlotRegWithTS);
+    cIX = getappdata(hfig,'cIX');
+    gIX = getappdata(hfig,'gIX');
+    DrawTimeSeries(hfig,cIX,gIX,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior,isPlotRegWithTS);
     
     % right subplot
     axes(h2);
@@ -1300,8 +1309,8 @@ if ~isempty(hstimrangemenu), % before GUI initialization,
 end
 
 %% set current timelists
-periods = getappdata(hfig,'periods');
-setappdata(hfig,'stimrange',1:length(periods));
+[~,stimrange] = GetStimRange([],i_fish);
+setappdata(hfig,'stimrange',stimrange);
 UpdateTimeIndex(hfig,'isSkipcIX'); % doesn't include Refresh
 
 %% set stimulus regressors
@@ -1343,7 +1352,7 @@ end
 
 function checkbox_isStimAvr_Callback(hObject,~)
 hfig = getParentFigure(hObject);
-setappdata(hfig,'isAvr',get(hObject,'Value'));
+setappdata(hfig,'isStimAvr',get(hObject,'Value'));
 UpdateTimeIndex(hfig);
 RefreshFigure(hfig);
 end
@@ -1441,10 +1450,6 @@ if ~isempty(bC.cIX{1}),
     M = GetTimeIndexedData(hfig);
     setappdata(hfig,'M',M);
     
-    % FindCentroid reset:
-    setappdata(hfig,'Centroids',[]);
-    setappdata(hfig,'D_ctrd',[]);
-    
     % finish
     disp('back (from cache)')
     RefreshFigure(hfig);
@@ -1484,11 +1489,7 @@ if ~isempty(fC.cIX{1}),
     
     M = GetTimeIndexedData(hfig);
     setappdata(hfig,'M',M);
-    
-    % FindCentroid reset:
-    setappdata(hfig,'Centroids',[]);
-    setappdata(hfig,'D_ctrd',[]);
-    
+
     % finish
     disp('forward (from cache)')
     RefreshFigure(hfig);
@@ -1498,7 +1499,7 @@ else
 end
 end
 
-function edit_choose_range_Callback(hObject,~)
+function edit_selectclusterrange_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
@@ -1507,15 +1508,7 @@ str = get(hObject,'String');
 if ~isempty(str),
     str = strrep(str,'end',num2str(max(gIX)));
     range = ParseRange(str);
-    % update indices
-    tempI = [];
-    for i = range,
-        tempI = [tempI;find(gIX==i)];
-    end
-    cIX = cIX(tempI);
-    gIX = gIX(tempI);
-    UpdateIndices(hfig,cIX,gIX);
-    RefreshFigure(hfig);
+    SelectClusterRange(hfig,cIX,gIX,range);
 end
 end
 
@@ -1663,13 +1656,13 @@ function [gIX,rankscore] = RankByStimLock_Direct(hfig,gIX,numU)
 periods = getappdata(hfig,'periods');
 fishset = getappdata(hfig,'fishset');
 
-isAvr = getappdata(hfig,'isAvr');
+isStimAvr = getappdata(hfig,'isStimAvr');
 isRawtime = getappdata(hfig,'isRawtime');
-if isAvr == 1 || isRawtime == 1,
-    setappdata(hfig,'isAvr',0);
+if isStimAvr == 1 || isRawtime == 1,
+    setappdata(hfig,'isStimAvr',0);
     setappdata(hfig,'isRawtime',0);
-    global h_isavr h_israwtime; %#ok<TLEV>
-    h_isavr.Value = 0;
+    global h_isStimAvr h_israwtime; %#ok<TLEV>
+    h_isStimAvr.Value = 0;
     h_israwtime.Value = 0;
     UpdateTimeIndex(hfig);
 end
@@ -4032,9 +4025,6 @@ elseif isWeighAlpha == 100,
     setappdata(hfig,'isWeighAlpha',0);
 end
 
-% FindCentroid reset:
-setappdata(hfig,'Centroids',[]);
-setappdata(hfig,'D_ctrd',[]);
 end
 
 % frequently used, 2 plotting functions are outside ('DrawTimeSeries.m' and 'DrawCellsOnAnatProj.m')
@@ -4081,6 +4071,8 @@ cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
 if length(unique(gIX))<500,
     DrawTimeSeries(hfig,cIX,gIX,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior);
+else
+    errordlg('too many clusters to display!');
 end
 
 % right subplot
@@ -4122,66 +4114,6 @@ h2 = axes('Position',[0.63, 0.04, 0.35, 0.83]);
 axes(h2);
 DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
 WatchOff(hfig);
-end
-
-function UpdateTimeIndex(hfig,isSkipcIX) %#ok<INUSD>
-% input params
-isAvr = getappdata(hfig,'isAvr');
-isRawtime = getappdata(hfig,'isRawtime');
-stimrange = getappdata(hfig,'stimrange');
-% load
-timelists = getappdata(hfig,'timelists');
-periods = getappdata(hfig,'periods');
-fishset = getappdata(hfig,'fishset');
-
-if fishset == 1,
-    if isAvr,
-        tIX = 1:periods;
-    else
-        tIX = timelists{1};
-    end
-    
-else % fishset>1,
-    if isAvr,
-        tIX = [];
-        for i = 1:length(stimrange),
-            ix = stimrange(i);
-            i_start = sum(periods(1:ix-1)); % if ix-1<1, sum = 0
-            tIX = horzcat(tIX,(i_start+1:i_start+periods(ix)));
-            %             tIX = vertcat(tIX,(i_start+1:i_start+periods(ix))');
-        end
-    else % full range
-        if ~isRawtime,
-            tIX = cat(2, timelists{stimrange});
-        else
-            tIX = sort(cat(2, timelists{stimrange}));
-        end
-    end
-end
-
-setappdata(hfig,'tIX',tIX);
-
-% set Matrices to hold time-series
-M_0 = GetTimeIndexedData(hfig,'isAllCells');
-setappdata(hfig,'M_0',M_0);
-if ~exist('isSkipcIX','var'),
-    cIX = getappdata(hfig,'cIX');
-    setappdata(hfig,'M',M_0(cIX,:));
-end
-
-% %% set stimulus regressors
-% stim = getappdata(hfig,'stim');
-% fishset = getappdata(hfig,'fishset');
-% 
-% [~, names] = GetStimRegressor(stim,fishset);
-% 
-% s = cell(size(names));
-% for i = 1:length(names),
-%     s{i} = [num2str(i),': ',names{i}];
-% end
-% 
-% global hstimreg;
-% set(hstimreg,'String',['(choose)',s]);
 end
 
 function KeyPressCallback(hfig, event)

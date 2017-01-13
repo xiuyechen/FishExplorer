@@ -41,7 +41,7 @@ for i_fish = range_fish
     % figure;DrawTimeSeries(h0,cIX_plot,gIX_plot);
 end
 
-%%
+%% this doesn't work well because hard thresholds work quite differently on different fish
 
 % setappdata(h0,'isRefAnat',1);
 % range_fish = [1:3,5:18];
@@ -83,4 +83,7 @@ for i_fish = range_fish;
     close(gcf)
     % figure;DrawTimeSeries(h0,cIX_plot,gIX_plot);
 end
+
+%% need to develop a script that finds a good cutoff, to generate nice simple regression plots (e.g. raw motor correlation)
+
 

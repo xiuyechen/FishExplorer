@@ -19,13 +19,13 @@ BehaviorAvr = getappdata(hfig,'BehaviorAvr');
 stim_full = getappdata(hfig,'stim_full');
 stimAvr = getappdata(hfig,'stimAvr');
 % other params
-isAvr = getappdata(hfig,'isAvr');
+isStimAvr = getappdata(hfig,'isStimAvr');
 cIX = getappdata(hfig,'cIX');
 tIX = getappdata(hfig,'tIX');
 % absIX = getappdata(hfig,'absIX');
 
 %% set data
-if isAvr,
+if isStimAvr,
     if exist('isAllCells','var'),
         M = cellRespAvr(:,tIX);
     else
