@@ -13,6 +13,8 @@ addpath(genpath(code_dir));
 % check that main data directory is correct in function'GetCurrentDataDir'
 data_masterdir = GetCurrentDataDir();%'C:\Janelia2014'; %[pwd '\example data']; % 'F:\Janelia2014';%
 disp(data_masterdir);
+global VAR; %#ok<NUSED>
+load(fullfile(data_masterdir,'VAR_new.mat'),'VAR'); % stores all clustering indices
 
 set(0, 'defaultUicontrolFontName', 'Arial');
 set(0, 'defaultUitableFontName', 'Arial');

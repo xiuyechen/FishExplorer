@@ -22,7 +22,7 @@ IX = ismember(gIX,regtypes_keep);
 cIX = cIX(IX);
 gIX = gIX(IX);
 [gIX, numU] = SqueezeGroupIX(gIX);
-UpdateIndices_Direct(hfig,cIX,gIX,numU);
+UpdateIndices_Manual(hfig,cIX,gIX,numU);
 
 %% left plot
 figure('Position',[50,100,800,1000]);

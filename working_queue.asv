@@ -15,8 +15,6 @@
 % GUIdata datadir because that folder is not synched!!!
 
 %% Figure making goals
-% - stim-lock scripts for fig 3
-
 % - try fig4f_tSNE on new computer!
 
 % FindClustermeans to replace old FindCentroid - where to replace?? Now

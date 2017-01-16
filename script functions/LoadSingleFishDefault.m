@@ -7,8 +7,9 @@ isFullData = true;
 LoadFullFish(hfig,i_fish,isFullData);
 
 %% load the auto-clustering indices
-i_ClusGroup = 6; % master-thres 0.7
-i_Cluster = 1;
+ClusterIDs = GetClusterIDs(); % Auto_M0.7_woA
+i_ClusGroup = ClusterIDs(1);
+i_Cluster = ClusterIDs(2); 
 
 [cIX,gIX] = LoadCluster_Direct(i_fish,i_ClusGroup,i_Cluster);
 
