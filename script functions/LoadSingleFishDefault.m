@@ -1,13 +1,14 @@
-function [cIX,gIX,M] = LoadSingleFishDefault(i_fish,hfig)
+function [cIX,gIX,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs,stimrange)
 
 setappdata(hfig,'i_fish',i_fish);
 
 %% load fish data
-isFullData = true;
-LoadFullFish(hfig,i_fish,isFullData);
+LoadFullFish(hfig,i_fish);
 
 %% load the auto-clustering indices
-ClusterIDs = GetClusterIDs(); % Auto_M0.7_woA
+if ~exist('ClusterIDs','var'),
+    ClusterIDs = GetClusterIDs(); % Auto_M0.7_woA
+end
 i_ClusGroup = ClusterIDs(1);
 i_Cluster = ClusterIDs(2); 
 
@@ -16,10 +17,17 @@ i_Cluster = ClusterIDs(2);
 setappdata(hfig,'cIX',cIX);
 setappdata(hfig,'gIX',gIX);
 
-[~,stimrange] = GetStimRange([],i_fish);
+if ~exist('stimrange','var'),
+    [~,stimrange] = GetStimRange([],i_fish);
+end
 setappdata(hfig,'stimrange',stimrange); % need to UpdateTimeIndex if changed
 UpdateTimeIndex(hfig);
 
 M = getappdata(hfig,'M');
+if nargout>3,
+    stim = getappdata(hfig,'stim');
+    behavior = getappdata(hfig,'behavior');
+    M_0 = getappdata(hfig,'M_0');
+end
 
 end

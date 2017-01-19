@@ -420,7 +420,7 @@ if exist('barlength','var'),
 else
     temp = m;
 end
-if 0, % plot all 5 lines
+if 1, % plot all 5 lines
     imagesc(temp);colormap gray
     set(h,'YTick',[],'XTick',[]);
     %     set(gcf,'color',[1 1 1]);
@@ -441,7 +441,7 @@ if 0, % plot all 5 lines
 %     end
     
 else % only plot top 3 lines
-    m = vertcat(temp(1,:),temp(3,:),temp(2,:));    
+    m = vertcat(temp(1,:),temp(2,:),temp(3,:));    
     imagesc(m);colormap gray
     set(h,'YTick',[],'XTick',[]);
     %     set(gcf,'color',[1 1 1]);

@@ -16,11 +16,8 @@ isRegCurrentCells = 0;
 setappdata(hfig,'thres_reg',0.4);
 [cIX,gIX,numK,IX_regtype,corr_max] = AllRegsRegression(hfig,isRegIndividualCells,isRegCurrentCells);
 
-regtypes_keep = [2,3,4,7,8,9,16,17];
-
-IX = ismember(gIX,regtypes_keep);
-cIX = cIX(IX);
-gIX = gIX(IX);
+regtypes_keep = [2,3,4,7,8,9,16,17]; % manual input
+[cIX,gIX] = SelectClusterRange(cIX,gIX,regtypes_keep);
 [gIX, numU] = SqueezeGroupIX(gIX);
 UpdateIndices_Manual(hfig,cIX,gIX,numU);
 
@@ -36,3 +33,11 @@ DrawTimeSeries(hfig,cIX,gIX);
 figure('Position',[50,100,800,1000]);
 I = LoadCurrentFishForAnatPlot(hfig,cIX,gIX);
 DrawCellsOnAnat(I);
+
+%%
+% dataDir = GetCurrentDataDir;
+% saveDir = fullfile(dataDir,'motorsourceplot');
+% if ~exist(saveDir, 'dir'), mkdir(saveDir), end;
+% filename = fullfile(saveDir, num2str(i_fish));
+% saveas(gcf, filename, 'png');
+% close(gcf)

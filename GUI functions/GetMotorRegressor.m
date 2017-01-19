@@ -39,14 +39,14 @@ t_gc6=0:0.05:tlen; % sec
 %     turn(:,14)  = fltCh2;                                            %analog: right channel   
 regressor_0={ % rows = [7,8,9,13,14];
     behavior(1,:);   %weighted: left turns
-    behavior(2,:);   %weighted: right turns
-    behavior(3,:);   %weighted: forward swims
+    behavior(3,:);   %weighted: forward turns
+    behavior(2,:);   %weighted: right swims
     behavior(4,:);  %analog: left channel
     behavior(5,:);  %analog: right channel   
     behavior(4,:)+behavior(5,:);   %analog: average
     };
 nRegType = length(regressor_0);
-name_array = {'motor-left','motor-right','motor-fwd','raw_right','raw_left','raw_all'};
+name_array = {'motor-left','motor-fwd','motor-right','raw_right','raw_left','raw_all'};
 
 % segment length and round off, for shuffled control
 segLength = floor(tlen/80);
@@ -85,7 +85,7 @@ for j=1:nRegType, %run_StimRegType_subset,
 end
 
 %% dense format
-range_motorreg = [1,3,2];
+range_motorreg = [1,2,3];
 M_regressor = zeros(length(range_motorreg),length(regressors(1).im));
 for i = 1:length(range_motorreg),
     M_regressor(i,:) = regressors(range_motorreg(i)).im;

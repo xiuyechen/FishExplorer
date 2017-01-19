@@ -10,10 +10,6 @@
 %% Not urgent
 % is zres not imported from data but set in GUI???
 
-%% organizational: dropbox
-% need to set up a savedir that is shared on Dropbox, different from the
-% GUIdata datadir because that folder is not synched!!!
-
 %% Figure making goals
 % - stim-lock scripts for fig 3
 
@@ -22,9 +18,33 @@
 % FindClustermeans to replace old FindCentroid - where to replace?? Now
 % already used for left trace plot
 
+% - fig5B: bar plots with error bars, anat masks to count cells
+
 %% Coding goals
-% - run kmeans of k equal to Autoclus numK, and save in VAR, for all fish
+% - double check mean+-error plot in left plot... more shading??
+% - when ranking is set (by rank by stimlock for example), the colormap menu
+% is not updated when colormap is changed
+
+% - check Fish 4 for bugs - couldn't run it in fig3_3wayplot!!!!
+
+% - artifacts: whether the not-z-scored signal is actually weak?!
 
 %% Questions for Aaron:
-% fig4A: what are the r-values?
+% - double check mean+-error plot in left plot... more shading??
+
+% - regressor ctrl: permuted, already built in; good for anything? what was
+% fig2 red control histogram again?
+
+% - any use for my fMasks? 
+
+%% Problem fish
+% fish 1 shocked, fish 4 no fictive
+% fish 2 missing left
+% fish 12,14 missing right
+% fish 15,17,18 dispersed
+
+% should count cells from hindbrain
+
+why
+
 
