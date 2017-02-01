@@ -6,7 +6,14 @@ M_0 = GetTimeIndexedData(hfig,'isAllCells');
 %}
 % main data input
 cellResp = getappdata(hfig,'CellResp');
-Behavior_full = getappdata(hfig,'Behavior_full');
+
+isMotorseed = getappdata(hfig,'isMotorseed');
+if ~isMotorseed,
+    Behavior_full = getappdata(hfig,'Behavior_full');
+else
+    Behavior_full = getappdata(hfig,'Behavior_full_motorseed');
+end
+
 stim_full = getappdata(hfig,'stim_full');
 
 if exist('isAllCells','var'),

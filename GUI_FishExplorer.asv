@@ -1812,29 +1812,33 @@ end
 switch option
     case 1; % regression with all regs, stim-regs before motor regs
         regs = vertcat(regressor_s,regressor_m);
-        orthonormal_basis = Gram_Schmidt_Process(regs');
+        orthonormal_basis = Gram_Schmidt_Process(regs'); % actually is transposed?
         
         betas = zeros(nClus,size(orthonormal_basis,2)+1);
         X = [ones(size(orthonormal_basis,1),1),orthonormal_basis];
+        tic
         for i_clus = 1:nClus,
             y = C(i_clus,:)';
             betas(i_clus,:) = regress(y,X)';
         end
-      
+        t=toc
+        %         betas = C * orthonormal_basis; % to reconstitute: betas(i,:)*orthonormal_basis'
         % get ranking score: combined of motor coeffs
+%         H = -sqrt(sum((betas(:,1:end-3)).^2,2)); % least stim-dependent
         H = sqrt(sum((betas(:,end-2:end)).^2,2));
         
     case 2;
         regs = vertcat(regressor_s,regressor_m);
-        orthonormal_basis = Gram_Schmidt_Process(regs');
+        orthonormal_basis = Gram_Schmidt_Process(regs'); % actually is transposed?
         
         betas = zeros(nClus,size(orthonormal_basis,2)+1);
         X = [ones(size(orthonormal_basis,1),1),orthonormal_basis];
+        tic
         for i_clus = 1:nClus,
             y = C(i_clus,:)';
             betas(i_clus,:) = regress(y,X)';
         end
-
+        t=toc
         % get ranking score: combined of motor coeffs
         H = -sqrt(sum((betas(:,1:end-3)).^2,2)); % least stim-dependent
         

@@ -13,7 +13,7 @@ global VAR;
 
 
 %%
-range_fish = 11:18;
+range_fish = 1:18;
 for i_fish = range_fish,
 
     
@@ -24,7 +24,7 @@ for i_fish = range_fish,
 %     VAR = CopyCluster(VAR,i_fish,{2,3:6},{3,1:4});  
 
 %     VAR = MoveCluster(VAR,i_fish,{2,3:7},{1,1:5});
-    VAR = MakeNewClusGroup(VAR,i_fish,'Conserved');
+    VAR = MakeNewClusGroup(VAR,i_fish,'Motor');
 
 end
 VAR = CompileVARnames(VAR);

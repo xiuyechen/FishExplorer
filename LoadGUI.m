@@ -56,3 +56,7 @@ if false,
     % filename = fullfile(saveDir, num2str(i_fish));
     % saveas(gcf, filename, 'png');
 end
+
+%%
+% MASKs = getappdata(hGUI,'MASKs');
+% Masks = MASKs.MaskDatabaseNames';

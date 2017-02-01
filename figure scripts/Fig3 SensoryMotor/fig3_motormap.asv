@@ -229,8 +229,3 @@ for i_fish = 1:18 %range_fish
     M_compareMotorCellNumber(2,i_fish) = length(ix);
 end
 SaveVARwithBackup();
-
-%%
-% range_fish excludes Fish 4
-M_compareMotorCellNumber(:,4) = NaN;
-figure;bar(M_compareMotorCellNumber')

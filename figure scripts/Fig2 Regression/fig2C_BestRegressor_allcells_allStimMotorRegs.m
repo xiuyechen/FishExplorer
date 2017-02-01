@@ -34,6 +34,20 @@ figure('Position',[50,100,800,1000]);
 I = LoadCurrentFishForAnatPlot(hfig,cIX,gIX);
 DrawCellsOnAnat(I);
 
+% %% left-right combined plot
+% figure('Position',[50,100,1400,800]);
+% % isCentroid,isPlotLines,isPlotBehavior,isPlotRegWithTS
+% subplot(121)
+% setappdata(hfig,'isPlotBehavior',0);
+% setappdata(hfig,'isStimAvr',1);
+% UpdateTimeIndex(hfig);
+% DrawTimeSeries(hfig,cIX,gIX);
+% 
+% % right plot
+% subplot(122)
+% I = LoadCurrentFishForAnatPlot(hfig,cIX,gIX);
+% DrawCellsOnAnat(I);
+
 %%
 % dataDir = GetCurrentDataDir;
 % saveDir = fullfile(dataDir,'motorsourceplot');

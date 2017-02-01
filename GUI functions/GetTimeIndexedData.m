@@ -14,8 +14,15 @@ else
     cellResp = getappdata(hfig,'CellRespZ');
     cellRespAvr = getappdata(hfig,'CellRespAvrZ');
 end
-Behavior_full = getappdata(hfig,'Behavior_full');
-BehaviorAvr = getappdata(hfig,'BehaviorAvr');
+
+isMotorseed = getappdata(hfig,'isMotorseed');
+if ~isMotorseed,
+    Behavior_full = getappdata(hfig,'Behavior_full');
+    BehaviorAvr = getappdata(hfig,'BehaviorAvr');
+else
+    Behavior_full = getappdata(hfig,'Behavior_full_motorseed');
+    BehaviorAvr = getappdata(hfig,'BehaviorAvr_motorseed');
+end
 stim_full = getappdata(hfig,'stim_full');
 stimAvr = getappdata(hfig,'stimAvr');
 % other params

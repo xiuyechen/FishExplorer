@@ -68,6 +68,9 @@ setappdata(hfig,'isShowMasks',1);
 setappdata(hfig,'isShowMskOutline',0);
 setappdata(hfig,'isWeighAlpha',0); % for regression plots, toggled away
 
+%% for behavior / motor regression:
+setappdata(hfig,'isMotorseed',1);
+
 %% all below: associated with specialized functions
 % set operations
 setappdata(hfig,'opID',0);

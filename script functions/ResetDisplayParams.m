@@ -24,6 +24,9 @@ setappdata(hfig,'isShowMasks',1);
 setappdata(hfig,'isShowMskOutline',0);
 setappdata(hfig,'isWeighAlpha',0);
 
+%% for behavior / motor regression:
+setappdata(hfig,'isMotorseed',1);
+
 %% for specific fish
 if exist('i_fish','var'),
     [~,stimrange] = GetStimRange([],i_fish);
