@@ -1,3 +1,6 @@
 function outputDir = GetOutputDataDir()
-outputDir = 'C:\Users\Xiu\Dropbox (Personal)\!Proj FishExplorer\output';
+
+file_masterdir = GetMasterFileDir;
+outputDir = fullfile(file_masterdir,'\!Proj FishExplorer\output');
+
 end

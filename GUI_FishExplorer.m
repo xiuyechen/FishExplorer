@@ -1608,7 +1608,7 @@ cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
 
 [gIX, numU] = SqueezeGroupIX(gIX);
-switch rankID,
+switch rankID
     case 1,
         disp('hier. (default)');
         M = getappdata(hfig,'M');
@@ -1778,7 +1778,6 @@ switch option
         else
             stimset = getappdata(hfig,'stimset');
             stimrange = getappdata(hfig,'stimrange');
-            periods = getappdata(hfig,'periods');
             timelists = getappdata(hfig,'timelists');
             
             C_mean = [];
@@ -1807,40 +1806,41 @@ end
 
 %% get motor regressor
 [~,~,regressor_m] = GetMotorRegressor(behavior,i_fish);
+nMotorRegs = size(regressor_m,1);
 
 %% multi-regression
 switch option
-    case 1; % regression with all regs, stim-regs before motor regs
+    case 1 % regression with all regs (stim-regs before motor regs), rank by motor
         regs = vertcat(regressor_s,regressor_m);
         orthonormal_basis = Gram_Schmidt_Process(regs');
         
         betas = zeros(nClus,size(orthonormal_basis,2)+1);
         X = [ones(size(orthonormal_basis,1),1),orthonormal_basis];
-        for i_clus = 1:nClus,
+        for i_clus = 1:nClus
             y = C(i_clus,:)';
             betas(i_clus,:) = regress(y,X)';
         end
       
-        % get ranking score: combined of motor coeffs
-        H = sqrt(sum((betas(:,end-2:end)).^2,2));
+        % get ranking score: combine motor coeffs
+        H = sqrt(sum((betas(:,end-nMotorRegs+1:end)).^2,2));
         
-    case 2;
+    case 2 % same as case 1, but rank by least stim-dependent
         regs = vertcat(regressor_s,regressor_m);
         orthonormal_basis = Gram_Schmidt_Process(regs');
         
         betas = zeros(nClus,size(orthonormal_basis,2)+1);
         X = [ones(size(orthonormal_basis,1),1),orthonormal_basis];
-        for i_clus = 1:nClus,
+        for i_clus = 1:nClus
             y = C(i_clus,:)';
             betas(i_clus,:) = regress(y,X)';
         end
 
-        % get ranking score: combined of motor coeffs
-        H = -sqrt(sum((betas(:,1:end-3)).^2,2)); % least stim-dependent
+        % get ranking score: combined motor coeffs
+        H = -sqrt(sum((betas(:,1:end-nMotorRegs)).^2,2)); % least stim-dependent
         
-    case 3; % regression with stim-avr reg before motor regs
+    case 3 % regression with stim-avr reg before motor regs
         betas = zeros(nClus,2+length(motorregset)); %size(regressor_s,1)+1);
-        for i_clus = 1:nClus,
+        for i_clus = 1:nClus
             regs = vertcat(regressor_s_allclus(i_clus,:),regressor_m);
             %             regs = vertcat(regressor_s_allclus(i_clus,:),regressor_m_allclus(i_clus,:));
             
@@ -1870,10 +1870,10 @@ switch option
 
         end
         % get ranking score: combined motor coeffs
-        H = sqrt(sum((betas(:,end-2:end)).^2,2));
-    case 4; % regression with motor regs before stim-avr reg
+        H = sqrt(sum((betas(:,end-nMotorRegs+1:end)).^2,2));
+    case 4 % regression with motor regs before stim-avr reg
         betas = zeros(nClus,2+length(motorregset)); %size(regressor_s,1)+1);
-        for i_clus = 1:nClus,
+        for i_clus = 1:nClus
             regs = vertcat(regressor_m,regressor_s_allclus(i_clus,:));
             orthonormal_basis = Gram_Schmidt_Process(regs');
             X = [ones(size(orthonormal_basis,1),1),orthonormal_basis];

@@ -1,19 +1,10 @@
-function groupIX = kmeansPlot(M,groupIX,hplot,xlabels,ylabels)
-isRankCentroids = 1;
+function kmeansPlot(M,groupIX,Centroids)
 % rng('default');
 % [groupIX,C] = kmeans(M,numK);
 % [groupIX,C] = kmeans(M,numK,'distance','correlation','Replicates',5);
-if ~exist('isRankCentroids','var')
-    Centroids = FindClustermeans(groupIX,M);
-    groupIX = HierClus_Direct(Centroids,groupIX);
-elseif isempty(isRankCentroids)
-    Centroids = FindClustermeans(groupIX,M);   
-    groupIX = HierClus_Direct(Centroids,groupIX);
-elseif isRankCentroids
-    Centroids = FindClustermeans(groupIX,M); 
+if exist('Centroids','var'),
     groupIX = HierClus_Direct(Centroids,groupIX);
 end
-
 numK = length(unique(groupIX));
 
 % sort data matrix based on clustering
@@ -33,8 +24,7 @@ nLines = size(M,1);
 barwidth = max(round(size(M,2)/30),1);
 
 % make colormap
-clrmap = hsv(numK);
-% clrmap = hsv(round(numK*1.1)); % 'stretch out' hsv -> less circular
+clrmap = hsv(round(numK*1.1)); % 'stretch out' hsv -> less circular
 
 % find group divisions for color-bar
 idx = groupIX(I);
@@ -57,26 +47,9 @@ div = ones(nLines,round(barwidth/2),3);
 im = horzcat(RGB,div,im_bars);
 
 %% plot cluster division lines
-if ~exist('hplot','var')
-    figure;
-elseif isempty('hplot')
-    figure;
-% else fig = gcf;
-% ax = fig.CurrentAxes;
-end
+figure;
 imagesc(im); hold on
-% axis off
-
-if exist('xlabels','var'),
-   set(gca,'XTickLabel',xlabels,'XTickLabelRotation',90); % or 45 degrees
-    set(gca,'XTick',1:(size(M,2)));
-    set(gca,'TickLength',[0 0]);
-end
-if exist('ylabels','var'),
-    set(gca,'YTick',1:size(im,1));
-    set(gca,'YTickLabel',ylabels);
-    set(gca,'TickLength',[0 0]);
-end
+axis off
 % label axes
 % if isObjectSpace,
 %     xlabels = [Bstar.bodyPart,{''},{''}]; % adjust for the colorbar and margin

@@ -13,7 +13,7 @@ global VAR;
 
 
 %%
-range_fish = 1:18;
+range_fish = 6:7;
 for i_fish = range_fish,
 
     
@@ -21,14 +21,13 @@ for i_fish = range_fish,
 %     VAR = DeleteCluster(VAR,i_fish,{2,3:5});
 %     VAR = RenameCluster(VAR,i_fish,[4,1],'k20_hf_defS_CV1'); % 1 at a time
 
-%     VAR = CopyCluster(VAR,i_fish,{2,3:6},{3,1:4});  
+    VAR = CopyCluster(VAR,i_fish,{6,1},{6,2});  
 
 %     VAR = MoveCluster(VAR,i_fish,{2,3:7},{1,1:5});
-    VAR = MakeNewClusGroup(VAR,i_fish,'Motor');
+%     VAR = MakeNewClusGroup(VAR,i_fish,'Motor');
 
 end
 VAR = CompileVARnames(VAR);
-%%
 SaveVARwithBackup();
 % save(fullfile(save_dir,'VAR_new.mat'),'VAR','-v6');
 % disp('saved updated ''VAR''');

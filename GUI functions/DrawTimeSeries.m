@@ -31,6 +31,11 @@ if ~exist('isPlotRegWithTS','var'),
     isPlotRegWithTS = getappdata(hfig,'isPlotRegWithTS');
 end
 
+% check dimension
+if size(gIX,2)>1
+    gIX = gIX';
+end
+
 % load
 numK = getappdata(hfig,'numK');
 if isempty(numK),

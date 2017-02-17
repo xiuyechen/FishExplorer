@@ -41,20 +41,20 @@ if false % temp, trying this for cell-based betas
     motorcorr(IX_motor) = thres_motor;
 end
 
+
 %%
-clrmap = MapXYto2Dcolormap(gIX_in,stimcorr,motorcorr,[0,1],[0,1],grid);
 
 gIX2 = SqueezeGroupIX(gIX_in);
 U = unique(gIX2);
-U_size = zeros(size(stimcorr));
-% clrmap = zeros(length(clrIX_x),3);
-% clrmap_2D = reshape(grid,res*res,3); % for efficient indexing
+U_size = zeros(size(gIX_x));
+clrmap = zeros(length(gIX_x),3);
+clrmap_2D = reshape(g,res*res,3); % for efficient indexing
 
 for i = 1:length(U)
     ix = find(gIX2 == U(i));
     U_size(i) = length(ix);
-%     ix = sub2ind([res,res],clrIX_y(U(i))',clrIX_x(U(i))');
-%     clrmap(i,:) = clrmap_2D(ix,:);
+    ix = sub2ind([res,res],gIX_y(U(i))',gIX_x(U(i))');
+    clrmap(i,:) = clrmap_2D(ix,:);
 end
 
 %% bubble plot in 2-D color (plot of all clusters, cluster size indicated by circular marker size) 

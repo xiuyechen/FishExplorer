@@ -19,11 +19,13 @@ elseif regchoice{1}==2, % motor Regressor
     behavior = getappdata(hfig,'behavior');
     regressors = GetMotorRegressor(behavior,i_fish);
     if length(regressors)==2, % using Motorseed instead of fictive
-        if regchoice{2}==2, % query forward swim regressor - no match in motorseed
-            regressor = mean([regressors(1).im;regressors(3).im],1);
+        if regchoice{2}==1,
+            regressor = regressors(1).im;
+        elseif regchoice{2}==2, % query forward swim regressor - no match in motorseed
+            regressor = mean([regressors(1).im;regressors(2).im],1);
             disp('placeholder: average of left/right instead of forward swims');
-        else
-            regressor = regressors(regchoice{2}).im;
+        elseif regchoice{2}==3, 
+            regressor = regressors(2).im;
         end
     else
         regressor = regressors(regchoice{2}).im;

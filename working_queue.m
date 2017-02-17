@@ -3,17 +3,6 @@
 % convert Yu Hu's keynote to pdf and review notes, also review notes on
 % thesis. 
 
-% finalize: define the most-motor cluster, and use their activity
-% as motor regressors. 
-
-%% new points/questions
-% downplay forward swim regressor, which is often confounded with L/R, but
-% in the motor map, still have 3 main components I think:
-% - left HB, right HB, and the dispersed forward network - need a name!
-% is it mainly hypothalamic? what do you call the ventral system?
-
-% the ventral vs dorsal hindbrain, could not find anat information beyond
-% young/old
 
 %% Not urgent
 % is zres not imported from data but set in GUI???
@@ -29,6 +18,9 @@
 % - fig5B: bar plots with error bars, anat masks to count cells
 
 %% Coding goals
+
+% add option to manually import regressors from workspace
+
 % - double check mean+-error plot in left plot... more shading??
 % - when ranking is set (by rank by stimlock for example), the colormap menu
 % is not updated when colormap is changed

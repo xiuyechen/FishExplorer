@@ -1,6 +1,6 @@
 % LoadGUI
 
-% manually check that directories are correct in 'FishExplorer2\dir setup'
+% change current folder to the folder containing this m-file
 
 clear all;close all;clc
 %%

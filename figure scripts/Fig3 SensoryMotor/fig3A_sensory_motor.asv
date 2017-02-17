@@ -9,8 +9,7 @@ ResetDisplayParams(hfig);
 i_fish = 18;
 ClusterIDs = GetClusterIDs('all');
 stimrange = 1;
-% [cIX,gIX,M] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs,stimrange);
-[cIX,gIX,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs);
+[cIX,gIX,M] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs,stimrange);
 
 %% regression for phototaxis
 % ResetDisplayParams(hfig,i_fish);
@@ -64,7 +63,7 @@ DrawCellsOnAnat(I);
 
 %% motor
 reg_range = [1,2];
-reg_thres = 0.6;
+reg_thres = 0.5;
 
 % [cIX,gIX,~,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs);
 [~,names,regressor_m] = GetMotorRegressor(behavior,i_fish);
