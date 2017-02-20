@@ -1,14 +1,16 @@
 function [clrmap,clrIX_x,clrIX_y] = MapXYto2Dcolormap(gIX_in,X,Y,Xrange,Yrange,cmap2D)
-% if isScaleToRange = false, X and Y need to be between 0 and 1
+% gIX_in corresponds to the 2D values X and Y.
+% The output clrmap is a linear colormap of the same length as gIX_in. 
+% clrIX_x and clrIX_y are the coordinates in the 2D colormap for gIX_in. 
 
-if nargin < 3
+if nargin < 4
     Xrange = [min(X),max(X)];    
 end
-if nargin < 4
+if nargin < 5
     Yrange = [min(Y),max(Y)];
 end
 
-if nargin < 5
+if nargin < 6
     cmap2D = MakeDiagonal2Dcolormap(huex,satmin,pw,res);
 end
 res = size(cmap2D,1);

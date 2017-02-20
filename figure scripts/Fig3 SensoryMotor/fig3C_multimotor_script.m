@@ -1,15 +1,13 @@
 clear all; close all; clc
 
 %% folder setup
-isSaveFig = 1;
-isPlotFig = 1;
+saveFigFlag = 1;
 
 outputDir = GetOutputDataDir;
 saveDir1 = fullfile(outputDir,'multimotor_0216_motorseed_fixedscale_stimrangeP');
 % saveDir2 = fullfile(outputDir,'motor_map_seed');
 if ~exist(saveDir1, 'dir'), mkdir(saveDir1), end;
 % if ~exist(saveDir2, 'dir'), mkdir(saveDir2), end;
-saveFigFlag = 1;
 
 %% init
 

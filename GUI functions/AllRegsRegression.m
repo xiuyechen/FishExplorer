@@ -1,4 +1,6 @@
 function [cIX,gIX,numK,IX_regtype,corr_max] = AllRegsRegression(hfig,isRegIndividualCells,isRegCurrentCells)
+% i.e. code for 'best regressor regression' where each cell is assigned to
+% the cluster corresponding to the regressor it is most similar to
 if ~exist('isRegIndividualCells','var'),
     isRegIndividualCells = 1;
 end

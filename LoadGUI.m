@@ -3,6 +3,8 @@
 % manually check that directories are correct in 'FishExplorer2\dir setup'
 
 clear all;close all;clc
+% path(pathdef);
+
 %%
 % scriptName = mfilename('fullpath');
 % [currentpath, filename, fileextension]= fileparts(scriptName);

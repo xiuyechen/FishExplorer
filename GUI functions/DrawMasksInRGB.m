@@ -1,14 +1,18 @@
 function anat_im = DrawMasksInRGB(anat_im,M_xyz,maskIX,cmap,clrIX,clr_alpha,white_alpha)
 dimv = size(anat_im);
 
+nCells = size(M_xyz,1);
+rng('default');
+range = randperm(nCells);
+
 if ~isempty(M_xyz), % draw cells
-    for j = 1:size(M_xyz,1),
+    for j = range %1:size(M_xyz,1),% [for j = 1:size(M_xyz,1)] was used until Feb 18, 2017 
         % identify indices to be colored
         center_ix = (M_xyz(j,2)-1)*dimv(1)+M_xyz(j,1); % linear pixel index, faster equivalent of:
         %     center_ix = sub2ind([dimv(1),dimv(2)],M_xyz(j,1),M_xyz(j,2));
         validIX = find((center_ix+maskIX)>0 & (center_ix+maskIX)<=dimv(1)*dimv(2)); % within bounds
-        
-        % color these indices in the RGB layers respectively
+
+%         % color these indices in the RGB layers respectively
         ixs_0 = center_ix+maskIX(validIX); %#ok<FNDSB>
         ixs = ixs_0;
         anat_im(ixs) = cmap(clrIX(j),1)*clr_alpha(j) + anat_im(ixs)*(1-clr_alpha(j)); % R
