@@ -1,4 +1,4 @@
-function UpdateTimeIndex(hfig,isSkipcIX) %#ok<INUSD>
+function [M_0,M,behavior,stim] = UpdateTimeIndex(hfig,isSkipcIX) %#ok<INUSD>
 % input params
 isStimAvr = getappdata(hfig,'isStimAvr');
 isRawtime = getappdata(hfig,'isRawtime');
@@ -36,11 +36,14 @@ end
 setappdata(hfig,'tIX',tIX);
 
 % set Matrices to hold time-series
-M_0 = GetTimeIndexedData(hfig,'isAllCells');
+[M_0,behavior,stim] = GetTimeIndexedData(hfig,'isAllCells');
 setappdata(hfig,'M_0',M_0);
 if ~exist('isSkipcIX','var'),
     cIX = getappdata(hfig,'cIX');
-    setappdata(hfig,'M',M_0(cIX,:));
+    M = M_0(cIX,:);
+    setappdata(hfig,'M',M);
+else
+    M = M_0;
 end
 
 % %% set stimulus regressors

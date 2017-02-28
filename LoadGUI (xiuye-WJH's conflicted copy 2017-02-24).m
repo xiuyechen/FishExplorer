@@ -1,6 +1,6 @@
 % LoadGUI
 
-% change current folder to the folder containing this m-file
+% manually check that directories are correct in 'FishExplorer2\dir setup'
 
 clear all;close all;clc
 %%
@@ -12,7 +12,7 @@ clear all;close all;clc
 % file_masterdir = GetMasterFileDir;
 file_masterdir = 'C:\Users\Xiu\Dropbox (Personal)';
 if ~exist(file_masterdir,'dir')
-    file_masterdir = 'C:\Users\fish\Dropbox';
+    file_masterdir = 'C:\Users\fish\Dropbox (Personal)';
 end
 
 code_dir = fullfile(file_masterdir,'FishExplorer2');

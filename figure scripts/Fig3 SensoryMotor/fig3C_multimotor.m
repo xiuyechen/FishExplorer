@@ -53,11 +53,11 @@ thres_multimotor = 0;
 IX = find(H>thres_multimotor);
 cIX_plot = cIX(IX);
 H_select = H(IX);
-numC = 64;
+numC = 164;
 % clrmap = hot(numC);
-clrmap = makeColormap([0 0 0],[1 0 0],numC);
+clrmap = Make1DColormap([0 0 0;1 0 0],numC);
 gIX_plot = GetColorIndexFromScore(H_select,numC);
-
+%%
 figure('Position',[600,50,600,900],'color',[1 1 1],...
     'Name',['Fish#' num2str(i_fish)]);
 axes('Position',[0.03, 0.03, 0.94, 0.94]); % right ~subplot

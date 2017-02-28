@@ -1,46 +1,65 @@
-function DrawTimeSeries(hfig,cIX_plot,gIX_plot,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior,isPlotRegWithTS)
-if ~exist('cIX_plot','var'),
+function DrawTimeSeries(hfig,cIX_plot,gIX_plot,opts)
+if ~exist('cIX_plot','var')
     cIX = getappdata(hfig,'cIX');
 else
     cIX = cIX_plot;
 end
-if ~exist('gIX_plot','var'),
+if ~exist('gIX_plot','var')
     gIX = getappdata(hfig,'gIX');
 else
     gIX = gIX_plot;
 end
-if ~exist('h1','var'),
-    h1 = gca;
-end
-if isempty(h1),
-    h1 = gca;
-end
-if ~exist('isPopout','var'),
-    isPopout = getappdata(hfig,'isPopout');
-end
-if ~exist('isCentroid','var'),
-    isCentroid = getappdata(hfig,'isCentroid');
-end
-if ~exist('isPlotLines','var'),
-    isPlotLines = getappdata(hfig,'isPlotLines');
-end
-if ~exist('isPlotBehavior','var'),
-    isPlotBehavior = getappdata(hfig,'isPlotBehavior');
-end
-if ~exist('isPlotRegWithTS','var'),
-    isPlotRegWithTS = getappdata(hfig,'isPlotRegWithTS');
+
+%% set up options
+% set defaults
+% opts_default = struct('ax',gca,...
+%     'isPopout',getappdata(hfig,'isPopout'),...
+%     'isCentroid',getappdata(hfig,'isCentroid'),...
+%     'isPlotLines', getappdata(hfig,'isPlotLines'), ...
+%     'isPlotBehavior',getappdata(hfig,'isPlotBehavior'),...
+%     'isPlotRegWithTS',getappdata(hfig,'isPlotRegWithTS'),...
+%     'clrmap', []);
+
+h_ax = gca;
+isPopout = getappdata(hfig,'isPopout');
+isCentroid = getappdata(hfig,'isCentroid');
+isPlotLines = getappdata(hfig,'isPlotLines');
+isPlotBehavior = getappdata(hfig,'isPlotBehavior');
+isPlotRegWithTS = getappdata(hfig,'isPlotRegWithTS');
+clrmap = []; 
+numK = getappdata(hfig,'numK');
+isAxTight = [];
+
+% override with (optional) inputs
+if exist('opts','var')
+    % unload
+    fields = fieldnames(opts);
+    for i = 1:length(fields)
+        eval([fields{i} ' = opts.(fields{i});']);
+    end
 end
 
-% check dimension
+%% check some dimensions
 if size(gIX,2)>1
     gIX = gIX';
 end
 
-% load
-numK = getappdata(hfig,'numK');
-if isempty(numK),
+if isempty(numK)
     numK = max(gIX);
 end
+
+if isempty(clrmap)
+    isCustomCmap = 0;
+else
+    if size(clrmap,1) ~= numK
+        isCustomCmap = 0;
+        disp('custom colormap error: size(clrmap,1) needs to match number of clusters');
+    else
+        isCustomCmap =  1;
+    end
+end
+
+%% load other params from hfig
 behavior = getappdata(hfig,'behavior');
 stim = getappdata(hfig,'stim');
 clrmap_name = getappdata(hfig,'clrmap_name');
@@ -72,11 +91,12 @@ if isPopout, % ...for isCentroid, skipping before getting Centroid causes troubl
 end
 
 axis off;
-pos = get(h1,'Position'); % [left, bottom, width, height]    
+pos = get(h_ax,'Position'); % [left, bottom, width, height]    
 
 % double-check numK
 numK = max(max(gIX),numK);
 
+%% Main plotting
 if isPlotLines,
     if 1, % (just to collapse isPlotLines = true)               
         %% settings
@@ -90,19 +110,29 @@ if isPlotLines,
             nExtraRows = 3; % number of extra rows
         else
             nExtraRows = 2;
-        end        
+        end
         if isPlotRegWithTS && ~isPlotRegSameRow,
             nLines = nClus + 1;
-            nRows = max(8,nLines)+nExtraRows+1;
+            if ~isAxTight
+                nRows = max(8,nLines)+nExtraRows+1;
+            else
+                nRows = nLines+nExtraRows+1;
+            end
         else
             nLines = nClus;
-            nRows = max(8,nLines)+nExtraRows;
+            if ~isAxTight
+                nRows = max(8,nLines)+nExtraRows;
+            else
+                nRows = nLines+nExtraRows;
+            end
         end
         lineH = pos(4)/nRows;
         xv = 1:nFrames;        
                 
-        %% Set colormap        
-        clrmap = GetColormap(clrmap_name,numK)*0.8; % make darker by *0.8
+        %% Set colormap     
+        if ~isCustomCmap
+            clrmap = GetColormap(clrmap_name,numK)*0.8; % make darker by *0.8
+        end
         
         %% draw stimulus bar
         stimbar = GetStimBar(1,stim);
@@ -212,8 +242,11 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
     RGB = ImageToRGB(im,cmap,minlim,maxlim); % map image matrix to range of colormap
     
     %% add vertical color code
-     
-    clrmap0 = GetColormap(clrmap_name,numK);
+    if ~isCustomCmap
+        clrmap0 = GetColormap(clrmap_name,numK);
+    else
+        clrmap0 = clrmap;
+    end
     clrmap = vertcat(clrmap0,[0,0,0]); % extend colormap to include black
     bwidth = max(round(nFrames/30),1);
     
@@ -241,13 +274,13 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
     hold off;
     if isPopout,
         if ~isPlotBehavior,
-            set(h1,'Position',[pos(1),pos(2),pos(3),pos(4)*(1-barratio)]);
+            set(h_ax,'Position',[pos(1),pos(2),pos(3),pos(4)*(1-barratio)]);
         else
-            set(h1,'Position',[pos(1),pos(2)+pos(4)*barratio*2,pos(3),pos(4)*(1-barratio*3)]);
+            set(h_ax,'Position',[pos(1),pos(2)+pos(4)*barratio*2,pos(3),pos(4)*(1-barratio*3)]);
         end
     else % in main window, isPlotBehavior is always true
         % but need to leave extra space for the bottom axis (compared to isPopout)
-        set(h1,'Position',[pos(1),pos(2)+pos(4)*barratio*3,pos(3),pos(4)*(1-barratio*4)]);
+        set(h_ax,'Position',[pos(1),pos(2)+pos(4)*barratio*3,pos(3),pos(4)*(1-barratio*4)]);
     end
     
     % (if too few rows, pad to 30 rows with white background)
@@ -343,7 +376,7 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
         axes('Position',[0.015,pos(2),0.03,pos(4)*barratio*2]);
         DrawArrowsIcon(isPopout);
     else
-        h = h1;
+        h = h_ax;
     end
 
 %     % label horizontal axis: approximate time length

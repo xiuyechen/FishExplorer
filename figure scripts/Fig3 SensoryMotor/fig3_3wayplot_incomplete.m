@@ -45,7 +45,7 @@ end
 
 % setappdata(h0,'isRefAnat',1);
 % range_fish = [1:3,5:18];
-for i_fish = range_fish;
+for i_fish = range_fish
     [cIX,gIX,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,h0);
     
     % tic

@@ -1187,8 +1187,9 @@ isCentroid = getappdata(hfig,'isCentroid');
 % isRefAnat = getappdata(hfig,'isRefAnat');
 isPlotLines = getappdata(hfig,'isPlotLines');
 isPlotBehavior = getappdata(hfig,'isPlotBehavior');
-isPlotAnatomyOnly = getappdata(hfig,'isPlotAnatomyOnly');
 isPlotRegWithTS = getappdata(hfig,'isPlotRegWithTS');
+
+isPlotAnatomyOnly = getappdata(hfig,'isPlotAnatomyOnly');
 
 if ~isPlotAnatomyOnly,
     figure('Position',[50,50,800,600],... % [50,50,1600,800],
@@ -1200,23 +1201,27 @@ if ~isPlotAnatomyOnly,
     % left subplot
     axes(h1);
     cIX = getappdata(hfig,'cIX');
-    gIX = getappdata(hfig,'gIX');
-    DrawTimeSeries(hfig,cIX,gIX,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior,isPlotRegWithTS);
+    gIX = getappdata(hfig,'gIX');    
+    opts = [];
+    opts.h_ax = h1;
+    opts.isPopout = isPopout;
+    opts.isCentroid = isCentroid;
+    opts.isPlotLines = isPlotLines;
+    opts.isPlotBehavior = isPlotBehavior;
+    opts.isPlotRegWithTS = isPlotRegWithTS;
+    DrawTimeSeries(hfig,cIX,gIX,opts);
     
     % right subplot
     axes(h2);
     I = LoadCurrentFishForAnatPlot(hfig);
-    DrawCellsOnAnat(I);
+    DrawCellsOnAnat(I,h2);
 %     DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
     
 else
-    figure('Position',[600,50,600,900],'color',[1 1 1],...
-        'Name',['Fish#' num2str(i_fish)]);
-    axes('Position',[0.03, 0.03, 0.94, 0.94]); % right ~subplot
     % right subplot
     I = LoadCurrentFishForAnatPlot(hfig);
     DrawCellsOnAnat(I);
-%     DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
+%     AddColorbarToAnat(I.clrmap);%,cmin,cmax)
 end
 end
 
@@ -4009,16 +4014,18 @@ figure(hfig);
 h1 = axes('Position',[0.05, 0.04, 0.55, 0.83]);
 h2 = axes('Position',[0.63, 0.04, 0.35, 0.83]);
 
-isCentroid = getappdata(hfig,'isCentroid');
-isPlotLines = 0; %getappdata(hfig,'isPlotLines');
-isPlotBehavior = 1; %getappdata(hfig,'isPlotBehavior');
-
 % left subplot
 axes(h1);
 cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
+
+opts = [];
+opts.h_ax = h1;
+opts.isPopout = isPopout;
+opts.isPlotLines = 0;
+opts.isPlotBehavior = 1;
 if length(unique(gIX))<500,
-    DrawTimeSeries(hfig,cIX,gIX,h1,isPopout,isCentroid,isPlotLines,isPlotBehavior);
+    DrawTimeSeries(hfig,cIX,gIX,opts);
 else
     errordlg('too many clusters to display!');
 end
@@ -4027,7 +4034,7 @@ end
 axes(h2);
 % if length(unique(gIX))<500,
 I = LoadCurrentFishForAnatPlot(hfig);
-DrawCellsOnAnat(I);
+DrawCellsOnAnat(I,h2);
 %     DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
 % end
 WatchOff(hfig);

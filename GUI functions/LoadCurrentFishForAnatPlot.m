@@ -1,5 +1,6 @@
 function I = LoadCurrentFishForAnatPlot(hfig,cIX_plot,gIX_plot,clrmap,wIX_plot,opts)
 I = [];
+I.i_fish = getappdata(hfig,'i_fish');
 I.isRefAnat = getappdata(hfig,'isRefAnat');
 I.isPopout = getappdata(hfig,'isPopout');
 I.isShowMasks = getappdata(hfig,'isShowMasks');

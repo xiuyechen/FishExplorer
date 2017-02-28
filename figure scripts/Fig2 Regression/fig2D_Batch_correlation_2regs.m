@@ -1,13 +1,15 @@
 
 % fig2: simple visuals: sensory correlation, motor correlations
+% plots a pair of regressors
+% in a double colormap, and batch saves figures.
 
-% -- color map not done --
+% compare to fig2A_correlation_1reg_with_hist for more details
 
 clear all; close all; clc
 
 %% Setup
 % folder setup
-saveFigFlag = 1;
+saveFigFlag = 0;
 
 outputDir = GetOutputDataDir;
 saveDir = [];
@@ -20,8 +22,8 @@ setDir(saveDir{2}); % make folder if doesn't exist
 
 % params
 M_stimmotorflag = [1,0]; % 1 for stim and 0 for motor
-M_reg_range = {[2,3],[1,2]}; % for phototaxis/motor, left/right pairs
-M_reg_thres = {0.5,0.6};
+M_reg_range = {[8,9],[1,2]}; % [2,3] for phototaxis; left/right pairs
+M_reg_thres = {0.5,0.5};
 n_reg = length(M_reg_thres);
 
 %% Init load
@@ -30,10 +32,10 @@ InitializeAppData(hfig);
 ResetDisplayParams(hfig);
 
 %% Load fish
-range = GetFishRange;
+range = 8;%GetFishRange;
 for i_fish = range
     ClusterIDs = GetClusterIDs('all');
-    stimrange = 1;
+%     stimrange = 1;
     % [cIX,gIX,M] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs,stimrange);
     [cIX,gIX,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs);
     
@@ -47,6 +49,10 @@ for i_fish = range
             fishset = getappdata(hfig,'fishset');
             [~,names,regressors] = GetStimRegressor(stim,fishset,i_fish);
         else
+            isMotorseed = 0;
+            setappdata(hfig,'isMotorseed',isMotorseed);
+            [~,~,behavior] = UpdateTimeIndex(hfig);
+            
             [~,names,regressors] = GetMotorRegressor(behavior,i_fish);
         end
         
@@ -64,14 +70,24 @@ for i_fish = range
         clr1 = [1,0,0];
         clr2 = [0,1,1];
         numC = 64;
-        clrmap1 = Make1DColormap([clr1*reg_thres;clr1],numC);
-        clrmap2 = Make1DColormap([clr2*reg_thres;clr2],numC);
+        clrmap1 = Make1DColormap([clr1*reg_thres*0.5;clr1],numC);
+        clrmap2 = Make1DColormap([clr2*reg_thres*0.5;clr2],numC);
         clrmap = [clrmap1;clrmap2];
         
         %% make figure
-        figure;
         I = LoadCurrentFishForAnatPlot(hfig,cIX,gIX,clrmap);
         DrawCellsOnAnat(I);
+        
+        % add 2 colorbars
+%         AddColorbarToAnat(clrmap,cmin,cmax)
+%         colormap(clrmap1);
+%         caxis([reg_thres,1])
+%         colorbar('Location','manual','Position',[0.8,0.7,0.05,0.15],'Units','normalized')
+        ax = axes('Position',[0.75,0.8,0.05,0.15],'Units','normalized');
+        DrawCustomColorbar(clrmap1,[reg_thres,1],2,ax);
+        
+        ax = axes('Position',[0.9,0.8,0.05,0.15],'Units','normalized');
+        DrawCustomColorbar(clrmap2,[reg_thres,1],2,ax);
         
         %% save figure
         savefolder = fullfile(saveDir{i_set},['regthres' num2str(reg_thres)]);
