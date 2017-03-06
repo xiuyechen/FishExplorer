@@ -25,4 +25,6 @@ stimcorr = max(R(1:end-numMotorRegs,:),[],1);
 motorcorr = max(R(end-numMotorRegs+1:end,:),[],1);
 
 tElapsed = toc(tStart);
-disp(['MotorSourceCorrelation tElapsed = ' num2str(tElapsed)]);
+if tElapsed>5
+    disp(['MotorSourceCorrelation tElapsed = ' num2str(tElapsed)]);
+end

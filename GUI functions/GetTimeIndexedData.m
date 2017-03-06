@@ -6,6 +6,8 @@ M_0 = GetTimeIndexedData(hfig,'isAllCells');
 %}
 
 isZscore = getappdata(hfig,'isZscore');
+isTrialRes = getappdata(hfig,'isTrialRes');
+
 % main data input
 if ~isZscore,
     cellResp = getappdata(hfig,'CellResp');
@@ -48,6 +50,13 @@ else
     end
     behavior = Behavior_full(:,tIX);
     stim = stim_full(:,tIX);
+end
+
+
+if isTrialRes
+    [~,M] = GetTrialAvrLongTrace(hfig,M);
+    [~,behavior] = GetTrialAvrLongTrace(hfig,behavior);
+%     cellRespAvr = getappdata(hfig,'CellRespAvrZ');
 end
 
 setappdata(hfig,'behavior',behavior);

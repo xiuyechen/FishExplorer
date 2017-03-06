@@ -1,6 +1,6 @@
-function  [tot_image, dim_totimage] = DrawCellsOnAnat(I,ax)
+function  [fig_handle, tot_image] = DrawCellsOnAnat(I,ax)
 if ~exist('ax','var')    
-    figure('Position',[600,50,458.5,608],'color',[1 1 1],...
+    fig_handle = figure('Position',[600,50,458.5,608],'color',[1 1 1],...
         'Name',['Fish#' num2str(I.i_fish)]);
     set(gca,'Position',[0.01, 0.01, 0.98, 0.98]); % right ~subplot        
 else

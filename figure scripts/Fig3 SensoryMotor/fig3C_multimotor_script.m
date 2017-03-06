@@ -4,10 +4,8 @@ clear all; close all; clc
 saveFigFlag = 1;
 
 outputDir = GetOutputDataDir;
-saveDir1 = fullfile(outputDir,'multimotor_0216_motorseed_fixedscale_stimrangeP');
-% saveDir2 = fullfile(outputDir,'motor_map_seed');
-if ~exist(saveDir1, 'dir'), mkdir(saveDir1), end;
-% if ~exist(saveDir2, 'dir'), mkdir(saveDir2), end;
+saveDir0 = fullfile(outputDir,'multimotor_allcells_0228');
+if ~exist(saveDir0, 'dir'), mkdir(saveDir0), end;
 
 %% init
 
@@ -23,113 +21,106 @@ range_fish = GetFishRange;%[1:3,5:18];
 % M_numTopCorr = zeros(1,18);
 % M_motorseedRegs = cell(1,18);
 % M_compareMotorCellNumber = zeros(2,18);
-        
-%%
+
+%% set params!
+isCellbased = true;
 stimflag = 'P';
-ClusterIDs = [6,2];
+ClusterIDs = [2,1];
+% ClusterIDs = [6,2];
 
 % stimflag = []; % for default set
 % ClusterIDs = [6,1];
 M_stimrange = GetStimRange(stimflag);
 
+range_fish_valid = [];
+for i_fish = range_fish
+    if ~isempty(M_stimrange{i_fish})
+        range_fish_valid = [range_fish_valid,i_fish]; %#ok<AGROW>
+    end
+end
 
 tscriptstart = tic;
-for i_fish = range_fish
-    %% define stim range
+for i_fish = range_fish_valid
+    disp(['i_fish = ',num2str(i_fish)]);
     
+    %% load data for chosen stim range
     stimrange = M_stimrange{i_fish};
-    if isempty(stimrange)
-        continue;
-    else
-        [cIX,gIX_load,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs,stimrange);
-    end
+    [cIX_load,gIX_load,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs,stimrange);
     
-    %% Method 1: stim+motor regression
+    %% get motor regressors
+%     setappdata(hfig,'isMotorseed',0);
+%     [~,~,behavior] = UpdateTimeIndex(hfig);
+    [~,~,reg_motor] = GetMotorRegressor(behavior,i_fish);
+    
+    %% Method 1: stim regs + motor regs
+    setID = 1;
+    
     fishset = getappdata(hfig,'fishset');
     [~,~,reg_sens] = GetStimRegressor(stim,fishset,i_fish);
-    [~,~,reg_motor] = GetMotorRegressor(behavior,i_fish);
-
-    % cell based
-    gIX = (1:length(cIX))';
-    tic
-    [stimcorr,motorcorr] = MotorSourceCorrelation(M,reg_sens,reg_motor);
-    toc
-    [fig1,fig2] = MultiMotorVisuals(hfig,stimcorr,motorcorr,cIX,gIX);
-
-    saveDir = fullfile(saveDir1,'motor rank - cell based - 2D');
-    figName = ['Fish' num2str(i_fish)];
-    SaveFigureHelper(saveFigFlag, saveDir, figName,fig1);
-    
-    saveDir = fullfile(saveDir1,'motor rank - cell based - anat');
-    figName = ['Fish' num2str(i_fish)];
-    SaveFigureHelper(saveFigFlag, saveDir, figName,fig2);
-    
-    %% cluster based
-    % plot 1
-%     setappdata(hfig,'isMotorseed',0);
-%     %     setappdata(hfig,'stimrange',1:2);
-%     
-%     UpdateTimeIndex(hfig);
-%     behavior = getappdata(hfig,'behavior');
 %     [~,~,reg_motor] = GetMotorRegressor(behavior,i_fish);
-
-    gIX = gIX_load;
-    C = FindClustermeans(gIX,M);
-    tic
-    [stimcorr,motorcorr] = MotorSourceCorrelation(C,reg_sens,reg_motor);
-    toc
-    [fig1,fig2] = MultiMotorVisuals(hfig,stimcorr,motorcorr,cIX,gIX);
     
-%     % plot 2
-%     setappdata(hfig,'isMotorseed',1);
-%     %     setappdata(hfig,'stimrange',1:2);
-%     
-%     UpdateTimeIndex(hfig);
-%     behavior = getappdata(hfig,'behavior');
+    if isCellbased
+        gIX = (1:length(cIX_load))';
+        Data = M;
+        topDir = fullfile(saveDir0,'stimregs - cell based (new cmap)');
+    else % cluster based
+        gIX = gIX_load;
+        C = FindClustermeans(gIX,M);
+        Data = C;
+        topDir = fullfile(saveDir0,'stimregs - cluster based');
+    end
+
+    [stimcorr,motorcorr] = MotorSourceCorrelation(Data,reg_sens,reg_motor);
+    
+    % make figures
+    M_figs = MultiMotorVisuals(hfig,stimcorr,motorcorr,cIX_load,gIX,[1:5],setID);
+    f = combineFiguresLR([M_figs{:}]);
+
+    figName = ['Fish' num2str(i_fish)];
+    SaveFigureHelper(saveFigFlag, topDir, figName,f);    
+    
+    %% Method 2: stimAvr + motor regs
+    setID = 2;
+    
+    if isCellbased
+        gIX = (1:length(cIX_load))';
+        Data = M;
+        bottomDir = fullfile(saveDir0,'stimAvr - cell based (new cmap)');
+    else % cluster based
+        gIX = gIX_load;
+        C = FindClustermeans(gIX,M);
+        Data = C;
+        bottomDir = fullfile(saveDir0,'stimAvr - cluster based');
+    end
+
+    reg_sens = GetTrialAvrLongTrace(hfig,Data);
 %     [~,~,reg_motor] = GetMotorRegressor(behavior,i_fish);
-%     
-%     gIX = gIX_load;
-%     C = FindClustermeans(gIX,M);
-%     tic
-%     [stimcorr,motorcorr] = MotorSourceCorrelation(C,reg_sens,reg_motor);
-%     toc
-%     [fig3,fig4] = MultiMotorVisuals(hfig,stimcorr,motorcorr,cIX,gIX);
-    %%
-    saveDir = fullfile(saveDir1,'motor rank - cluster based - 2D');
+    
+    nUnit = size(Data,1);
+    stimcorr = zeros(nUnit,1);
+    motorcorr = zeros(nUnit,1);
+    for i = 1:nUnit
+        [stimcorr(i),motorcorr(i)] = MotorSourceCorrelation(Data(i,:),reg_sens(i,:),reg_motor);
+    end    
+    
+    % make figures
+    M_figs = MultiMotorVisuals(hfig,stimcorr,motorcorr,cIX_load,gIX,[1:5],setID);
+    f = combineFiguresLR([M_figs{:}]);
+    
     figName = ['Fish' num2str(i_fish)];
-    SaveFigureHelper(saveFigFlag, saveDir, figName,fig1);
+    SaveFigureHelper(saveFigFlag, bottomDir, figName,f);        
     
-    saveDir = fullfile(saveDir1,'motor rank - cluster based - anat');
-    figName = ['Fish' num2str(i_fish)];
-    SaveFigureHelper(saveFigFlag, saveDir, figName,fig2);
-    %%
-    
-    
-% %  saveas(gcf, fn, 'png');    
-% % 
-% % %%
-% %     [rawmotorcorr,IX] = max(corr(reg_motor',M'),[],1);
-% %     thres_reg = 0.5;
-% %     ix = find(rawmotorcorr>thres_reg);
-    %% Method 2: stimAvr+motor regression
-    reg_sens = GetStimAvrClusmean(hfig,gIX,M);
-    [~,~,reg_motor] = GetMotorRegressor(behavior,i_fish);
-
-    % cluster based
-    gIX = gIX_load;
-    C = FindClustermeans(gIX,M);
-    tic
-    [stimcorr,motorcorr] = MotorSourceCorrelation(C,reg_sens,reg_motor);
-    toc
-    [fig1,fig2] = MultiMotorVisuals(hfig,stimcorr,motorcorr,cIX,gIX);
-    
-    saveDir = fullfile(saveDir1,'stimAvr rank - cluster based - 2D');
-    figName = ['Fish' num2str(i_fish)];
-    SaveFigureHelper(saveFigFlag, saveDir, figName,fig1);
-    
-    saveDir = fullfile(saveDir1,'stimAvr rank - cluster based - anat');
-    figName = ['Fish' num2str(i_fish)];
-    SaveFigureHelper(saveFigFlag, saveDir, figName,fig2);
-        
 end
 toc(tscriptstart)
+
+%% compare params
+% outputDir = GetOutputDataDir;
+% saveDir0 = fullfile(outputDir,'multimotor_0228');
+
+% topDir = fullfile(saveDir0,'stimregs - cell based');
+% bottomDir  = fullfile(saveDir0,'stimAvr - cell based');
+
+newDir = fullfile(saveDir0,'stimregs vs stimAvr (cell based, new cmap)');
+
+compareFoldersTB(topDir,bottomDir,newDir);
+

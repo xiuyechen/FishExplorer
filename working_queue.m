@@ -68,13 +68,8 @@
 
 
 %% motor map ideas
-% - count cells from some hindbrain mask...
 % - find a mask for the ventral stream vs dorsal areas, potentially plot 2
 % projections
-% - save seeds and motormaps in VAR, plot seeds to inspect
-% - plot functional traces in grayscale, in same plot as anat... for
-% inspection
-
 
 
 why

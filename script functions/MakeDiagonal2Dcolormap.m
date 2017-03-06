@@ -1,4 +1,4 @@
-function [grid, res] = MakeDiagonal2Dcolormap(huex,satmin,pw,res)
+function grid = MakeDiagonal2Dcolormap(huex,satmin,pw,res,plotdemo)
 % draw a square color swatch
 % color for upper left corner assigned according to input 'huex'
 % lower right: opposite hue of input color, based on the hsv color wheel
@@ -37,9 +37,12 @@ for i = 1:res
     end
 end
 
-% figure;imagesc(grid)
-% axis xy
-% axis off
-% axis equal
-
+if nargin>4
+    if plotdemo
+        figure;imagesc(grid)
+        axis xy
+        axis off
+        axis equal
+    end
+end
 end

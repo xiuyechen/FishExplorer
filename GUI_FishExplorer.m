@@ -88,12 +88,6 @@ i_row = 1;
 i = 1;n = 0;
 
 i=i+n;
-n=2; % saves clusters to workspace (global) variable 'VAR'
-uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Quick save',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-    'Callback',@pushbutton_save_Callback);
-
-i=i+n;
 n=2; % saves both to workspace and to 'VAR_current.mat' and to arc folder
 uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Save .mat',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
@@ -247,6 +241,12 @@ n=2; % showing z-scored version (each cell normalized to mean=0, std=1) on left-
 h_iszscore = uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show z-score',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',1,...
     'Callback',@checkbox_isZscore_Callback);
+
+i=i+n;
+n=2; % functional data: functional trace minus its tiled trial-average
+uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Show TrialRes',...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',0,...
+    'Callback',@checkbox_isTrialRes_Callback);
 
 i=i+n;
 n=2; % choose stimulus range - use numbers indicated in stimrangemenu % (eg 1:2,3-5)
@@ -1024,17 +1024,14 @@ end
 
 %% row 1: File
 
-function pushbutton_save_Callback(hObject,~)
-disp('obsl');
-end
-
 function pushbutton_savemat_Callback(hObject,~)
 disp('saving...');
 hfig = getParentFigure(hObject);
-data_masterdir = getappdata(hfig,'data_masterdir');
+% data_masterdir = getappdata(hfig,'data_masterdir');
+save_dir = getappdata(hfig,'save_dir');
 
 % copy of VAR files will be saved into this subfolder:
-arcmatfolder = fullfile(data_masterdir, 'arc mat');
+arcmatfolder = fullfile(save_dir, 'arc mat');
 if ~exist(arcmatfolder, 'dir')
     mkdir(arcmatfolder);
 end
@@ -1045,7 +1042,7 @@ matname = [timestamp '.mat'];
 save(fullfile(arcmatfolder,matname),'VAR','-v6');
 
 % also save the current VAR file
-save(fullfile(data_masterdir,'VAR_new.mat'),'VAR','-v6');
+save(fullfile(save_dir,'VAR_new.mat'),'VAR','-v6');
 disp('saved both to workspace and .mat');
 end
 
@@ -1394,6 +1391,15 @@ RefreshFigure(hfig);
 disp('complete');
 end
 
+function checkbox_isTrialRes_Callback(hObject,~)
+hfig = getParentFigure(hObject);
+setappdata(hfig,'isTrialRes',get(hObject,'Value'));
+disp('updating display...');
+UpdateTimeIndex(hfig);
+RefreshFigure(hfig);
+disp('complete');
+end
+
 function edit_stimrange_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 periods = getappdata(hfig,'periods');
@@ -1627,7 +1633,7 @@ switch rankID
         [gIX,rankscore] = SortGroupIXbyScore(H,gIX,numU,'descend');
     case 3,
         disp('stim-lock');
-        [gIX,rankscore] = RankByStimLock_Direct(hfig,gIX);
+        [gIX,rankscore] = RankByStimLock(hfig,gIX);
     case 4,
         disp('corr');
         [~,D] = FindCentroid(hfig);
@@ -1646,10 +1652,6 @@ switch rankID
         disp('L+R motor');
         [gIX,rankscore] = RankByMotorStim_Direct(hfig,gIX,numU,4);
     case 9,
-        %         disp('stim-motor');
-        %         [~,rankscore1] = RankByStimLock_Direct(hfig,cIX,gIX,numU);
-        %         [~,rankscore2] = RankByMotorStim_Direct(hfig,gIX,numU,1);
-        %         rankscore = rankscore1 - rankscore2;
         disp('multi-motor');
         [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,1);
     case 10,

@@ -1,7 +1,8 @@
 function [cIX,gIX] = AutoClustering(cIX,gIX,M_0,cIX_reg,isWkmeans,clusParams,isMakeFoxels,masterthres)%,isAutoclusWithAllCells)
 % [cIX,gIX] = AutoClustering(cIX,gIX,M_0,isWkmeans,clusParams,absIX,i_fish,isMakeFoxels,masterthres,isAutoclusWithAllCells)
 % automatically cluster all cells, starting with the currently selected
-% cells
+% cells. 
+% (Regression scope is defined by 'cIX_reg', which indexes from the full array of cells in 'M_0')
 
 %% set params
 % default:
@@ -14,8 +15,11 @@ end
 if ~exist('masterthres','var'),
     masterthres = 0.7;
 end
-% if ~exist('isAutoclusWithAllCells','var'),
-%     isAutoclusWithAllCells = true;
+
+% if isAutoclusWithAllCells,
+%     cIX_reg = (1:size(M_0,1))';
+% else
+%     cIX_reg = cIX;
 % end
 
 thres_reg2 = masterthres;

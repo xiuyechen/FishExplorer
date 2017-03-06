@@ -2,14 +2,16 @@ function InitializeAppData(hfig)
 %% Import paths
 
 data_masterdir = GetCurrentDataDir();%'C:\Janelia2014'; %[pwd '\example data']; % 'F:\Janelia2014';%
+save_dir = GetOutputDataDir();
 
 global VAR; %#ok<NUSED>
-load(fullfile(data_masterdir,'VAR_new.mat'),'VAR'); % stores all clustering indices
+load(fullfile(save_dir,'VAR_new.mat'),'VAR'); % stores all clustering indices
 
 name_MASKs = 'MaskDatabase.mat';
 name_ReferenceBrain = 'ReferenceBrain.mat';
 
 setappdata(hfig,'data_masterdir',data_masterdir);% directory for full fish data (.mat)
+setappdata(hfig,'save_dir',save_dir);% directory for full fish data (.mat)
 
 %% load ZBrain Atlas
 if exist(fullfile(data_masterdir,name_MASKs),'file') ...
@@ -52,6 +54,7 @@ setappdata(hfig,'clrmap_name','hsv_new');
 setappdata(hfig,'isStimAvr',1); % show average/full stimulus
 setappdata(hfig,'isRawtime',0); % show stimulus in original order or sorted
 setappdata(hfig,'isZscore',1); % show normalized (z-score) version of fluorescent
+setappdata(hfig,'isTrialRes',0); % show trial residuals (subtracting trial average) of fluorescent
 
 % for functional display: display only
 setappdata(hfig,'isCentroid',0);

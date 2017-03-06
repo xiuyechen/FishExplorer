@@ -1,6 +1,7 @@
 function SaveVARwithBackup()
 global VAR; 
-save_dir = GetCurrentDataDir();
+% save_dir = GetCurrentDataDir();
+save_dir = GetOutputDataDir();
 timestamp  = datestr(now,'mmddyy_HHMM');
 matname = [timestamp '.mat'];
 arcmatfolder = fullfile(save_dir, 'arc mat');
