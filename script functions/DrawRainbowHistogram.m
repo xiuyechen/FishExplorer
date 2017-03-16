@@ -1,5 +1,5 @@
 function DrawRainbowHistogram(N,bins,cmap)
-figure; hold on
+
 if ~exist('cmap') || size(cmap,1)~=length(N)
     cmap = jet(length(N));
 end

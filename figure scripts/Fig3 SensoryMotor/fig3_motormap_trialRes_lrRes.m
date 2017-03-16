@@ -45,8 +45,8 @@ for i_fish = range_fish
     %     [~,M_0_tRes] = GetTrialAvrLongTrace(hfig,M_0);
    
     Reg = FindClustermeans(gIX_seed,M);
-    Reg_LR = Reg;
-%     Reg_LR = Reg-repmat(mean(Reg),2,1);
+%     Reg_LR = Reg;
+    Reg_LR = Reg-repmat(mean(Reg),2,1);
     
     %     Corr = corr(Reg_tRes_LR',M_0_tRes');
     Corr = corr(Reg_LR',M_0');

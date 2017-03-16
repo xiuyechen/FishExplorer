@@ -18,7 +18,7 @@ r = pos1(4)/h;
 % open new figure,  put in subplot:
 f = figure();
 set(f, 'Position', figPos);
-set(f, 'Color', [0 0 0]);
+% set(f, 'Color', [0 0 0]);
 set(f, 'InvertHardCopy', 'off');
 set(f, 'PaperPositionMode', 'auto');
 subplot('Position',[0 (1-r) 1 r]), imagesc(cdata1)

@@ -21,9 +21,9 @@ saveDir{2} = fullfile(outputDir,'sensory&motor_0219','motor_LR_stimrangePT');
 setDir(saveDir{2}); % make folder if doesn't exist
 
 % params
-M_stimmotorflag = [1,0]; % 1 for stim and 0 for motor
-M_reg_range = {[8,9],[1,2]}; % [2,3] for phototaxis; left/right pairs
-M_reg_thres = {0.5,0.5};
+M_stimmotorflag = [1,1,0]; % 1 for stim and 0 for motor
+M_reg_range = {[2,3],[5,6],[1,3]}; % [2,3] for PT, [8,9] for OMR for fish8; left/right pairs
+M_reg_thres = {0.5,0.5,0.5};
 n_reg = length(M_reg_thres);
 
 %% Init load
@@ -32,12 +32,12 @@ InitializeAppData(hfig);
 ResetDisplayParams(hfig);
 
 %% Load fish
-range = 8;%GetFishRange;
+range = 6;%GetFishRange;
 for i_fish = range
     ClusterIDs = GetClusterIDs('all');
 %     stimrange = 1;
     % [cIX,gIX,M] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs,stimrange);
-    [cIX,gIX,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs);
+    [cIX_load,gIX_load,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs);
     
     %% Load stim/motor
     for i_set = 1:n_reg,
@@ -68,10 +68,12 @@ for i_fish = range
         
         %% make double colormap - ??
         clr1 = [1,0,0];
+        clr1_ = [0.7,0.5,0.5];
         clr2 = [0,1,1];
+        clr2_ = [0.5,0.7,0.7];
         numC = 64;
-        clrmap1 = Make1DColormap([clr1*reg_thres*0.5;clr1],numC);
-        clrmap2 = Make1DColormap([clr2*reg_thres*0.5;clr2],numC);
+        clrmap1 = Make1DColormap([clr1_;clr1],numC);
+        clrmap2 = Make1DColormap([clr2_;clr2],numC);
         clrmap = [clrmap1;clrmap2];
         
         %% make figure

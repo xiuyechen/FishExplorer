@@ -18,7 +18,7 @@ end
 %     'isPlotLines', getappdata(hfig,'isPlotLines'), ...
 %     'isPlotBehavior',getappdata(hfig,'isPlotBehavior'),...
 %     'isPlotRegWithTS',getappdata(hfig,'isPlotRegWithTS'),...
-%     'clrmap', []);
+% %     'clrmap', []);
 
 h_ax = gca;
 isPopout = getappdata(hfig,'isPopout');
@@ -51,11 +51,14 @@ end
 if isempty(clrmap)
     isCustomCmap = 0;
 else
-    if size(clrmap,1) ~= numK
+    if size(clrmap,1)==numK
+        isCustomCmap =  1;
+    elseif size(clrmap,1)==length(unique(gIX))
+        isCustomCmap =  1;
+        gIX = SqueezeGroupIX(gIX);
+    else
         isCustomCmap = 0;
         disp('custom colormap error: size(clrmap,1) needs to match number of clusters');
-    else
-        isCustomCmap =  1;
     end
 end
 

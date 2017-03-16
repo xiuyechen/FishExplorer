@@ -7,7 +7,8 @@ if saveFigFlag
     set(gcf, 'PaperPositionMode', 'auto');
     if ~exist(saveDir, 'dir'), mkdir(saveDir), end;
     fn = fullfile(saveDir, figName);    
-    saveas(gcf, fn, 'png');    
+    %     saveas(gcf, fn, 'png');
+    print(fn,'-dpng','-r0')
     disp('figure saved')
     close(gcf)
 end

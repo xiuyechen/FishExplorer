@@ -55,6 +55,8 @@ setappdata(hfig,'isStimAvr',1); % show average/full stimulus
 setappdata(hfig,'isRawtime',0); % show stimulus in original order or sorted
 setappdata(hfig,'isZscore',1); % show normalized (z-score) version of fluorescent
 setappdata(hfig,'isTrialRes',0); % show trial residuals (subtracting trial average) of fluorescent
+% % temp:
+setappdata(hfig,'isClusRes',0);
 
 % for functional display: display only
 setappdata(hfig,'isCentroid',0);

@@ -1,4 +1,4 @@
-function [C_trialAvr,C_trialRes,C_d2var_perstim] = GetTrialAvrLongTrace(hfig,C)
+function [C_trialAvr,C_trialRes,C_score,C_d2var_perstim] = GetTrialAvrLongTrace(hfig,C)
 %%
 fishset = getappdata(hfig,'fishset');
 periods = getappdata(hfig,'periods');
@@ -13,6 +13,7 @@ if fishset == 1
     C_period = mean(C_3D_0,3);
     nPeriods = round(size(C,2)/period);
     C_trialAvr = repmat(C_period,1,nPeriods);
+    C_score = C_d2var_perstim;
 else
     stimset = getappdata(hfig,'stimset');
     stimrange = getappdata(hfig,'stimrange');
@@ -43,6 +44,17 @@ else
             tIX_ = 1+offset:length(timelists{stimrange(i)})+offset;
             C_trialAvr = horzcat(C_trialAvr,zeros(size(C,1),length(tIX_)));
         end
+    end
+    
+    % condense C_d2var_perstim for multiple stimsets down to 1 score
+    if isempty(C_d2var_perstim)
+        errordlg('chosen stimulus range not suitable for stim-lock analysis');
+        rankscore = 1:numU;
+        return;
+    end
+    C_score = zeros(size(C_d2var_perstim,1),1);
+    for i = 1:size(C_d2var_perstim,1)
+        C_score(i) = min(C_d2var_perstim(i,:));
     end
 end
 C_trialRes = C-C_trialAvr;

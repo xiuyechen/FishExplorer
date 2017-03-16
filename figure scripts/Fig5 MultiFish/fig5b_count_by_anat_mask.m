@@ -118,3 +118,22 @@ bar(sum(Grid(:,:,1),1),'FaceColor',[0.5,0.5,0.5],'EdgeColor',[1,1,1])
 title('# of cells by anatomical region')
 set(gca,'XTick',1:length(anat_list),'XTickLabel',anat_list_names,'XTickLabelRotation',45);
 xlim([0.5,length(anat_list)+0.5]);
+
+
+%%
+
+% V-cell list:
+% RoV3, MiV1 and MiV2: 232,193,194,
+
+% Rh4-6: 222-224
+
+% Mask 111: hypothalamic dopaminergic cluster (putative MLR)
+
+% RS list: [126,127,128,184,187:194,226:232]
+
+% 124: Rhombencephalon - Anterior Cluster of nV Trigeminal Motorneurons[Fish6]
+% jaw 213: Rhombencephalon - Posterior Cluster of nV Trigeminal Motorneurons [Fish 13]
+% jaw MiD3: 188
+
+% 187: Rhombencephalon - MiD2
+% 183: Rhombencephalon - Locus Coreuleus (fw motor seed)

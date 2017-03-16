@@ -19,7 +19,7 @@ i_fish = getappdata(hfig,'i_fish');
 Reg = vertcat(regressor_s,regressor_m)';
 regnames = [names_s,names_m]';
 
-%%
+%% GLM with default regressors, for all cells
 tic
 GLM_reg = zeros(size(Data,1),4);
 for i = 1:size(Data,1),
@@ -31,7 +31,7 @@ end
 t1=toc
 % run-time: ~20min for all ~80k cells * 5k frames
 
-% GLM with Auto-cluster centroids as regressors
+%% GLM with Auto-cluster centroids as regressors
 Ctrd = Centroids_Auto07_multi{8}';
 tic
 GLM_ctrd = zeros(size(Data,1),4);
@@ -39,7 +39,8 @@ for i = 1:size(Data,1),
     X = [ones(size(Ctrd,1),1) Ctrd];
     y = Data(i,:)';
     [~,~,~,~,stat] = regress(y,X);
-   GLM_ctrd(i,:) = stat; % the R2 statistic % The R2 statistic can be negative for models without a constant, indicating that the model is not appropriate for the data.
+   GLM_ctrd(i,:) = stat; % 4 numbers: R2 statistic, the F statistic and its p value, and an estimate of the error variance
+   % The R2 statistic can be negative for models without a constant, indicating that the model is not appropriate for the data.
 end
 t2=toc
 

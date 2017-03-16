@@ -1,16 +1,23 @@
-function C = FindClustermeans(gIX,M)
+function [C,ClusRes] = FindClustermeans(gIX,M)
 U = unique(gIX);
 numU = length(U);
 C = zeros(numU,size(M,2));
-for i = 1:numU,
+for i = 1:numU
     IX = find(gIX == U(i));
-    if length(IX)==1,
+    if length(IX)==1
         C(i,:) = M(IX,:);
-        D(i) = 1;
     else
         M_s = M(IX,:);
-        C1 = mean(M_s);
-        C(i,:) = C1;
+        C(i,:) = mean(M_s);
+    end
+end
+
+if nargout>1
+    ClusRes = zeros(size(M));
+    for i = 1:numU
+        IX = find(gIX == U(i));
+        M_s = M(IX,:);
+        ClusRes(IX,:) = M_s-repmat(C(i,:),length(IX),1);
     end
 end
 end

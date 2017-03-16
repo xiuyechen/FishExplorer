@@ -7,6 +7,7 @@ M_0 = GetTimeIndexedData(hfig,'isAllCells');
 
 isZscore = getappdata(hfig,'isZscore');
 isTrialRes = getappdata(hfig,'isTrialRes');
+isClusRes = getappdata(hfig,'isClusRes');
 
 % main data input
 if ~isZscore,
@@ -57,6 +58,11 @@ if isTrialRes
     [~,M] = GetTrialAvrLongTrace(hfig,M);
     [~,behavior] = GetTrialAvrLongTrace(hfig,behavior);
 %     cellRespAvr = getappdata(hfig,'CellRespAvrZ');
+end
+
+if isClusRes
+    gIX = getappdata(hfig,'gIX');
+    [~,M] = FindClustermeans(gIX,M);
 end
 
 setappdata(hfig,'behavior',behavior);

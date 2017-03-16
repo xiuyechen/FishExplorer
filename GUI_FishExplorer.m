@@ -1545,7 +1545,7 @@ C = textscan(str,'%d','delimiter',{',',';'});
 m = C{:};
 range = [];
 for i = 1:length(m),
-    if m(i)>0,
+    if m(i)>=0,
         range = [range,m(i)];
     else % have '-'sign,
         range = [range,m(i-1)+1:-m(i)];
@@ -1678,13 +1678,15 @@ end
 function [gIX,rankscore] = RankByMotorStim_Direct(hfig,gIX,numU,option)
 C = FindCentroid(hfig);
 behavior = getappdata(hfig,'behavior');
-regressors = GetMotorRegressor(behavior);
+
 isMotorseed = getappdata(hfig,'isMotorseed');
 ix_motor = zeros(1,2);
-if isMotorseed,
+if isMotorseed
     ix_motor(1) = 1;
     ix_motor(2) = 2;
+    regressors = behavior;
 else
+    [~,~,regressors] = GetMotorRegressor(behavior);
     ix_motor(1) = 4; % for raw signal % 1 for extracted turns
     ix_motor(2) = 5; % for raw signal % 3 for extracted turns
 end
@@ -1700,8 +1702,8 @@ H = zeros(numU,1);
 % shift = zeros(numU,1);
 % a = zeros(1,3);
 % I = zeros(1,3);
-for i = 1:numU,
-    switch option,
+for i = 1:numU
+    switch option
         %         case 1, % 'motor'
         %             for j = 1:3,
         %                 [a(j),I(j)] = max(abs(xcorr(C(i,:),reg(j,:),'coeff')));
@@ -1717,25 +1719,25 @@ for i = 1:numU,
         %         case 4, % 'L+R motor'
         %             [H(i),I] = max(xcorr(C(i,:),reg(3,:),'coeff'));
         %             shift(i) = I - length(behavior);
-        case 1, % 'motor'
+        case 1 % 'motor'
 %             regressor = regressors(3).im;
 %             H(i) = corr(regressor',C(i,:)');
             R = zeros(1,5);
-            for j = 1:3,
-                regressor = regressors(j).im;
+            for j = 1:size(regressors,1)
+                regressor = regressors(j,:);
                 R(j) = corr(regressor',C(i,:)');
             end
 %             regressor = 0.5*(regressors(4).im+regressors(5).im);
 %             R(4) = corr(regressor',C(i,:)');
             H(i) = max(R);
-        case 2, % 'L motor'
-            regressor = regressors(ix_motor(1)).im;
+        case 2 % 'L motor'
+            regressor = regressors(ix_motor(1),:);
             H(i) = corr(regressor',C(i,:)');
-        case 3, % 'R motor'
-            regressor = regressors(ix_motor(2)).im;
+        case 3 % 'R motor'
+            regressor = regressors(ix_motor(2),:);
             H(i) = corr(regressor',C(i,:)');
-        case 4, % 'L+R motor'
-            regressor = 0.5*(regressors(ix_motor(1)).im+regressors(ix_motor(2)).im);
+        case 4 % 'L+R motor'
+            regressor = 0.5*(regressors(ix_motor(1),:)+regressors(ix_motor(2),:));
             H(i) = corr(regressor',C(i,:)');
     end
 end

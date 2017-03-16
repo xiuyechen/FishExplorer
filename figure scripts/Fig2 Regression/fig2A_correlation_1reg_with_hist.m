@@ -18,7 +18,7 @@ ClusterIDs = [2,1];
 
 %% corr with PT regressor, stim-avr
 
-setappdata(hfig,'isStimAvr',1);
+setappdata(hfig,'isStimAvr',0);
 [M_0,M,behavior,stim] = UpdateTimeIndex(hfig);
 
 fishset = getappdata(hfig,'fishset');
@@ -45,19 +45,25 @@ bins = -1:0.05:1;
 histogram(R,bins,'FaceColor',[0.4 0.4 0.4]);%,'EdgeColor','none'
 plot([thres_reg,thres_reg],[0,max(N)],'r--');
 xlim([-1,1]);ylim([0,max(N)]);
+set(gca,'ycolor','w') 
 
 %% histogram with rainbow colors
 clrbins = 0.5:0.05:1;
 cmap = hot(length(clrbins)-1);
 n_blank = length(bins)-length(clrbins);
 cmap = vertcat(ones(n_blank,3),cmap);
+figure('Position',[500,200,500,150]); 
+hold on
 DrawRainbowHistogram(N,bins,cmap);
+plot([thres_reg,thres_reg],[0,max(N)],'r--');
+xlim([-1,1]);ylim([0,max(N)]);
+set(gca,'ycolor','w') 
 
 %% left plot
 figure('Position',[50,500,300,200])%[50,100,800,1000]);
 % isCentroid,isPlotLines,isPlotBehavior,isPlotRegWithTS
 setappdata(hfig,'isPlotBehavior',0);
-setappdata(hfig,'isStimAvr',1);
+setappdata(hfig,'isStimAvr',0);
 UpdateTimeIndex(hfig);
 
 % set color
@@ -76,7 +82,6 @@ clrmap = hot(length(clrbins));
 gIX = interp1(clrbins,1:length(clrbins),wIX,'nearest');
 
 %% right plot
-figure('Position',[50,100,800,1000]);
 I = LoadCurrentFishForAnatPlot(hfig,cIX,gIX);
 I.clrmap = clrmap;
 DrawCellsOnAnat(I);

@@ -16,32 +16,33 @@ end
 M = getappdata(hfig,'M');
 C = FindClustermeans(gIX,M);
 
-GetTrialAvrLongTrace(hfig,C);
-if fishset == 1
-    [~,~,H] = GetTrialAvrLongTrace(hfig,C);
-else
-    [~,~,H_multistim] = GetTrialAvrLongTrace(hfig,C);
-    if isempty(H_multistim)
-        errordlg('chosen stimulus range not suitable for stim-lock analysis');
-        rankscore = 1:numU;
-        return;
-    end
-    H = zeros(size(H_multistim,1),1);
-    for i = 1:size(H_multistim,1)
-        H(i) = min(H_multistim(i,:));
-    end
-    
-    %     % instead of algebraic average along 2nd dimension, use
-    %     % inverse of geometric average... large value~low variation. geometric
-    %     % mean biases towards large values, i.e. good stim-lock of any stimulus
-    %     % is emphasized.
-    %     H = zeros(size(H_raw,1),1);
-    %     for i = 1:size(H_raw,1),
-    %         temp = sum((1./H_raw(i,:)).^2);
-    %         H(i) = 1./sqrt(temp);
-    %     end
-    
-end
+[~,~,H] = GetTrialAvrLongTrace(hfig,C);
+
+% if fishset == 1
+%     [~,~,H] = GetTrialAvrLongTrace(hfig,C);
+% else
+%     [~,~,H_multistim] = GetTrialAvrLongTrace(hfig,C);
+%     if isempty(H_multistim)
+%         errordlg('chosen stimulus range not suitable for stim-lock analysis');
+%         rankscore = 1:numU;
+%         return;
+%     end
+%     H = zeros(size(H_multistim,1),1);
+%     for i = 1:size(H_multistim,1)
+%         H(i) = min(H_multistim(i,:));
+%     end
+%     
+%     %     % instead of algebraic average along 2nd dimension, use
+%     %     % inverse of geometric average... large value~low variation. geometric
+%     %     % mean biases towards large values, i.e. good stim-lock of any stimulus
+%     %     % is emphasized.
+%     %     H = zeros(size(H_raw,1),1);
+%     %     for i = 1:size(H_raw,1),
+%     %         temp = sum((1./H_raw(i,:)).^2);
+%     %         H(i) = 1./sqrt(temp);
+%     %     end
+%     
+% end
 
 [gIX,rankscore] = SortGroupIXbyScore(H,gIX,numU);
 end
