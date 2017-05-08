@@ -105,7 +105,8 @@ for i_file = 1:length(IX)
         drawnow();
         
         fn = fullfile(newDir, fileName1);
-        saveas(gcf, fn, 'png');
+%         saveas(gcf, fn, 'png');
+        print(fn,'-dpng','-r0');
         close(gcf)
     end
 end

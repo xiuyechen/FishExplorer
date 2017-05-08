@@ -24,12 +24,17 @@ TS_avr(TS_avr>TSmax) = TSmin;
 score = (TS_avr-TSmin)/(TSmax-TSmin);
 gIX_plot = ceil(score*64);
 gIX_plot(gIX_plot==0)=1;
-wIX = score.^1.8; % set transparency weight, and enhance contrast
+wIX = score;%.^2; % set transparency weight, and enhance contrast
 
 numK = max(gIX_plot);
 clrmap = parula(numK);
 
-setappdata(hfig,'isWeighAlpha','1');
-setappdata(hfig,'wIX',wIX);
-figure
-DrawCellsOnAnatProj(hfig,0,1,cIX_plot,gIX_plot,clrmap);
+setappdata(hfig,'isRefAnat',0);
+I = LoadCurrentFishForAnatPlot(hfig,cIX_plot,gIX_plot,clrmap,wIX);
+DrawCellsOnAnat(I);
+
+DrawCustomColorbar(clrmap,[TSmin,TSmax],2,gcf);
+%%
+savedir = GetOutputDataDir;
+filename = fullfile(savedir,'Zstack.tif');
+WriteZstack(hfig,filename,cIX_plot,gIX_plot,clrmap);

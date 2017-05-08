@@ -26,6 +26,7 @@ cd(code_dir)
 global VAR; %#ok<NUSED>
 load_dir = GetOutputDataDir();
 load(fullfile(load_dir,'VAR_new.mat'),'VAR'); % stores all clustering indices
+VAR = CompileVARnames(VAR);
 
 set(0, 'defaultUicontrolFontName', 'Arial');
 set(0, 'defaultUitableFontName', 'Arial');

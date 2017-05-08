@@ -354,7 +354,7 @@ i=i+n; % 'hier' is the same as default (used after every k-means);'stim-lock' us
 n=2; % motor stuff uses the best alignment (by cross-correlation) with the behavior trace;
 % L+R is average of L & R; stim-motor is combines 'stim-lock' w 'motor' with arbituary weighting.
 menu = {'(choose)','hier.','size','stim-lock','corr','motor','L motor','R motor','L+R motor',...
-    'multi-motor','multi-motor least-stim','multi-motor w/ stim-avr','multi-stim w/ stim-avr'};
+    'multi-motor','inverse sparseness','multi-motor w/ stim-avr','sparseness'};
 uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',menu,'Value',1,...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',{@popup_ranking_Callback});
@@ -1049,62 +1049,8 @@ end
 function pushbutton_writeZstack_Callback(hObject,~)
 disp('save z-stack...');
 hfig = getParentFigure(hObject);
+WriteZstack(hfig);
 
-% get save path
-timestamp = datestr(now,'mmddyy_HHMMSS');
-tiffName = ['stack_' timestamp '.tif'];
-[file,path] = uiputfile(tiffName,'Save tif stack');
-tiffdir = fullfile(path,file);
-
-% load params
-cIX = getappdata(hfig,'cIX');
-gIX = getappdata(hfig,'gIX');
-CellXYZ = getappdata(hfig,'CellXYZ');
-absIX = getappdata(hfig,'absIX');
-anat_stack = getappdata(hfig,'anat_stack');
-
-% initialize image stack
-anat_stack2 = zeros([size(anat_stack),3]);
-nPlanes = size(anat_stack,3);
-dimv_yxz = size(anat_stack);
-
-% make cell-shaped circular mask
-radius_xy = 7;
-circlemaskIX = MakeCircularMask(radius_xy,dimv_yxz(1:2));
-
-% make color-map
-numK = double(max(gIX));
-clrmap_name = getappdata(hfig,'clrmap_name');
-clrmap = GetColormap(clrmap_name,numK); %hsv(round(double(numK)*1.1));
-% set transparency
-alpha = ones(size(cIX))*0.5;
-
-% main: coloring of stack
-cIX_abs = absIX(cIX);
-M_xyz = CellXYZ(cIX_abs,:);
-stack_alpha = 0.25;
-for i = 1:nPlanes,
-    anat_plane = stack_alpha*repmat(imNormalize99(anat_stack(:,:,i)),[1 1 1 3]);
-    IX = find(M_xyz(:,3)==i);
-    if ~isempty(IX),
-        anat_stack2(:,:,i,:) = DrawMasksInRGB(anat_plane,M_xyz(IX,[1,2]),circlemaskIX,clrmap,gIX(IX),alpha(IX));
-    end
-end
-
-% display each plane and save as tif
-h = figure;
-for i_plane = 1:nPlanes,
-    im = squeeze(anat_stack2(:,:,i_plane,:));
-    image(im);
-    % save tiff
-    if (i_plane == 1)
-        imwrite(im, tiffdir, 'compression','none','writemode','overwrite')
-    else
-        imwrite(im, tiffdir, 'compression','none','writemode','append')
-    end
-    pause(0.2)
-end
-close(h)
 end
 
 function pushbutton_tileZstack_Callback(hObject,~)
@@ -1655,14 +1601,22 @@ switch rankID
         disp('multi-motor');
         [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,1);
     case 10,
-        disp('multi-motor least-stim');
-        [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,2);
+        %         disp('multi-motor least-stim');
+        %         [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,2);
+        
+        disp('inhibition(?) / inverse sparseness');     
+        isInverse = 1;
+        [gIX,rankscore] = RankBySparseness(hfig,gIX,isInverse);
     case 11,
         disp('multi-motor w/ stim-avr');
         [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,3);
     case 12,
-        disp('multi-stim w/ stim-avr');
-        [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,4);
+        % hijack!!!
+        %         disp('multi-stim w/ stim-avr');
+        %         [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,4);
+
+        disp('sparseness');        
+        [gIX,rankscore] = RankBySparseness(hfig,gIX);
 end
 if rankID>1,
     setappdata(hfig,'rankscore',round(rankscore*100)/100);

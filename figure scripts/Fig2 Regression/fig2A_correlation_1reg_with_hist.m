@@ -78,7 +78,8 @@ DrawTimeSeries(hfig,cIX,gIX,opts);
        
 %% set up custom colormap
 clrbins = 0.5:0.05:1;
-clrmap = hot(length(clrbins));
+clrmap0 = hot(round(1.5*length(clrbins)));
+clrmap = clrmap0(end-length(clrbins):end,:);
 gIX = interp1(clrbins,1:length(clrbins),wIX,'nearest');
 
 %% right plot
@@ -87,8 +88,22 @@ I.clrmap = clrmap;
 DrawCellsOnAnat(I);
 
 %%
-DrawCustomColorbar(clrmap,bins,numTicks);
+numTicks = 2;
+DrawCustomColorbar(clrmap,clrbins,numTicks);
 
+%% draw average plot (even if regression is done on full trace)
+gIX = ones(size(cIX));
+setappdata(hfig,'isStimAvr',1);
+UpdateTimeIndex(hfig);
+figure('Position',[50,500,300,200])%[50,100,800,1000]);
+DrawTimeSeries(hfig,cIX,gIX,opts);
+
+
+%%
+[~,tot_image] = DrawCellsOnAnat(I);
+ax = axes('Position',[0.8,0.8,0.05,0.15],'Units','normalized');
+DrawCustomColorbar(clrmap,clrbins,2,ax);
+        
 %%
 
 

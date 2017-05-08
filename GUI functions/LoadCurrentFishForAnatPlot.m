@@ -5,6 +5,7 @@ I.isRefAnat = getappdata(hfig,'isRefAnat');
 I.isPopout = getappdata(hfig,'isPopout');
 I.isShowMasks = getappdata(hfig,'isShowMasks');
 I.isShowFishOutline = getappdata(hfig,'isShowFishOutline');
+isWeighAlpha = getappdata(hfig,'isWeighAlpha');
 
 if exist('cIX_plot','var'),
     I.cIX = cIX_plot;
@@ -22,6 +23,7 @@ else
 end
 if exist('wIX','var'),
     wIX = wIX_plot;
+    isWeighAlpha = 1;
 else
     wIX = getappdata(hfig,'wIX');
 end
@@ -40,6 +42,8 @@ if ~I.isRefAnat, % raw images
     I.anat_yx = getappdata(hfig,'anat_yx');
     I.anat_yz = getappdata(hfig,'anat_yz');
     I.anat_zx = getappdata(hfig,'anat_zx');
+    
+    I.isShowFishOutline = 0;
 else % registered to ZBrain
     I.CellXYZ = getappdata(hfig,'CellXYZ_norm');
     I.anat_yx = getappdata(hfig,'anat_yx_norm');
@@ -79,7 +83,6 @@ if I.isShowMasks,
 end
 
 % set transparancy
-isWeighAlpha = getappdata(hfig,'isWeighAlpha');
 alpha_max = 0.4;%0.3-min(length(cIX)/1000/100,0.1);
 if isWeighAlpha,
 %     wIX = getappdata(hfig,'wIX');

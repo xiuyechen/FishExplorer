@@ -8,6 +8,14 @@
 % is zres not imported from data but set in GUI???
 
 %% Figure making goals
+
+% make multi-fish plots
+% - try new stim-lock algorithm
+
+
+
+
+
 % - stim-lock scripts for fig 3
 
 % - try fig4f_tSNE on new computer!

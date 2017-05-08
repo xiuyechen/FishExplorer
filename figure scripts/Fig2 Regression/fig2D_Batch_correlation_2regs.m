@@ -9,16 +9,16 @@ clear all; close all; clc
 
 %% Setup
 % folder setup
-saveFigFlag = 0;
+% saveFigFlag = 1;
 
 outputDir = GetOutputDataDir;
-saveDir = [];
-saveDir{1} = fullfile(outputDir,'sensory&motor_0219','PT_LR_stimrangePT');
-setDir(saveDir{1}); % make folder if doesn't exist
-% saveDir{2} = fullfile(outputDir,'sensory&motor_0219','OMR_LR');
+% saveDir = [];
+% saveDir{1} = fullfile(outputDir,'fig2_0422','PT_LR_stimrangePT');
+% setDir(saveDir{1}); % make folder if doesn't exist
+% saveDir{2} = fullfile(outputDir,'fig2_0422','LonRon_LR_stimrangePT');
 % setDir(saveDir{2}); % make folder if doesn't exist
-saveDir{2} = fullfile(outputDir,'sensory&motor_0219','motor_LR_stimrangePT');
-setDir(saveDir{2}); % make folder if doesn't exist
+% saveDir{3} = fullfile(outputDir,'fig2_0422','motor_LR_stimrangePT');
+% setDir(saveDir{3}); % make folder if doesn't exist
 
 % params
 M_stimmotorflag = [1,1,0]; % 1 for stim and 0 for motor
@@ -32,7 +32,9 @@ InitializeAppData(hfig);
 ResetDisplayParams(hfig);
 
 %% Load fish
-range = 6;%GetFishRange;
+range = GetFishRange;
+IM = cell(n_reg,max(range));
+%%
 for i_fish = range
     ClusterIDs = GetClusterIDs('all');
 %     stimrange = 1;
@@ -78,23 +80,60 @@ for i_fish = range
         
         %% make figure
         I = LoadCurrentFishForAnatPlot(hfig,cIX,gIX,clrmap);
-        DrawCellsOnAnat(I);
+        [h,~,im] = DrawCellsOnAnat(I);
         
-        % add 2 colorbars
-%         AddColorbarToAnat(clrmap,cmin,cmax)
-%         colormap(clrmap1);
-%         caxis([reg_thres,1])
-%         colorbar('Location','manual','Position',[0.8,0.7,0.05,0.15],'Units','normalized')
-        ax = axes('Position',[0.75,0.8,0.05,0.15],'Units','normalized');
-        DrawCustomColorbar(clrmap1,[reg_thres,1],2,ax);
-        
-        ax = axes('Position',[0.9,0.8,0.05,0.15],'Units','normalized');
-        DrawCustomColorbar(clrmap2,[reg_thres,1],2,ax);
-        
+%         % add 2 colorbars
+% %         AddColorbarToAnat(clrmap,cmin,cmax)
+% %         colormap(clrmap1);
+% %         caxis([reg_thres,1])
+% %         colorbar('Location','manual','Position',[0.8,0.7,0.05,0.15],'Units','normalized')
+%         ax = axes('Position',[0.75,0.8,0.05,0.15],'Units','normalized');
+%         DrawCustomColorbar(clrmap1,[reg_thres,1],2,ax);
+%         
+%         ax = axes('Position',[0.9,0.8,0.05,0.15],'Units','normalized');
+%         DrawCustomColorbar(clrmap2,[reg_thres,1],2,ax);
+%         
         %% save figure
-        savefolder = fullfile(saveDir{i_set},['regthres' num2str(reg_thres)]);
-        figName = ['Fish' num2str(i_fish)];
-        SaveFigureHelper(saveFigFlag, savefolder, figName);
-        
+        close(h);
+        IM{i_set,i_fish} = im;
+%         savefolder = fullfile(saveDir{i_set},['regthres' num2str(reg_thres)]);
+%         setDir(savefolder);
+%         figName = ['Fish' num2str(i_fish)];
+% %         SaveFigureHelper(saveFigFlag, savefolder, figName);
+
     end
 end
+
+%%
+save(fullfile(outputDir,'IM.mat'),'IM');
+
+%%
+i_reg = 1;
+range_im = [1:3,5:7];%[1:3,5:18];
+cellarray = IM(i_reg,range_im);
+
+k_scale = 1; % this changes for every reg pair...
+k_contrast = 1.2;
+
+[h_anat,im_avr] = AverageAnatPlot(cellarray,k_contrast,k_scale);
+%%
+
+i_reg = 2;
+range_im = [1:3,5:7];
+cellarray = IM(i_reg,range_im);
+
+k_scale = 1.5; % this changes for every reg pair...
+k_contrast = 1.2;
+
+[h_anat,im_avr] = AverageAnatPlot(cellarray,k_contrast,k_scale);
+
+%%
+i_reg = 3;
+range_im =  [1:3,5:7];%[1:3,5:18];
+cellarray = IM(i_reg,range_im);
+
+k_scale = 1; % this changes for every reg pair...
+k_contrast = 1.2;
+
+[h_anat,im_avr] = AverageAnatPlot(cellarray,k_contrast,k_scale);
+
