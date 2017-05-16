@@ -5,7 +5,7 @@ nModel = size(C,1);
 
 %% method 1:
 regs = vertcat(reg_sens,reg_motor);
-orthonormal_basis = Gram_Schmidt_Process(regs'); % actually is transposed?
+orthonormal_basis = regs';%Gram_Schmidt_Process(regs'); % actually is transposed?
 
 % % C_norm = normr(C);
 % betas = zeros(nModel,size(orthonormal_basis,2)+1);

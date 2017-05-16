@@ -25,8 +25,12 @@ range_fish = GetFishRange;%[1:3,5:18];
 %% set params!
 isCellbased = true;
 stimflag = 'P';
-ClusterIDs = [2,1];
-% ClusterIDs = [6,2];
+
+if isCellbased
+    ClusterIDs = [2,1];
+else
+    ClusterIDs = [6,2];
+end
 
 % stimflag = []; % for default set
 % ClusterIDs = [6,1];

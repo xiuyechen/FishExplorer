@@ -1,9 +1,9 @@
 function [h_anat,im_avr] = AverageAnatPlot(cellarray,k_contrast,k_scale)
 n = length(cellarray);
 
-sum = cellarray{1};
+sum = im2double(cellarray{1});
 for i = 2:n
-    im = cellarray{i};
+    im = im2double(cellarray{i});
     if isempty(im)
         disp(['image #',num2str(i),' is empty!']);
         h_anat = [];

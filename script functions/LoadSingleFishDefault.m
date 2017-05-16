@@ -27,6 +27,8 @@ M = getappdata(hfig,'M');
 if nargout>3,
     stim = getappdata(hfig,'stim');
     behavior = getappdata(hfig,'behavior');
+    % z-score behavior!
+    behavior = zscore(behavior,0,2);
     M_0 = getappdata(hfig,'M_0');
 end
 

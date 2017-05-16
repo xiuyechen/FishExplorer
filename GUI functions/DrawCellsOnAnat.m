@@ -70,7 +70,7 @@ anat_zx2=zeros(dimv_zx(1)*k_zres_ratio,dimv_zx(2),3);
 
 if isRefAnat && isPopout,
     % crop lengthwise (most of tail), and scale k_zres
-    y_range = 81:1000;%81:990;% 81:1104; % max 1406
+    y_range = 81:980;%81:990;% 81:1104; % max 1406
     z_range = z_range_ventral:345; % max 138*k_zres
     dimv_yx3 = size(anat_YX(y_range,:,:));
     dimv_yz3 = [length(y_range),length(z_range),3];

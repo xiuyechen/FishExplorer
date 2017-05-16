@@ -1,4 +1,15 @@
 %% To do - mini new analysis projects
+Multifish_anatplot_from_VAR;
+fig3b_stimlock_ranking;
+fig2D_Batch_correlation_2regs;% OMR
+
+
+% top/bottom 5%
+% OMR
+% motorseed
+
+
+
 % C:\Users\Xiu\Dropbox (Personal)\fish_xiu_2016\Proj1 Whole-brain methods\
 % convert Yu Hu's keynote to pdf and review notes, also review notes on
 % thesis. 

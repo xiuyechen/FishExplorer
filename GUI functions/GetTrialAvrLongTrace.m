@@ -57,7 +57,6 @@ else
             offset = length(horzcat(timelists{stimrange(1:i-1)}));% works for i=0 too
             tIX_ = 1+offset:length(timelists{stimrange(i)})+offset;
             C_trialAvr = horzcat(C_trialAvr,zeros(size(C,1),length(tIX_))); %#ok<AGROW>
-            C_trialRes = C-C_trialAvr;
         end
     end
     

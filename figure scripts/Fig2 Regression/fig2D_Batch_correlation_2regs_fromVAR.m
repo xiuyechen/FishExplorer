@@ -13,50 +13,20 @@ InitializeAppData(hfig);
 ResetDisplayParams(hfig);
 
 %% set params
-thres_reg_const = 0.5;
+reg_thres = 0.5;
 % M_reg_thres = {0.5,0.5,0.5};
 
-for stimflag = 2
+for stimflag = 1
     % reset
     ResetDisplayParams(hfig);
     
     switch stimflag
-        case 1 % Phototaxis
-            stimrange = 1;
-            M_stimmotorflag = [1,1,0]; % 1 for stim and 0 for motor
-            M_reg_name = {'PT','HalfField','PT_SwimLR'};
-            M_reg_range = {[3,2],[5,6],[1,3]};
-            M_fishrange = {[1:18],[1:7],[1:3,5:18]};
+        case 1 % ABN
+            M_stimrange = GetStimRange();%('2');
+            M_reg_name = {'ABN_reg0.5_defstimrange'}; % one at a time for now
+            M_reg_clus = {[12,1]};
+            M_fishrange = {[1:12,14:18]};
             n_reg = length(M_reg_name);
-            
-        case 2 % OMR
-            stimrange = 2;
-            M_stimmotorflag = [1,1,0]; % 1 for stim and 0 for motor
-            M_reg_name = {'OMR_FwBw','OMR_LR','OMR_SwimLR'};
-            M_reg_range =  {[7,6],[9,8],[1,3]};
-            M_fishrange = {[8:18],[8:18],[8:18]};
-            n_reg = length(M_reg_name);
-            
-        case 3 % Looming
-            stimrange = 5;
-            M_stimmotorflag = [1,0]; % 1 for stim and 0 for motor
-            M_reg_name = {'Loom_LR','Loom_SwimLR'};
-            M_reg_range =  {[11,12],[1,3]};
-            M_fishrange = {[9:15,17:18],[9:15,17:18]};
-            n_reg = length(M_reg_name);
-            
-        case 4 % Dark Flash (black-white)
-            stimrange = 3;
-            M_stimmotorflag = [1,0]; % 1 for stim and 0 for motor
-            M_reg_name = {'DF_BW','DF_SwimLR'};
-            M_reg_range =  {[1,4],[1,3]};
-            M_fishrange = {[12:15,17:18],[12:15,17:18]};
-            n_reg = length(M_reg_name);
-            
-%         case 5
-%             setappdata(hfig,'isMotorseed',1);
-%             setappdata(hfig,'isTrialRes',1);
-%             stimrange = [];
     end
     M_fishrange_im = M_fishrange;
     
@@ -64,41 +34,27 @@ for stimflag = 2
     range = 1:18;
     IM_full = cell(n_reg,max(range));
     %%
+    i_set = 1;
+    
     for i_fish = range
         if ismember(i_fish,cell2mat(M_fishrange))
-            ClusterIDs = GetClusterIDs('all');
+            ClusterIDs = M_reg_clus{i_set};
+            stimrange = M_stimrange{i_fish};   
             % load fish data
-            if isempty(stimrange)
-                [cIX_load,gIX_load,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs);
-            else
+            if ~isempty(stimrange)              
                 [cIX_load,gIX_load,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs,stimrange);
             end            
         end
         
-        %% Load stim/motor
-        for i_set = 1:n_reg
+        %% regression
+%         for i_set = 1%:n_reg
             
             if ~ismember(i_fish,M_fishrange{i_set})
                 continue;
             end
             
-            reg_range = M_reg_range{i_set}; % left/right pair
-            reg_thres = thres_reg_const; %M_reg_thres{i_set};
-            
-            % get stim/motor regressors
-            if M_stimmotorflag(i_set)
-                fishset = getappdata(hfig,'fishset');
-                [~,names,regressors] = GetStimRegressor(stim,fishset,i_fish);
-            else
-                isMotorseed = 0;
-                setappdata(hfig,'isMotorseed',isMotorseed);
-                [~,~,behavior] = UpdateTimeIndex(hfig);
-                
-                [~,names,regressors] = GetMotorRegressor(behavior,i_fish);
-            end
-            
             % code adapted from 'best regressor regression' code 'AllRegsRegression'
-            Reg = regressors(reg_range,:);
+            Reg = FindClustermeans(gIX_load,M);
             Corr = corr(Reg',M_0');
             [corr_max,IX_regtype] = max(Corr,[],1);
             cIX = find(corr_max>reg_thres)';
@@ -142,7 +98,7 @@ for stimflag = 2
             close(h);
             IM_full{i_set,i_fish} = im_full;
             
-        end
+%         end
     end
     
     %% save as tiff stack

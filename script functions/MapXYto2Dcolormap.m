@@ -16,6 +16,17 @@ if nargin < 6
 end
 res = size(cmap2D,1);
 
+% check input dimensions
+if size(X,1)~=size(Y,1)
+    if size(X,1)>1
+        Y = Y';
+    else
+        X = X';        
+    end
+end
+assert(isequal(size(X),size(Y)));
+
+% set data range
 X(X<Xrange(1)) = Xrange(1);
 Y(Y<Yrange(1)) = Yrange(1);
 X(X>Xrange(2)) = Xrange(2);
@@ -29,8 +40,16 @@ clrmap = zeros(length(clrIX_x),3);
 clrmap_2D_flat = reshape(cmap2D,res*res,3); % for efficient indexing
 
 U = unique(gIX_in);
-for i = 1:length(U)
-    ix = sub2ind([res,res],clrIX_y(U(i))',clrIX_x(U(i))');
-    clrmap(U(i),:) = clrmap_2D_flat(ix,:);
-end
+
+ix = (clrIX_x(U)-1)*res+clrIX_y(U);
+clrmap(U,:) = clrmap_2D_flat(ix,:);
+% for i = 1:length(U)
+% %     ix = sub2ind([res,res],clrIX_y(U(i))',clrIX_x(U(i))');
+%     ix = (clrIX_x(U(i))'-1)*res+clrIX_y(U(i))';
+% %     center_ix = (M_xyz(j,2)-1)*dimv(1)+M_xyz(j,1); % linear pixel index, faster equivalent of:
+%         %     center_ix = sub2ind([dimv(1),dimv(2)],M_xyz(j,1),M_xyz(j,2));
+%         
+%         
+%     clrmap(U(i),:) = clrmap_2D_flat(ix,:);
+% end
 end

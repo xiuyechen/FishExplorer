@@ -9,7 +9,7 @@ if ~exist('huex','var'),
     huex = 120/360; % 120/360 for green/magenta; e.g. 0/360 for red/cyan
 end
 if ~exist('satmin','var'),
-    satmin = 0;
+    satmin = 0;%0.1;
 end
 if ~exist('pw','var')
     pw = 1; % scaling of the diagnoal, reminiscent of contrast; 1 is linear

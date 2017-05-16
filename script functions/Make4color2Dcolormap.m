@@ -10,11 +10,17 @@ if ~exist('res','var')
     res = 100;
 end
 
-grid = ones(res,res,3);
+grid = zeros(res,res,3);
 
+% red/green/cyan/purple map
 grid(:,:,1) = 0.5*makeGradientLayer(0,1,res)+0.5*makeGradientLayer(0,0,res); % Red channel
 grid(:,:,2) = makeGradientLayer(1,1,res); % Green channel
 grid(:,:,3) = makeGradientLayer(1,0,res); % Blue channel
+
+% new green/magenta map
+% grid(:,:,1) = makeGradientLayer(1,1,res); 
+% grid(:,:,2) = makeGradientLayer(1,0,res); 
+% grid(:,:,3) = makeGradientLayer(1,1,res); 
 
 if nargin>1
     if plotdemo

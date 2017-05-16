@@ -1,12 +1,13 @@
 %% motor: tAvr/total variance
-[bh_tAvr,bh_tRes] = GetTrialAvrLongTrace(hfig,behavior);
+behavior_z = zscore(behavior,0,2);
+[bh_tAvr,bh_tRes] = GetTrialAvrLongTrace(hfig,behavior_z);
 vAvr_bh = var(bh_tAvr(1,:));
-vTot_bh = var(behavior(1,:));
+vTot_bh = var(behavior_z(1,:));
 
 vRes_bh = var(bh_tRes(1,:));
 
 %% make histogram for all cells
-M_ = M_0;
+M_ = M_0(1:100:end,:);
 [M_tAvr,M_tRes] = GetTrialAvrLongTrace(hfig,M_);
 vAvr = var(M_tAvr,0,2);
 vRes = var(M_tRes,0,2);
