@@ -23,7 +23,7 @@ for caseflag = 2
             M_clus_name = {'motorseed_v2','motorseed_LRmanual','motorseed_Fwmanual'};
             M_fishrange = {[5:13],[5:13],[5:13]};
             n_reg = length(M_clus_name);
-%             
+
 %         case 3 % Looming
 %             stimrange = 5;
 %             M_stimmotorflag = [1,0]; % 1 for stim and 0 for motor

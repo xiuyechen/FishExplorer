@@ -134,11 +134,9 @@ imwrite(im_avr, fullfile(outputDir,'White_1reg_allfish_avr.tiff'), 'compression'
 % im_full = IM_full{1};
 % im = IM_full{1}(dimv_zx3(1)+11:end,1:dimv_yx3(2),:);
 
-%% function IM_crop = CropFullAnat(IM_full)
-IM_crop = cell(size(IM_full));
-for i = 1:length(IM_full)
-    IM_crop{i} = IM_full{1}(317:1221,1:621,:);%(317:1236,1:621,:);
-end
+
+%% Crop Anat to show only XY view or only XY/YZ view
+IM_crop = CropFullAnat(IM_full,2);
 
 cellarray = IM_crop(1,1:4);
 [h_anat,im_avr] = AverageAnatPlot(cellarray,k_contrast,k_scale);

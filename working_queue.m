@@ -1,14 +1,23 @@
 %% To do - mini new analysis projects
-Multifish_anatplot_from_VAR;
+
+%% forward maps
+% fig3_LFwR_3waymap_script.m
 fig3b_stimlock_ranking;
-fig2D_Batch_correlation_2regs;% OMR
+fig3_motormap_trialRes_lrRes_tiffstack;
+%% tRes set-diff
+% plot separately for {stimset of just PT, OMR and maybe DF}, and spont.
+% because for PT and OMR the AHC may show up differently than for just
+% spont...
 
+%% AHC
+% get a good plot to show stim-locked progression, and combine with the 2D
+% plot somehow
 
-% top/bottom 5%
-% OMR
-% motorseed
-
-
+%%
+% motorseed plot... manual segmentation?
+% for fish wiht good manual forward seeds, do 
+% plot again: bottom5 all fish
+% look up the RS clusters...
 
 % C:\Users\Xiu\Dropbox (Personal)\fish_xiu_2016\Proj1 Whole-brain methods\
 % convert Yu Hu's keynote to pdf and review notes, also review notes on
@@ -19,15 +28,6 @@ fig2D_Batch_correlation_2regs;% OMR
 % is zres not imported from data but set in GUI???
 
 %% Figure making goals
-
-% make multi-fish plots
-% - try new stim-lock algorithm
-
-
-
-
-
-% - stim-lock scripts for fig 3
 
 % - try fig4f_tSNE on new computer!
 

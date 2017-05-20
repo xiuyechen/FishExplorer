@@ -21,5 +21,6 @@ imagesc(im_avr)
 axis equal
 axis off
     
-disp(['n = ' num2str(n)])
+% disp(['n = ' num2str(n)])
+text(20,1190,['n=',num2str(n)],'color','w','fontsize',15');
 end

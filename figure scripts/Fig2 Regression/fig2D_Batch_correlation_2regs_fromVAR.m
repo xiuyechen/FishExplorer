@@ -11,12 +11,13 @@ outputDir = GetOutputDataDir;
 hfig = figure;
 InitializeAppData(hfig);
 ResetDisplayParams(hfig);
+global VAR;
 
 %% set params
 reg_thres = 0.5;
 % M_reg_thres = {0.5,0.5,0.5};
 
-for stimflag = 1
+for stimflag = 2
     % reset
     ResetDisplayParams(hfig);
     
@@ -26,6 +27,12 @@ for stimflag = 1
             M_reg_name = {'ABN_reg0.5_defstimrange'}; % one at a time for now
             M_reg_clus = {[12,1]};
             M_fishrange = {[1:12,14:18]};
+            n_reg = length(M_reg_name);
+        case 2 % Fw
+            M_stimrange = GetStimRange();%('2');
+            M_reg_name = {'Fw_reg0.5_defS'}; % one at a time for now
+            M_reg_clus = {[11,4]};
+            M_fishrange = {[1:18]};
             n_reg = length(M_reg_name);
     end
     M_fishrange_im = M_fishrange;
@@ -42,7 +49,15 @@ for stimflag = 1
             stimrange = M_stimrange{i_fish};   
             % load fish data
             if ~isempty(stimrange)              
-                [cIX_load,gIX_load,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs,stimrange);
+                
+                % check that VAR is not empty
+                nClus = length(VAR(i_fish).ClusGroup{ClusterIDs(1)});
+                if nClus>= ClusterIDs(2) % ~~loose approx ~~ exist record
+                    [cIX_load,gIX_load,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs,stimrange);
+                else
+                    M_fishrange_im{i_set} = setdiff(M_fishrange_im{i_set} ,i_fish);
+                    continue;
+                end
             end            
         end
         
@@ -55,6 +70,11 @@ for stimflag = 1
             
             % code adapted from 'best regressor regression' code 'AllRegsRegression'
             Reg = FindClustermeans(gIX_load,M);
+            
+            if stimflag==2
+                Reg = mean(Reg,1);
+            end
+            
             Corr = corr(Reg',M_0');
             [corr_max,IX_regtype] = max(Corr,[],1);
             cIX = find(corr_max>reg_thres)';

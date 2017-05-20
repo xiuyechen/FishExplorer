@@ -1,5 +1,17 @@
 function DrawCustomColorbar(clrmap,bins,numTicks,h)
+% input:
+% bins: values corresponding to clrmap scale, to display on colorbar
+% numTicks: 2 or 3
+% h: 
+% - if ommitted, make new figure; 
+% - if figure handle is passed, draw on upperright corner of anat plot 
+% - if axis handle is passed, colorbar will fill that axis
+
 %%
+if ~exist('numTicks','var')
+    numTicks = 2;
+end
+
 if exist('h','var')
     if ishandle(h) && strcmp(get(h,'type'),'figure')
         % this is customized for default figure from 'DrawCellsOnAnat'

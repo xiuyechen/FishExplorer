@@ -1598,8 +1598,10 @@ switch rankID
         disp('L+R motor');
         [gIX,rankscore] = RankByMotorStim_Direct(hfig,gIX,numU,4);
     case 9,
-        disp('multi-motor');
-        [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,1);
+        disp('fft');
+        [gIX,rankscore] = RankByFFT_Direct(hfig,gIX);
+%         disp('multi-motor');
+%         [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,1);
     case 10,
         %         disp('multi-motor least-stim');
         %         [gIX,rankscore] = RankByMultiRegression_Direct(hfig,gIX,numU,2);
