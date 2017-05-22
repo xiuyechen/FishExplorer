@@ -129,27 +129,7 @@ for stimflag = 2
         
         SaveImToTiffStack(IM,tiffdir);
     end
-    % for i_set = 1:n_reg
-    %     range_im = M_fishrange{i_set};
-    %     tiffdir = fullfile(outputDir,[M_reg_name{i_set},'_allfish.tiff']);
-    %
-    %     % display each plane and save as tif
-    %     h = figure;
-    %     for i_plane = range_im
-    %         im = IM_full{i_set,i_plane};
-    %         image(im);axis equal; axis off
-    %         drawnow;
-    %         % save tiff
-    %         if (i_plane == 1)
-    %             imwrite(im, tiffdir, 'compression','none','writemode','overwrite')
-    %         else
-    %             imwrite(im, tiffdir, 'compression','none','writemode','append')
-    %         end
-    %         %     pause(0.2)
-    %     end
-    %     close(h)
-    % end
-    
+
     %% [for later] plot from tiff stack
     isPlotfromtiffstack = 0;
     

@@ -3,10 +3,7 @@
 %% forward maps
 % fig3_LFwR_3waymap_script.m
 % fig3b_stimlock_ranking;
-
-
-% [ ] Clean up this into switch cases:
-% fig3_motormap_trialRes_lrRes_tiffstack;
+fig3_motormap_trialRes_lrRes_tiffstack;
 
 
 % should do setdiff comparison between tAvr-motor-reg and
@@ -16,10 +13,9 @@
 % plot separately for {stimset of just PT, OMR and maybe DF}, and spont.
 % because for PT and OMR the AHC may show up differently than for just
 % spont...
-% [X] did OMR alone, not really different
 
 %% AHC
-% get a good plot to show stim-locked progression ([X] top 10% stim-lock), and combine with the 2D
+% get a good plot to show stim-locked progression, and combine with the 2D
 % plot somehow
 
 %%

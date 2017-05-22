@@ -26,7 +26,7 @@ isSaveFig = 1;
 isPlotFig = 1;
 
 outputDir = GetOutputDataDir;
-M_reg_name{1} = 'motormap_OMR_notRes_motorseed2';
+M_reg_name{1} = 'motormap_OMR_tAvr_reg_motorseed2';
 M_ClusterIDs{1} = [11,2];
 M_fishrange{1} = range_fish;
 M_stimrange{1} = GetStimRange('O');
