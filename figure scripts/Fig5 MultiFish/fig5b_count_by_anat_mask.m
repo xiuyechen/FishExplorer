@@ -133,7 +133,11 @@ xlim([0.5,length(anat_list)+0.5]);
 
 % 124: Rhombencephalon - Anterior Cluster of nV Trigeminal Motorneurons[Fish6]
 % jaw 213: Rhombencephalon - Posterior Cluster of nV Trigeminal Motorneurons [Fish 13]
-% jaw MiD3: 188
+% jaw MiD3: 188???
 
 % 187: Rhombencephalon - MiD2
+% 188: Rhombencephalon - MiD3
+
+% RS ref list: (Mauthner & homologues, and V-cells, 6 pairs total) 184,187,188,232,193,194
+
 % 183: Rhombencephalon - Locus Coreuleus (fw motor seed)

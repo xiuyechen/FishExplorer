@@ -23,6 +23,16 @@
 % plot somehow
 
 %%
+try coloring clusters not by stim-lock ranking but by actual stim-lock scores, and experiment with a few stimsets. 
+    
+%%
+for best reg plot to identify AHC, try making a multifish plot!
+        
+%%
+try some sort of PCA-downsampled distance matrix for maybe downsampled cell partitions...
+        thinking of plotting density against variance as reference for the tVar ranking, and sort of for the Autoclus downsampling?
+
+%%
 % motorseed plot... manual segmentation?
 % for fish wiht good manual forward seeds, do 
 % plot again: bottom5 all fish

@@ -1,10 +1,11 @@
 % fig2C: best clusters/cells? for an array of stim/motor regressors, GUI function
+clear all;close all;clc;
 
 hfig = figure;
 InitializeAppData(hfig);
 ResetDisplayParams(hfig);
 
-setappdata(hfig,'isMotorseed',0);
+setappdata(hfig,'isMotorseed',1);
 i_fish = 8;
 LoadSingleFishDefault(i_fish,hfig);
 
@@ -18,13 +19,15 @@ isRegCurrentCells = 0;
 setappdata(hfig,'thres_reg',0.4);
 [cIX_reg,gIX_reg,numK,IX_regtype,corr_max] = AllRegsRegression(hfig,isRegIndividualCells,isRegCurrentCells);
 
-regtypes_plot = [2,3,4,7,8,9,16,17]; % manual input
+regtypes_plot = [2,3,8,9,16,17];%[2,3,4,7,8,9,16,17]; % manual input % PT, OMR, joint
 [cIX,gIX] = SelectClusterRange(cIX_reg,gIX_reg,regtypes_plot);
 [gIX, numU] = SqueezeGroupIX(gIX);
-% manually switch order for the last two groups!
+% manually switch order for the last two groups (motor)!
+m1 = regtypes_plot(end-1);
+m2 = regtypes_plot(end);
 gIX_old = gIX;
-gIX(gIX_old==7) = 8;
-gIX(gIX_old==8) = 7;
+gIX(gIX_old==m1) = m2;
+gIX(gIX_old==m2) = m1;
 
 UpdateIndices_Manual(hfig,cIX,gIX,numU);
 
@@ -39,6 +42,14 @@ DrawTimeSeries(hfig,cIX,gIX);
 %% right plot
 % figure('Position',[50,100,800,1000]);
 I = LoadCurrentFishForAnatPlot(hfig,cIX,gIX);
+DrawCellsOnAnat(I);
+
+%% right plot of PT/OMR joint cells only
+IX = union(find(gIX==length(regtypes_plot)-1),find(gIX==length(regtypes_plot)));
+cIX2 = cIX(IX);
+gIX2 = gIX(IX);
+% UpdateIndices_Manual(hfig,cIX2,gIX2,numU);
+I = LoadCurrentFishForAnatPlot(hfig,cIX2,gIX2);
 DrawCellsOnAnat(I);
 
 %% left plot for the motor traces, not plotted in anat

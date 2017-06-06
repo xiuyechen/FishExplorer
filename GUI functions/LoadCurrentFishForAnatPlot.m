@@ -21,7 +21,7 @@ else
     I.gIX = getappdata(hfig,'gIX');
     gIX = I.gIX;
 end
-if exist('wIX','var'),
+if exist('wIX_plot','var') && ~isempty(wIX_plot),
     wIX = wIX_plot;
     isWeighAlpha = 1;
 else
@@ -55,7 +55,7 @@ I.absIX = getappdata(hfig,'absIX');
 
 
 % get colormap
-if exist('clrmap','var'),
+if exist('clrmap','var') && ~isempty(clrmap),
     I.clrmap = clrmap;
 else
     % get colormap
@@ -66,18 +66,29 @@ else
     else
         numK = double(max(numK,max(gIX)));% sadly this is not always true
     end
-    I.clrmap = GetColormap(clrmap_name,numK);
+    if ~isempty(numK)
+        I.clrmap = GetColormap(clrmap_name,numK);
+    else
+        I.clrmap = [];
+    end
 end
 
 % anat masks
 if I.isShowMasks,
-    isShowMskOutline = getappdata(hfig,'isShowMskOutline');
-    I.isShowMskOutline = isShowMskOutline;
+    if ~isfield(I,'isShowMskOutline')
+        isShowMskOutline = getappdata(hfig,'isShowMskOutline');
+        I.isShowMskOutline = isShowMskOutline;
+    end
+    
     MASKs = getappdata(hfig,'MASKs');
     I.MASKs = MASKs;
-    Msk_IDs = getappdata(hfig,'Msk_IDs');
-    I.Msk_IDs = Msk_IDs;
-    if Msk_IDs == 0,
+
+    if ~isfield(I,'Msk_IDs')
+        Msk_IDs = getappdata(hfig,'Msk_IDs');
+        I.Msk_IDs = Msk_IDs;
+    end
+    
+    if I.Msk_IDs == 0,
         I.newMask = getappdata(hfig,'newMask');
     end
 end

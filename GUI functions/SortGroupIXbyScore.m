@@ -5,6 +5,11 @@ if exist('descend','var'),
 else
     [B,I] = sort(H);
 end
+
+if ~exist('numU','var'),
+    numU = length(unique(gIX));
+end
+
 gIX_last = gIX;
 for i = 1:numU,
     gIX(gIX_last==I(i)) = i;

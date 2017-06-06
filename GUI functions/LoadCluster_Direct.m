@@ -1,4 +1,4 @@
-function [cIX,gIX,numK] = LoadCluster_Direct(i_fish,i_ClusGroup,i_Cluster,absIX)
+function [cIX,gIX,numK,absIX] = LoadCluster_Direct(i_fish,i_ClusGroup,i_Cluster,absIX)
 if ~exist('absIX','var'),    
     data_masterdir = GetCurrentDataDir();
     data_dir = fullfile(data_masterdir,['subject_' num2str(i_fish)]);

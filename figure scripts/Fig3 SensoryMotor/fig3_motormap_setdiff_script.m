@@ -4,14 +4,24 @@
 
 clear all; close all; clc
 
-isSetDiffnotIntersect = 0;
+
 %% folder setup
 isSaveFig = 1;
 isPlotFig = 1;
 
 outputDir = GetOutputDataDir;
-M_reg_name{1} = 'motormap_df_VS_tReslrRes_motorseed2_intunion';
 
+caseflag = 1;
+switch caseflag
+    case 1
+        isSetDiffnotIntersect = 1;
+        M_reg_name{1} = 'motormap_df_VS_tRes_motorseed2_setdiff';
+        
+    case 2
+        isSetDiffnotIntersect = 0;
+        M_reg_name{1} = 'motormap_df_VS_tReslrRes_motorseed2_intunion';
+        
+end
 range_fish = GetFishRange;%[1:3,5:18];%8:17;%
 % stimrange = 2;
 

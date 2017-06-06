@@ -354,7 +354,7 @@ i=i+n; % 'hier' is the same as default (used after every k-means);'stim-lock' us
 n=2; % motor stuff uses the best alignment (by cross-correlation) with the behavior trace;
 % L+R is average of L & R; stim-motor is combines 'stim-lock' w 'motor' with arbituary weighting.
 menu = {'(choose)','hier.','size','stim-lock','corr','motor','L motor','R motor','L+R motor',...
-    'multi-motor','inverse sparseness','multi-motor w/ stim-avr','sparseness'};
+    'fft','inverse sparseness','multi-motor w/ stim-avr','sparseness'};
 uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',menu,'Value',1,...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',{@popup_ranking_Callback});
@@ -1027,23 +1027,8 @@ end
 function pushbutton_savemat_Callback(hObject,~)
 disp('saving...');
 hfig = getParentFigure(hObject);
-% data_masterdir = getappdata(hfig,'data_masterdir');
-save_dir = getappdata(hfig,'save_dir');
 
-% copy of VAR files will be saved into this subfolder:
-arcmatfolder = fullfile(save_dir, 'arc mat');
-if ~exist(arcmatfolder, 'dir')
-    mkdir(arcmatfolder);
-end
-
-global VAR; %#ok<NUSED>
-timestamp  = datestr(now,'mmddyy_HHMM');
-matname = [timestamp '.mat'];
-save(fullfile(arcmatfolder,matname),'VAR','-v6');
-
-% also save the current VAR file
-save(fullfile(save_dir,'VAR_new.mat'),'VAR','-v6');
-disp('saved both to workspace and .mat');
+SaveVARtoMat(hfig);
 end
 
 function pushbutton_writeZstack_Callback(hObject,~)
@@ -1103,7 +1088,7 @@ function pushbutton_loadVARfromworkspace_Callback(hObject,~)
 % LoadNewClusters(hfig);
 
 hfig = getParentFigure(hObject);
-[cIX,gIX] = BubblePlot(hfig);
+% [cIX,gIX] = BubblePlot(hfig);
 UpdateIndices(hfig,cIX,gIX);
 RefreshFigure(hfig);
 end
@@ -1565,6 +1550,7 @@ cIX = getappdata(hfig,'cIX');
 gIX = getappdata(hfig,'gIX');
 
 [gIX, numU] = SqueezeGroupIX(gIX);
+C = FindCentroid(hfig);
 switch rankID
     case 1,
         disp('hier. (default)');
@@ -1587,16 +1573,16 @@ switch rankID
         rankscore = 1-rankscore;
     case 5,
         disp('motor');
-        [gIX,rankscore] = RankByMotorStim_Direct(hfig,gIX,numU,1);
+        [gIX,rankscore] = RankByMotorReg_Direct(hfig,gIX,numU,C,1);
     case 6,
         disp('L motor');
-        [gIX,rankscore] = RankByMotorStim_Direct(hfig,gIX,numU,2);
+        [gIX,rankscore] = RankByMotorReg_Direct(hfig,gIX,numU,C,2);
     case 7,
         disp('R motor');
-        [gIX,rankscore] = RankByMotorStim_Direct(hfig,gIX,numU,3);
+        [gIX,rankscore] = RankByMotorReg_Direct(hfig,gIX,numU,C,3);
     case 8,
         disp('L+R motor');
-        [gIX,rankscore] = RankByMotorStim_Direct(hfig,gIX,numU,4);
+        [gIX,rankscore] = RankByMotorReg_Direct(hfig,gIX,numU,C,4);
     case 9,
         disp('fft');
         [gIX,rankscore] = RankByFFT_Direct(hfig,gIX);
@@ -1629,75 +1615,6 @@ end
 UpdateIndices(hfig,cIX,gIX,numU);
 RefreshFigure(hfig);
 disp('ranking complete');
-end
-
-function [gIX,rankscore] = RankByMotorStim_Direct(hfig,gIX,numU,option)
-C = FindCentroid(hfig);
-behavior = getappdata(hfig,'behavior');
-
-isMotorseed = getappdata(hfig,'isMotorseed');
-ix_motor = zeros(1,2);
-if isMotorseed
-    ix_motor(1) = 1;
-    ix_motor(2) = 2;
-    regressors = behavior;
-else
-    [~,~,regressors] = GetMotorRegressor(behavior);
-    ix_motor(1) = 4; % for raw signal % 1 for extracted turns
-    ix_motor(2) = 5; % for raw signal % 3 for extracted turns
-end
-
-% % behavior(1,:);   %weighted: right turns
-% % behavior(2,:);   %weighted: left turns
-% % behavior(3,:);   %weighted: forward swims
-% % behavior(4,:);  %analog: right channel
-% % behavior(5,:);  %analog: left channel
-% % behavior(4,:)+behavior(5,:);   %analog: average
-
-H = zeros(numU,1);
-% shift = zeros(numU,1);
-% a = zeros(1,3);
-% I = zeros(1,3);
-for i = 1:numU
-    switch option
-        %         case 1, % 'motor'
-        %             for j = 1:3,
-        %                 [a(j),I(j)] = max(abs(xcorr(C(i,:),reg(j,:),'coeff')));
-        %             end
-        %             [H(i),jmax] = max(a);
-        %             shift(i) = I(jmax) - length(behavior);
-        %         case 2, % 'L motor'
-        %             [H(i),I] = max(xcorr(C(i,:),reg(1,:),'coeff'));
-        %             shift(i) = I - length(behavior);
-        %         case 3, % 'R motor'
-        %             [H(i),I] = max(xcorr(C(i,:),reg(2,:),'coeff'));
-        %             shift(i) = I - length(behavior);
-        %         case 4, % 'L+R motor'
-        %             [H(i),I] = max(xcorr(C(i,:),reg(3,:),'coeff'));
-        %             shift(i) = I - length(behavior);
-        case 1 % 'motor'
-%             regressor = regressors(3).im;
-%             H(i) = corr(regressor',C(i,:)');
-            R = zeros(1,5);
-            for j = 1:size(regressors,1)
-                regressor = regressors(j,:);
-                R(j) = corr(regressor',C(i,:)');
-            end
-%             regressor = 0.5*(regressors(4).im+regressors(5).im);
-%             R(4) = corr(regressor',C(i,:)');
-            H(i) = max(R);
-        case 2 % 'L motor'
-            regressor = regressors(ix_motor(1),:);
-            H(i) = corr(regressor',C(i,:)');
-        case 3 % 'R motor'
-            regressor = regressors(ix_motor(2),:);
-            H(i) = corr(regressor',C(i,:)');
-        case 4 % 'L+R motor'
-            regressor = 0.5*(regressors(ix_motor(1),:)+regressors(ix_motor(2),:));
-            H(i) = corr(regressor',C(i,:)');
-    end
-end
-[gIX,rankscore] = SortGroupIXbyScore(H,gIX,numU,'descend');
 end
 
 function [gIX,rankscore,betas] = RankByMultiRegression_Direct(hfig,gIX,numU,option)

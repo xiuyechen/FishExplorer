@@ -4,28 +4,37 @@
 % corr sweep (0.5-0.7) to get top %2 cells, then kmeans, save; rank by stim-lock, save
 clear all; close all; clc
 
-% manual choices!!
-islrRes = 0;
-istRes = 0; 
-istAvrMotor = 1;
-
-range_fish = 8:17;%GetFishRange;%[1:3,5:18];
-M_stimrange = GetStimRange('O');%('2');
-
-
-% set thres fol colormap value lower bound
-if istAvrMotor
-    reg_thres = 0.25;
-else
-    reg_thres = 0.25;
-end
-
-
 %% folder setup
 isSaveFig = 1;
 isPlotFig = 1;
 
 outputDir = GetOutputDataDir;
+
+caseflag = 1;
+switch caseflag
+    case 1
+        range_fish = [1:3,5:18];
+
+        M_reg_name{1} = 'motormap_defS_tAvr_reg_motorseed2';
+        M_ClusterIDs{1} = [11,2];
+        M_fishrange{1} = range_fish;
+        M_stimrange{1} = GetStimRange();
+        istAvrMotor = 1;
+        islrRes = 0;
+        istRes = 0;
+        
+    case 2
+        range_fish = 8:17;%GetFishRange;%[1:3,5:18];
+
+        M_reg_name{1} = 'motormap_OMR_tAvr_reg_motorseed2';
+        M_ClusterIDs{1} = [11,2];
+        M_fishrange{1} = range_fish;
+        M_stimrange{1} = GetStimRange('O');
+        istAvrMotor = 1;
+        islrRes = 0;
+        istRes = 0;
+        
+end
 M_reg_name{1} = 'motormap_OMR_tAvr_reg_motorseed2';
 M_ClusterIDs{1} = [11,2];
 M_fishrange{1} = range_fish;
@@ -33,6 +42,14 @@ M_stimrange{1} = GetStimRange('O');
 n_reg = 1;
 
 i_set = 1;
+
+%%
+% set thres fol colormap value lower bound
+if istAvrMotor
+    reg_thres = 0.25;
+else
+    reg_thres = 0.25;
+end
 
 %% init
 

@@ -92,9 +92,11 @@ zxmaskIX = MakeSquareMask(thickness_z,width_z,dimv_zx);
 cIX_abs = absIX(cIX);
 M_xyz = CellXYZ(cIX_abs,:);
 
-anat_YX = DrawMasksInRGB(anat_YX,M_xyz(:,[1,2]),circlemaskIX,clrmap,gIX,clr_alpha);
-anat_YZ = DrawMasksInRGB(anat_YZ,M_xyz(:,[1,3]),yzmaskIX,clrmap,gIX,clr_alpha/2);
-anat_ZX = DrawMasksInRGB(anat_ZX,M_xyz(:,[3,2]),zxmaskIX,clrmap,gIX,clr_alpha/2);
+if ~isempty(cIX)
+    anat_YX = DrawMasksInRGB(anat_YX,M_xyz(:,[1,2]),circlemaskIX,clrmap,gIX,clr_alpha);
+    anat_YZ = DrawMasksInRGB(anat_YZ,M_xyz(:,[1,3]),yzmaskIX,clrmap,gIX,clr_alpha/2);
+    anat_ZX = DrawMasksInRGB(anat_ZX,M_xyz(:,[3,2]),zxmaskIX,clrmap,gIX,clr_alpha/2);
+end
 
 %% Draw masks on anat projections
 if isShowMasks,

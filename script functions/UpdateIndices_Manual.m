@@ -1,4 +1,4 @@
-function M = UpdateIndices_Manual(hfig,cIX,gIX,numU)
+function M = UpdateIndices_Manual(hfig,cIX,gIX,numK)
 setappdata(hfig,'cIX',cIX);
 setappdata(hfig,'gIX',gIX);
 M = GetTimeIndexedData(hfig);

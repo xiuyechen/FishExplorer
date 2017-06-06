@@ -1,4 +1,4 @@
-function CorrPlot(coeffs,isPlotText,ylabels)
+function cmap = CorrPlot(coeffs,isPlotText,ylabels)
 im = coeffs;
 
 % red-white-blue colormap
@@ -13,6 +13,7 @@ RGB = ImageToRGB(im,cmap,minlim,maxlim); % map image matrix to range of colormap
 
 image(RGB); axis equal; axis tight;
 set(gca,'XTick',1:length(im),'YTick',1:length(im));
+set(gca,'TickLength',[0,0]);
 
 if exist('isPlotText','var'),
     if isPlotText,

@@ -6,7 +6,7 @@
 hfig = figure;
 InitializeAppData(hfig);
 ResetDisplayParams(hfig);
-i_fish = 8;
+i_fish = 6;
 ClusterIDs = [2,1];
 [cIX,gIX,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs);
 
@@ -26,7 +26,7 @@ regnames = [names_s,names_m]';
 % regression
 Corr = corr(Reg',M_0');
 
-% make control distribution
+%% make control distribution
 IX = randperm(size(M_0,2));
 Data_shf = M_0(:,IX);
 Corr_shf = corr(Reg',Data_shf');
@@ -78,13 +78,44 @@ tree = linkage(data,'average','correlation');
 leafOrder = optimalleaforder(tree,D);
     
 data2 = data(leafOrder,:);
-RS = data2*data2';
+C = corrcoef(data2');
+% RS = data2*data2';
 names = regnames(rangeReg);
 names2 = names(leafOrder);
+% %%
+% figure;
+% set(gcf,'color','w');
+% imagesc(C)
+% set(gca,'YTick',1:length(names2),'YTickLabel',names2,'TickLength',[0,0]);
+% set(gca,'XTick',1:length(names2),'XTickLabel',names2,'XTickLabelRotation',90);
+% axis equal;axis tight
+% colormap(bluewhitered)
+% caxis([-1,1])
+% colorbar
+%%
+figure
+cmap = CorrPlot(C,0,names2);
+colormap(cmap);caxis([-1,1]);
+colorbar
+%%
+Reg_reg = Reg(rangeReg(leafOrder),:);
+Corr2 = corrcoef(Reg_reg');
 
-figure;
-set(gcf,'color','w');
-imagesc(RS)
-set(gca,'YTick',1:length(names2),'YTickLabel',names2,'TickLength',[0,0]);
-set(gca,'XTick',1:length(names2),'XTickLabel',names2,'XTickLabelRotation',90);
-axis equal;axis tight
+% figure;
+% set(gcf,'color','w');
+% imagesc(Corr2)
+% set(gca,'YTick',1:length(names2),'YTickLabel',names2,'TickLength',[0,0]);
+% set(gca,'XTick',1:length(names2),'XTickLabel',names2,'XTickLabelRotation',90);
+% axis equal;axis tight
+% caxis([-1,1])
+% colorbar
+figure
+cmap = CorrPlot(Corr2,0,names2);
+colormap(cmap);caxis([-1,1]);
+colorbar
+
+%%
+figure
+cmap = CorrPlot(C-Corr2,0,names2);
+colormap(cmap);caxis([-1,1]);
+colorbar
