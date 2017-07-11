@@ -5,7 +5,7 @@ InitializeAppData(hfig);
 ResetDisplayParams(hfig);
 %%
 t1 = tic;
-fishrange = GetFishRange;
+fishrange = 1;%GetFishRange;
 Ys = zeros(length(fishrange),5);
 Ym = zeros(length(fishrange),5);
 Y_size = zeros(length(fishrange),2);

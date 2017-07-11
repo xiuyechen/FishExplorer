@@ -11,7 +11,7 @@ const_Cluster = ClusterIDs(2);
 M_fishset = GetFishStimset();
 M_stimrange = GetStimRange();
 
-range_fish = 6;% 1:18; % range_fish = GetFishRange();
+range_fish = 1:18; % range_fish = GetFishRange();
 
 %% custom params here:
 % load:
@@ -33,14 +33,20 @@ anat_list3_names = {'Thalamus','Habenula','Preoptic Area','Pretectum','Tegmentum
     'Torus Semicircularis','Cerebellum','Inferior Olive',...
    'Raphe (superior)','Olfactory Bulb','Pallium','Subpallium'};
 
+anat_list4 = {275,1,94,114,77:93,[5,35,74],[13,76],15,60,66,97,108,110,131,175,176,...
+217,218,279,283,291}; % secondary anat features
+anat_list4_names = {'Telencephalon','Diencephalon','Mesencephalon','Rhombencephalon','Ganglia','Hypothalamus','Thalamus','Habenula','Preoptic Area','Pretectum','NucMLF','Tegmentum',...
+    'Torus Semicirc.','Cerebellum','Inferior Olive','IPN',...
+    'Raphe (inferior)','Raphe (superior)','Olfactory Bulb','Pallium','Subpallium'}; % IPN = Interpeduncular Nucleus; 'Torus Semicircularis'
+
 anat_listm = {201,117}; % collection of small masks with known matching clusters
 anat_list_full = num2cell(1:294);
 
 AnatScreen = cell(1,length(range_fish));
 
-% chose:
-anat_list = anat_list3;
-anat_list_names = anat_list3_names;
+%% chose:
+anat_list = anat_list4;
+anat_list_names = anat_list4_names;
 
 %%
 for i = 1:length(range_fish),
@@ -108,16 +114,96 @@ for i = 1:length(range_fish),
 end
 
 %%
+data = zeros(length(range_fish),length(anat_list));
+for i = 1:length(range_fish)
+    i_fish = range_fish(i);
+    Grid = AnatScreen{i_fish};
+    data(i,:) = sum(Grid(:,:,1),1);    
+end
+%%
+% figure;
+% % imagesc(Grid(:,:,1));
+% % Count = zeros(1,length(anat_list));
+% % for i = 1:length(anat_list),
+% %     Count(i) = sum(Grid(:,anat_list{i},1),1);
+% % end
+% bar(sum(Grid(:,:,1),1),'FaceColor',[0.5,0.5,0.5],'EdgeColor',[1,1,1])
+% title('# of cells by anatomical region')
+% set(gca,'XTick',1:length(anat_list),'XTickLabel',anat_list_names,'XTickLabelRotation',45);
+% xlim([0.5,length(anat_list)+0.5]);
+
 figure;
-% imagesc(Grid(:,:,1));
-% Count = zeros(1,length(anat_list));
-% for i = 1:length(anat_list),
-%     Count(i) = sum(Grid(:,anat_list{i},1),1);
-% end
-bar(sum(Grid(:,:,1),1),'FaceColor',[0.5,0.5,0.5],'EdgeColor',[1,1,1])
+% plot(mean(data,1));
+errorbar(mean(data,1),std(data,1)/sqrt(length(range_fish)));
+
+% bar(sum(Grid(:,:,1),1),'FaceColor',[0.5,0.5,0.5],'EdgeColor',[1,1,1])
 title('# of cells by anatomical region')
 set(gca,'XTick',1:length(anat_list),'XTickLabel',anat_list_names,'XTickLabelRotation',45);
 xlim([0.5,length(anat_list)+0.5]);
+
+%%
+
+
+mask_range = 1:4;
+D = data(:,mask_range);
+[~,IX] = sort(mean(D,1),'descend');
+D_sorted = D(:,IX);
+anat_list_names_sorted = anat_list_names(mask_range(IX));
+
+figure('Position',[500,500,200,250]); hold on
+
+for i = 1:length(mask_range)
+    scatter(ones(18,1)*i,D_sorted(:,i),10,[0.8,0.8,0.8],'filled');
+    avr = mean(D_sorted(:,i));
+    scatter(i,avr,10,[0.2,0.2,0.2],'filled');
+    SEM = std(D_sorted(:,i))/sqrt(size(D_sorted,1));
+    plot([i,i],[avr-SEM, avr+SEM],'color',[0.2,0.2,0.2])
+end
+% title('# of cells by anatomical region')
+set(gca,'XTick',1:length(mask_range),'XTickLabel',anat_list_names_sorted,'XTickLabelRotation',45);
+xlim([0.5,length(mask_range)+0.5]);
+% ylim([0,600])
+% semilogy
+
+
+%%
+mask_range = 6:21;
+D = data(:,mask_range);
+[~,IX] = sort(mean(D,1),'descend');
+D_sorted = D(:,IX);
+anat_list_names_sorted = anat_list_names(mask_range(IX));
+
+figure('Position',[500,500,250,250]); hold on
+
+plot_range = 1:9;
+
+for i = plot_range
+    scatter(ones(18,1)*i,D_sorted(:,i),10,[0.8,0.8,0.8],'filled');
+    avr = mean(D_sorted(:,i));
+    scatter(i,avr,10,[0.2,0.2,0.2],'filled');
+    SEM = std(D_sorted(:,i))/sqrt(size(D_sorted,1));
+    plot([i,i],[avr-SEM, avr+SEM],'color',[0.2,0.2,0.2])
+end
+% title('# of cells by anatomical region')
+set(gca,'XTick',1:length(plot_range),'XTickLabel',anat_list_names_sorted(plot_range),'XTickLabelRotation',45);
+xlim([0.5,length(plot_range)+0.5]);
+% ylim([0,600])
+
+figure('Position',[500,500,200,250]); hold on
+plot_range = 10:16;
+
+for i = 1:length(plot_range)
+    i_mask = plot_range(i);
+    scatter(ones(18,1)*i,D_sorted(:,i_mask),10,[0.8,0.8,0.8],'filled');
+    avr = mean(D_sorted(:,i_mask));
+    scatter(i,avr,10,[0.2,0.2,0.2],'filled');
+    SEM = std(D_sorted(:,i_mask))/sqrt(size(D_sorted,1));
+    plot([i,i],[avr-SEM, avr+SEM],'color',[0.2,0.2,0.2])
+end
+% title('# of cells by anatomical region')
+set(gca,'XTick',1:length(plot_range),'XTickLabel',anat_list_names_sorted(plot_range),'XTickLabelRotation',45);
+xlim([0.5,length(plot_range)+0.5]);
+% ylim([0,600])
 
 
 %%

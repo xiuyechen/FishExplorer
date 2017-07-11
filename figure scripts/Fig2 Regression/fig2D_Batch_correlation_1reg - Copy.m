@@ -12,9 +12,8 @@ outputDir = GetOutputDataDir;
 % setDir(saveDir{3}); % make folder if doesn't exist
 
 % params
-reg_name = 'Fw_fc_reg0.5';
+reg_name = 'Fw_fc';
 isStimNotMotor = 0; % 1
-
 reg_range = 2; % 4
 reg_thres = 0.5;
 n_reg = 1;
@@ -35,9 +34,6 @@ IM_full = cell(n_reg,max(range));
 %%
 i_set = 1;
 for i_fish = range
-    
-    setappdata(hfig,'isMotorseed',0);    
-    
     ClusterIDs = GetClusterIDs('all');
     stimrange = 1;
     [cIX_load,gIX_load,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs,stimrange);
@@ -53,12 +49,11 @@ for i_fish = range
         [~,names,regressors] = GetMotorRegressor(behavior,i_fish);
     end
     
-    %% regression
     Reg = regressors(reg_range,:);
+%     R = corr(Reg',M_0');
+%%
     Corr = corr(Reg',M_0');
-    
-    %% choose top 2% of all cells
-    if 0
+        
         % keep best regression only
         [Corr_rows,corr_max] = ConvertCorrToBestRegRows(Corr);
         
@@ -66,19 +61,18 @@ for i_fish = range
         nCells_total = size(M_0,1);
         prct_const = 2; % default using 2
         [CIX,RegThres] = ChooseTopPercentOfFish(nCells_total,prct_const,Corr_rows);
-        
+
         cIX = CIX{1};
         % get map color
         reg_thres = 0.25;
         gIX = MapXto1Dcolormap(corr_max(cIX),[reg_thres,1],64);
+        
+        %%
     
-    else        
-        %% threshold by reg coeff
-        cIX = (find(Corr>reg_thres))';
-        wIX = Corr(cIX); % weight, i.e. corr.coeff
-                
-        gIX = MapXto1Dcolormap(wIX,[reg_thres,1],64);
-    end
+%     cIX = (find(R>reg_thres))';
+    wIX = R(cIX); % weight, i.e. corr.coeff
+    
+    
     %% set up custom colormap: hot (heatmap)
 %     clrbins = 0.5:0.05:1;
 %     clrmap0 = hot(round(1.5*length(clrbins)));
@@ -92,6 +86,8 @@ for i_fish = range
 %     clr1_ = [0.7,0.5,0.5];
     numC = 64;
     clrmap = Make1DColormap([clr1_;clr1],numC);
+        
+%     gIX = MapXto1Dcolormap(wIX,[reg_thres,1],64);
 
     %% right plot
     I = LoadCurrentFishForAnatPlot(hfig,cIX,gIX);
@@ -111,7 +107,7 @@ end
 
 %% save as tiff stack
 i_reg = 1;
-range_im = range;%1:18;
+range_im = 1:18;
 tiffdir = fullfile(outputDir,[reg_name '_allfish.tiff']);
 % tiffdir = fullfile(outputDir,'White_1reg_allfish.tiff');
 
@@ -143,7 +139,7 @@ end
 
 %%
 i_reg = 1;
-range_im = [1:3,5:18];
+range_im = 1:18;%,5:7];%[1:3,5:18];
 cellarray = IM_full(i_reg,range_im);
 
 k_scale = 1; % this changes for every reg pair...

@@ -1118,6 +1118,7 @@ isPlotBehavior = getappdata(hfig,'isPlotBehavior');
 isPlotRegWithTS = getappdata(hfig,'isPlotRegWithTS');
 
 isPlotAnatomyOnly = getappdata(hfig,'isPlotAnatomyOnly');
+isLeftPlotOnly = 0; % manual...
 
 if ~isPlotAnatomyOnly,
     figure('Position',[50,50,800,600],... % [50,50,1600,800],
@@ -1141,10 +1142,28 @@ if ~isPlotAnatomyOnly,
     
     % right subplot
     axes(h2);
-    I = LoadCurrentFishForAnatPlot(hfig);
+    I = LoadCurrentFishForAnatPlot(hfig);    
     DrawCellsOnAnat(I,h2);
 %     DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
+elseif isLeftPlotOnly
+     figure('Position',[50,50,400,300],... % [50,50,1600,800],
+        'color',[1 1 1],...
+        'Name',['Fish#' num2str(i_fish)]);
+    h1 = axes('Position',[0.05, 0.03, 0.9, 0.94]); % left ~subplot
+%     h2 = axes('Position',[0.46, 0.03, 0.5, 0.94]); % right ~subplot
     
+    % left subplot
+    axes(h1);
+    cIX = getappdata(hfig,'cIX');
+    gIX = getappdata(hfig,'gIX');    
+    opts = [];
+    opts.h_ax = h1;
+    opts.isPopout = isPopout;
+    opts.isCentroid = isCentroid;
+    opts.isPlotLines = isPlotLines;
+    opts.isPlotBehavior = isPlotBehavior;
+    opts.isPlotRegWithTS = isPlotRegWithTS;
+    DrawTimeSeries(hfig,cIX,gIX,opts);
 else
     % right subplot
     I = LoadCurrentFishForAnatPlot(hfig);

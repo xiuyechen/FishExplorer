@@ -19,47 +19,44 @@ thres_reg_const = 0.5;
 isKeepTopPrct = 0; % init
 
 
-for setflag = 8
+for setflag = 4
     % reset
     ResetDisplayParams(hfig);
     
     switch setflag
         case 1 % Phototaxis
-%             stimrange = 1;
-M_stimrange = GetStimRange('P');
+            %             stimrange = 1;
+            M_stimrange = GetStimRange('P');
             M_regtypeflag = [1,1,2]; % 0 for VAR, 1 for stim and 2 for motor
             M_reg_name = {'PT','HalfField','PT_SwimLR'};
             M_reg_range = {[3,2],[5,6],[1,3]};
             M_fishrange = {[1:18],[1:7],[1:3,5:18]};
-            n_reg = length(M_reg_name);
             
         case 2 % OMR
-%             stimrange = 2;
-M_stimrange = GetStimRange('O');
+            %             stimrange = 2;
+            M_stimrange = GetStimRange('O');
             M_regtypeflag = [1,1,2]; % 1 for stim and 0 for motor
             M_reg_name = {'OMR_FwBw','OMR_LR','OMR_SwimLR'};
             M_reg_range =  {[7,6],[9,8],[1,3]};
             M_fishrange = {[8:18],[8:18],[8:18]};
-            n_reg = length(M_reg_name);
             
         case 3 % Looming
-%             stimrange = 5;
-M_stimrange = GetStimRange('L');
+            %             stimrange = 5;
+            M_stimrange = GetStimRange('L');
             M_regtypeflag = [1,2]; % 1 for stim and 0 for motor
             M_reg_name = {'Loom_LR','Loom_SwimLR'};
             M_reg_range =  {[11,12],[1,3]};
             M_fishrange = {[9:15,17:18],[9:15,17:18]};
-            n_reg = length(M_reg_name);
             
         case 4 % Dark Flash (black-white)
-%             stimrange = 3;
-M_stimrange = GetStimRange('D');
+            %             stimrange = 3;
+            M_stimrange = GetStimRange('D');
             M_regtypeflag = [1,2]; % 1 for stim and 0 for motor
             M_reg_name = {'DF_BW','DF_SwimLR'};
             M_reg_range =  {[1,4],[1,3]};
-            M_fishrange = {[12:15,17:18],[12:15,17:18]};
-            n_reg = length(M_reg_name);
-            
+            M_fishrange = {[1:5,12:15,17:18],[12:15,17:18]}; % up till 7/10
+%             M_fishrange = {[12:15,17:18],[12:15,17:18]}; % up till 7/10
+
 %             % from VAR:
 
         case 5 % ABN
@@ -68,14 +65,17 @@ M_stimrange = GetStimRange('D');
             M_reg_name = {'ABN_reg0.5_defstimrange_test'};
             M_clus_range = {[12,1]};
             M_fishrange = {[1:12,14:18]};
-            n_reg = length(M_reg_name);
+
         case 6 % Fw
             M_regtypeflag = [0];
             M_stimrange = GetStimRange();%('2');
-            M_reg_name = {'Fw_reg0.5_defS'}; 
+            M_reg_name = {'Fw_seed_reg2%_defS'};
+%             M_reg_name = {'Fw_reg0.5_defS'}; 
             M_clus_range = {[11,4]};
-            M_fishrange = {[1:18]};
-            n_reg = length(M_reg_name);
+            M_fishrange = {[1:3,5:18]}; 
+
+            isKeepTopPrct = 1;
+            prct_const = 2;
             
         case 7 % HBO 4 stripes
             M_regtypeflag = [0,0];
@@ -83,7 +83,7 @@ M_stimrange = GetStimRange('D');
             M_reg_name = {'HBO-L2_reg1%_tRes_defS','HBO-R2_reg1%_tRes_defS'}; 
             M_clus_range = {[10,2],[10,3]};
             M_fishrange = {[1:3,5:18],[1:3,5:18]};
-            n_reg = length(M_reg_name);
+
             isKeepTopPrct = 1;
             prct_const = 1;
             setappdata(hfig,'isTrialRes',1);
@@ -94,11 +94,13 @@ M_stimrange = GetStimRange('D');
             M_reg_name = {'HBO2_reg1%_tRes_defS'}; 
             M_clus_range = {[10,5]};
             M_fishrange = {[1:3,5:18]};
-            n_reg = length(M_reg_name);
+
             isKeepTopPrct = 1;
             prct_const = 1;
             setappdata(hfig,'isTrialRes',1);
     end
+
+    n_reg = length(M_reg_name);
     M_fishrange_im = M_fishrange;
     
     %% Load fish
@@ -156,6 +158,11 @@ M_stimrange = GetStimRange('D');
             %% Regression
             % code adapted from 'best regressor regression' code 'AllRegsRegression'
 
+            if isempty(Reg)
+                M_fishrange_im{i_set} = setdiff(M_fishrange_im{i_set} ,i_fish);
+                continue;
+            end
+            
             Corr = corr(Reg',M_0');
             
             if isKeepTopPrct
@@ -166,26 +173,34 @@ M_stimrange = GetStimRange('D');
                 nCells_total = size(M_0,1);
 %                 prct_const = 1;
                 [CIX,RegThres] = ChooseTopPercentOfFish(nCells_total,prct_const,Corr_rows);
-                cIX1 = CIX{1};
-                cIX2 = CIX{2};
                 
-                % get map color
-                clrIX1 = MapXto1Dcolormap(corr_max(cIX1),[reg_thres,1],64);
-                clrIX2 = MapXto1Dcolormap(corr_max(cIX2),[reg_thres,1],64);
-                %     clrIX1 = MapXto1Dcolormap(corr_max(cIX1),[reg_thres1,1],64);
-                %     clrIX2 = MapXto1Dcolormap(corr_max(cIX2),[reg_thres2,1],64);
-                
-                cIX = [cIX1;cIX2];
-                %     if isempty(cIX)
-                %         M_fishrange_im{i_set} = setdiff(M_fishrange_im{i_set} ,i_fish); %#ok<SAGROW>
-                %         continue;
-                %     end
-                
-                clrIX = [clrIX1;clrIX2];
-                gIX_offset = [ones(size(cIX1));2*ones(size(cIX2))];
-                gIX = clrIX+(gIX_offset-1)*64;
-                %     gIX = [clrIX1;64+clrIX2];
-                numK = length(unique(gIX));
+                if length(CIX)==1
+                    cIX = CIX{1};
+                    % get map color
+                    reg_thres = 0.25;
+                    gIX = MapXto1Dcolormap(corr_max(cIX),[reg_thres,1],64);
+                else
+                    cIX1 = CIX{1};
+                    cIX2 = CIX{2};
+                    
+                    % get map color
+                    clrIX1 = MapXto1Dcolormap(corr_max(cIX1),[reg_thres,1],64);
+                    clrIX2 = MapXto1Dcolormap(corr_max(cIX2),[reg_thres,1],64);
+                    %     clrIX1 = MapXto1Dcolormap(corr_max(cIX1),[reg_thres1,1],64);
+                    %     clrIX2 = MapXto1Dcolormap(corr_max(cIX2),[reg_thres2,1],64);
+                    
+                    cIX = [cIX1;cIX2];
+                    %     if isempty(cIX)
+                    %         M_fishrange_im{i_set} = setdiff(M_fishrange_im{i_set} ,i_fish); %#ok<SAGROW>
+                    %         continue;
+                    %     end
+                    
+                    clrIX = [clrIX1;clrIX2];
+                    gIX_offset = [ones(size(cIX1));2*ones(size(cIX2))];
+                    gIX = clrIX+(gIX_offset-1)*64;
+                    %     gIX = [clrIX1;64+clrIX2];
+                    numK = length(unique(gIX));
+                end
                 
             else
                 %%
@@ -254,10 +269,11 @@ M_stimrange = GetStimRange('D');
             tiffdir = fullfile(outputDir,[M_reg_name{i_set},'_allfish.tiff']);
             
             %% load
-            
-            for i_fish = 1:18
+            range_load = 1:17;
+            for i_fish = range_load;
                 im = double(imread(tiffdir,i_fish))./255;
-                IM_full{i_set,i_fish} = im(317:1236,1:621,:);
+                IM_full{i_set,i_fish} = im;
+%                 IM_full{i_set,i_fish} = im(317:1236,1:621,:);
             end
         end
     end
@@ -271,7 +287,7 @@ M_stimrange = GetStimRange('D');
         cellarray = IM_full(i_set,range_im);
         
         % adjust params for visualization
-        k_scale = 0.4;%1/1.5;%M_k_scale{i_set};
+        k_scale = 0.8;%1/1.5;%M_k_scale{i_set};
         k_contrast = 1;%M_k_contrast{i_set};
         
         [h_anat,im_avr] = AverageAnatPlot(cellarray,k_contrast,k_scale);

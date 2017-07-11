@@ -71,14 +71,15 @@ for i_fish = range
         % get map color
         reg_thres = 0.25;
         gIX = MapXto1Dcolormap(corr_max(cIX),[reg_thres,1],64);
+    else
+        
+        %%
+    cIX = (find(Corr>reg_thres))';
+    wIX = Corr(cIX); % weight, i.e. corr.coeff
     
-    else        
-        %% threshold by reg coeff
-        cIX = (find(Corr>reg_thres))';
-        wIX = Corr(cIX); % weight, i.e. corr.coeff
-                
-        gIX = MapXto1Dcolormap(wIX,[reg_thres,1],64);
-    end
+            
+    gIX = MapXto1Dcolormap(wIX,[reg_thres,1],64);
+
     %% set up custom colormap: hot (heatmap)
 %     clrbins = 0.5:0.05:1;
 %     clrmap0 = hot(round(1.5*length(clrbins)));

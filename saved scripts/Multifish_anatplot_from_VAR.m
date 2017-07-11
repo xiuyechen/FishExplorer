@@ -8,7 +8,7 @@ InitializeAppData(hfig);
 ResetDisplayParams(hfig);
 
 %% params
-for caseflag = 2
+for caseflag = 6
     switch caseflag
         case 1 % seeds
             stimrange = [];
@@ -24,6 +24,50 @@ for caseflag = 2
             M_fishrange = {[5:13],[5:13],[5:13]};
             n_reg = length(M_clus_name);
 
+        case 3 % conserved clusters
+            stimrange = 1;
+            M_clus_range = {[10,1]};
+            M_clus_name = {'conservedclus_SLranked'};
+            M_fishrange = {1:18};
+            n_reg = length(M_clus_name);
+            isStimLockRanking = 1;
+            
+        case 4 % all Auto0.7 clusters
+            stimrange = [];
+            M_clus_range = {[6,1]};
+            M_clus_name = {'A0.7_def_stimlockrank'};
+            M_fishrange = {1:18};
+            n_reg = length(M_clus_name);
+            isStimLockRanking = 1;
+            
+        case 5 % all Auto0.7 clusters
+            stimrange = [];
+            M_clus_range = {[6,1]};
+            M_clus_name = {'A0.7_def_motorrank'};
+            M_fishrange = {[1:3,5:18]};
+            n_reg = length(M_clus_name);
+            isStimLockRanking = 0;
+            
+        case 6 % HBO stripes
+            stimrange = 2;
+            M_clus_range = {[10,4]};
+            M_clus_name = {'HBO_OMR_stimlockrank'};
+            M_fishrange = {8:18};%{1:18};%{[1:3,5:18]};
+            n_reg = length(M_clus_name);
+            isStimLockRanking = 1;
+            
+            P_stimscore = zeros(18,4);
+            
+%                     case 6 % HBO stripes
+%             stimrange = 1;
+%             M_clus_range = {[10,4]};
+%             M_clus_name = {'HBO_PT_stimlockrank'};
+%             M_fishrange = {1:18};%{1:18};%{[1:3,5:18]};
+%             n_reg = length(M_clus_name);
+%             isStimLockRanking = 1;
+%             
+%             P_stimscore = zeros(18,4);
+%             
 %         case 3 % Looming
 %             stimrange = 5;
 %             M_stimmotorflag = [1,0]; % 1 for stim and 0 for motor
@@ -66,13 +110,54 @@ for caseflag = 2
                 ClusterIDs = M_clus_range{i_set};%[12,1];% GetClusterIDs('all');
                 [cIX,gIX] = LoadCluster_Direct(i_fish,ClusterIDs(1),ClusterIDs(2));
                 
+%                 % override:
+%                 if caseflag==6
+%                     [cIX1,gIX1] = LoadCluster_Direct(i_fish,10,2);
+%                     [cIX2,gIX2] = LoadCluster_Direct(i_fish,10,3);
+%                     cIX = [cIX1;cIX2];
+%                     gIX = [gIX1;5-gIX2];
+                    
+%                     absIX = getappdata(hfig,'absIX');
+%                     name = 'HBO_4stripes';
+%                     clusgroupID = 10;
+%                     clusIDoverride = 4;
+%                     SaveCluster_Direct(cIX,gIX,absIX,i_fish,name,clusgroupID,clusIDoverride);
+%                 end
+                
                 if isempty(cIX)
                     M_fishrange_im{i_set} = setdiff(M_fishrange_im{i_set} ,i_fish);
                     continue;
                 end
                 
+                %% [option: ranking]
+                if caseflag>=3
+                    if isStimLockRanking
+                        M = UpdateIndices_Manual(hfig,cIX,gIX);
+                        C = FindClustermeans(gIX,M);
+                        [~,~,H] = GetTrialAvrLongTrace(hfig,C);
+                        [gIX,rankscore] = SortGroupIXbyScore(H,gIX);
+                        
+                        if caseflag==6
+                            P_stimscore(i_fish,:) = H;
+                        end
+                    else
+                        M = UpdateIndices_Manual(hfig,cIX,gIX);
+                        C = FindClustermeans(gIX,M);
+                        numU = max(gIX);
+                       [gIX,rankscore] = RankByMotorReg_Direct(hfig,gIX,numU,C,1); 
+                    end
+                end
+                
                 %% make figure
-                setappdata(hfig,'clrmap_name','hsv_old');
+                
+                if caseflag==3 || caseflag==4
+                    setappdata(hfig,'clrmap_name','hsv_new');
+                elseif caseflag==6
+                    setappdata(hfig,'clrmap_name','jet');
+                else
+                    setappdata(hfig,'clrmap_name','hsv_old');
+                end
+                
                 I = LoadCurrentFishForAnatPlot(hfig,cIX,gIX);
                 [h,im_full] = DrawCellsOnAnat(I);
                 
@@ -82,6 +167,11 @@ for caseflag = 2
             end
         end
     end
+    
+%     if caseflag==6
+%         % save VAR
+%         SaveVARtoMat(hfig);
+%     end
     
     %% save as tiff stack
     for i_set = 1:n_reg
@@ -111,12 +201,12 @@ for caseflag = 2
     end
     
     %% save average tiff image
-    for i_set = 1:nreg;
+    for i_set = 1:n_reg;
         range_im = M_fishrange_im{i_set};%[1:3,5:7];%[1:3,5:18];
         cellarray = IM_full(i_set,range_im);
         
         % adjust params for visualization
-        k_scale = 1;
+        k_scale = 0.5;
         k_contrast = 1;% 1.2;
         
         [h_anat,im_avr] = AverageAnatPlot(cellarray,k_contrast,k_scale);

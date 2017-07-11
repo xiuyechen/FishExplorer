@@ -36,7 +36,7 @@ else
             period = periods(i_stim);
             C_this = C(:,tIX_);
             C_3D_0 = reshape(C_this,size(C,1),period,[]);
-            C_period = median(C_3D_0,3);%mean(C_3D_0,3);
+            C_period = mean(C_3D_0,3);%median(C_3D_0,3);
             nPeriods = length(tIX_)/period;
             C_trialAvr_this = repmat(C_period,1,nPeriods);
             C_trialAvr = horzcat(C_trialAvr,C_trialAvr_this); %#ok<AGROW>

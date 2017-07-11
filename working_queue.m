@@ -1,5 +1,14 @@
 %% To do - mini new analysis projects
 
+%%
+% DF stim-locked clusters to see if temporal dynamics affects the
+% usefulness of sustained-on stim-regressors??
+
+% try some transient stim regressors?
+
+
+
+
 %% forward maps
 % fig3_LFwR_3waymap_script.m
 % fig3b_stimlock_ranking;
@@ -22,15 +31,15 @@
 % get a good plot to show stim-locked progression ([X] top 10% stim-lock), and combine with the 2D
 % plot somehow
 
-%%
-try coloring clusters not by stim-lock ranking but by actual stim-lock scores, and experiment with a few stimsets. 
-    
-%%
-for best reg plot to identify AHC, try making a multifish plot!
-        
-%%
-try some sort of PCA-downsampled distance matrix for maybe downsampled cell partitions...
-        thinking of plotting density against variance as reference for the tVar ranking, and sort of for the Autoclus downsampling?
+%% !!!
+% try coloring clusters not by stim-lock ranking but by actual stim-lock scores, and experiment with a few stimsets. 
+%     
+% %%
+% for best reg plot to identify AHC, try making a multifish plot!
+%         
+% %%
+% try some sort of PCA-downsampled distance matrix for maybe downsampled cell partitions...
+%         thinking of plotting density against variance as reference for the tVar ranking, and sort of for the Autoclus downsampling?
 
 %%
 % motorseed plot... manual segmentation?
