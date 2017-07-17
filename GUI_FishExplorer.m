@@ -3125,7 +3125,7 @@ function pushbutton_corrplot_Callback(hObject,~)
 hfig = getParentFigure(hObject);
 C = FindCentroid(hfig);
 coeffs = corr(C');%corr(C(1,:)',C(2,:)')
-figure('Position',[1000,200,500,500]);
+figure('Position',[100,0,500,500]);
 isPlotText = (size(C,1)<30);
 CorrPlot(coeffs,isPlotText);
 end

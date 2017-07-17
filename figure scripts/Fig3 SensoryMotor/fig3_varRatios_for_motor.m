@@ -108,7 +108,7 @@ for i = 1:3
 end
 
 %% single histogram (pooling left and right)
-switch 2
+switch 4
     case 1 
         P = P_ratio;
         xlabelname = '%var expl. by stim';
@@ -118,6 +118,9 @@ switch 2
     case 3
         P = P_tAvrcorr;
         xlabelname = 'corr(motor, motor.tAvr)';
+    case 4
+        P = P_tRescorr;
+        xlabelname = 'corr(motor, motor.tRes)';
 end
 
 figure('Position',[100,100,550,150]);
@@ -149,6 +152,18 @@ end
 % ylabel('count')
 % box off
 
+%%
+% P1 = P_tAvrcorr
+%  P2 = P_tRescorr;
+range_fish = [1:3,5:18];
+  data1 = P_tAvrcorr(range_fish,1:2,2);
+ data2 = P_tRescorr(range_fish,1:2,2);
+
+ figure('Position',[400,400,100,100]);
+ scatter(data1(:),data2(:),20,[1,0.5,0.5])
+ axis equal
+ xlim([0,1])
+ ylim([0,1])
 %% raw data summaries
 % figure
 % subplot(2,2,1)

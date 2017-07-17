@@ -141,7 +141,7 @@ if isPlotfromtiffstack
     end
 end
 
-%%
+%% save avrage plot
 i_reg = 1;
 range_im = [1:3,5:18];
 cellarray = IM_full(i_reg,range_im);
@@ -151,6 +151,7 @@ k_contrast = 1;
 
 [h_anat,im_avr] = AverageAnatPlot(cellarray,k_contrast,k_scale);
 imwrite(im_avr, fullfile(outputDir,[reg_name '_avr.tiff']), 'compression','none','writemode','overwrite');
+
 %%
 % anat_YX = getappdata(hfig,'anat_yx_norm');
 % z_range_ventral = 40;

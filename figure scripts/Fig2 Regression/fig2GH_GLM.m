@@ -19,10 +19,12 @@ i_fish = getappdata(hfig,'i_fish');
 Reg = vertcat(regressor_s,regressor_m)';
 regnames = [names_s,names_m]';
 
+skip = 100;
+
 %% GLM with default regressors, for all cells
 tic
 GLM_reg = zeros(size(Data,1),4);
-for i = 1:size(Data,1),
+for i = 1:skip:size(Data,1),
     X = [ones(size(Reg,1),1) Reg];
     y = Data(i,:)';
     [B,~,~,~,stat] = regress(y,X);
@@ -35,7 +37,7 @@ t1=toc
 Ctrd = Centroids_Auto07_multi{8}';
 tic
 GLM_ctrd = zeros(size(Data,1),4);
-for i = 1:size(Data,1),
+for i = 1:skip:size(Data,1),
     X = [ones(size(Ctrd,1),1) Ctrd];
     y = Data(i,:)';
     [~,~,~,~,stat] = regress(y,X);
@@ -57,7 +59,7 @@ for i = 1:size(Data,1),
    GLM_ctrd_k(i,:) = stat; % the R2 statistic % The R2 statistic can be negative for models without a constant, indicating that the model is not appropriate for the data.
 end
 t3=toc
-
+%%
 save('GLM_fish8.mat','GLM_ctrd_k','GLM_reg','GLM_ctrd');
 
 %% prediction

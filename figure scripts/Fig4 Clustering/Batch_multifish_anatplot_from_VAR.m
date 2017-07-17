@@ -8,12 +8,15 @@ InitializeAppData(hfig);
 ResetDisplayParams(hfig);
 
 %% params
+isStimLockRanking = 0; % init
+isMotorRanking = 0; % init
+
 for caseflag = 6
     switch caseflag
         case 1 % seeds
             stimrange = [];
-            M_clus_range = {[11,1],[12,1]};
-            M_clus_name = {'motorseed','ABN'};
+            M_clus_range = {[11,2],[12,1]};
+            M_clus_name = {'motorseed2','ABN'};
             M_fishrange = {[1:3,5:18],[1:12,14:18]};
             n_reg = length(M_clus_name);
             
@@ -51,10 +54,12 @@ for caseflag = 6
         case 6 % HBO stripes
             stimrange = 2;
             M_clus_range = {[10,4]};
-            M_clus_name = {'HBO_OMR_stimlockrank'};
-            M_fishrange = {8:18};%{1:18};%{[1:3,5:18]};
+            M_clus_name = {'HBO_anat'};
+%             M_clus_name = {'HBO_OMR_stimlockrank'};
+            M_fishrange = {[1:3,5:18]};%{8:18};%{1:18};%
             n_reg = length(M_clus_name);
-            isStimLockRanking = 1;
+            isStimLockRanking = 0;%1;
+            isMotorRanking = 0;
             
             P_stimscore = zeros(18,4);
             
@@ -140,7 +145,7 @@ for caseflag = 6
                         if caseflag==6
                             P_stimscore(i_fish,:) = H;
                         end
-                    else
+                    elseif isMotorRanking
                         M = UpdateIndices_Manual(hfig,cIX,gIX);
                         C = FindClustermeans(gIX,M);
                         numU = max(gIX);
@@ -150,10 +155,10 @@ for caseflag = 6
                 
                 %% make figure
                 
-                if caseflag==3 || caseflag==4
+                if caseflag==3 || caseflag==4 || caseflag==6
                     setappdata(hfig,'clrmap_name','hsv_new');
-                elseif caseflag==6
-                    setappdata(hfig,'clrmap_name','jet');
+%                 elseif caseflag==6
+%                     setappdata(hfig,'clrmap_name','jet');
                 else
                     setappdata(hfig,'clrmap_name','hsv_old');
                 end

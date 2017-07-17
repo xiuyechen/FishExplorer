@@ -1,4 +1,4 @@
-function [M_figs,M_im] = MultiMotorVisuals(hfig,stimcorr,motorcorr,cIX_in,gIX_in,plotIDs,setID,var_sens_bh,corr_bh,isScaleClrToRange)
+function [M_figs,M_im] = MultiMotorVisuals(hfig,stimcorr,motorcorr,cIX_in,gIX_in,plotIDs,setID,xbound,ybound,isScaleClrToRange)
 if ~exist('isScaleClrToRange','var') 
     isScaleClrToRange = 0;
 end
@@ -18,8 +18,8 @@ if false % temp, trying this for cell-based betas
 end
 
 %% map data to colormap, and cluster sizes
-clrX_max = max(0.4,var_sens_bh);
-clrY_max = max(0.7,corr_bh);
+clrX_max = max(0.4,xbound);
+clrY_max = max(0.7,ybound);
 clrmap = MapXYto2Dcolormap(gIX_in,stimcorr,motorcorr,[0,clrX_max],[0.3,clrY_max],grid);
 
 if length(clrmap)>1000
@@ -67,7 +67,7 @@ if ismember(5,plotIDs)
     i_plot = i_plot+1;
     M_figs{i_plot} = fig5;
     M_im{i_plot} = im;
-    
+end
 %% fig1: bubble plot in 2-D color (plot of all clusters, cluster size indicated by circular marker size) 
 if ismember(1,plotIDs)
     fig1 = figure('Position',[500,500,300,250]); hold on
@@ -94,8 +94,8 @@ if ismember(1,plotIDs)
     M_im{i_plot} = print('-RGBImage');
     
     % plot 'limits' from behavior trace
-    plot([var_sens_bh,var_sens_bh],[-0.3,1],'m:');
-    plot([-0.3,1],[corr_bh,corr_bh],'g:');
+    plot([xbound,xbound],[-0.3,1],'m:');
+    plot([-0.3,1],[ybound,ybound],'g:');
     plot([-0.3,1],[thres_plot,thres_plot],'r');
 end
 %% fig2: Anat plot with custom colormap
@@ -129,38 +129,53 @@ if ismember(3,plotIDs)
 end
 
 %% fig4: threhold bubble plot for small stim-corr values
-if ismember(4,plotIDs)
-    
-    IX_pie = find(motorcorr>(0.4*stimcorr' + 0.3));
-    [A,U_sorted] = sort(motorcorr(IX_pie),'descend');
-%     thres_x = 0.4;% 0.1; for fish8 figure
-%     [A,U_sorted] = sort(stimcorr,'ascend');
-%     i_end = find(A<thres_x,1,'last');
-%     IX_smallstim = U_sorted(1:i_end);
-IX_plot = IX_pie(U_sorted);
-%     IX_plot = intersect(IX_smallstim,IX_passrad,'stable');    
-    disp(['# of units for small stim-corr thres (pass rad): ',num2str(length(IX_plot))]);
-    [cIX_out,gIX_out,IX] = SelectClusterRange(cIX_in,gIX_in,IX_plot);    
-    
-    I = LoadCurrentFishForAnatPlot(hfig,cIX_out,gIX_out,clrmap,[]);
-    [fig4,im] = DrawCellsOnAnat(I);   
-    i_plot = i_plot+1;
-    M_figs{i_plot} = fig4;
-    M_im{i_plot} = im;
-%     thres_x = 0.4;% 0.1; for fish8 figure
-%     [A,U_sorted] = sort(stimcorr,'ascend');
-%     i_end = find(A<thres_x,1,'last');
-%     IX_smallstim = U_sorted(1:i_end);
-%     IX_plot = intersect(IX_smallstim,IX_passrad,'stable');    
+% if ismember(4,plotIDs)
+%     
+%     IX_pie = find(motorcorr>(0.4*stimcorr' + 0.3));
+%     [A,U_sorted] = sort(motorcorr(IX_pie),'descend');
+% %     thres_x = 0.4;% 0.1; for fish8 figure
+% %     [A,U_sorted] = sort(stimcorr,'ascend');
+% %     i_end = find(A<thres_x,1,'last');
+% %     IX_smallstim = U_sorted(1:i_end);
+% IX_plot = IX_pie(U_sorted);
+% %     IX_plot = intersect(IX_smallstim,IX_passrad,'stable');    
 %     disp(['# of units for small stim-corr thres (pass rad): ',num2str(length(IX_plot))]);
 %     [cIX_out,gIX_out,IX] = SelectClusterRange(cIX_in,gIX_in,IX_plot);    
 %     
 %     I = LoadCurrentFishForAnatPlot(hfig,cIX_out,gIX_out,clrmap,[]);
-%     fig4 = DrawCellsOnAnat(I);   
+%     [fig4,im] = DrawCellsOnAnat(I);   
 %     i_plot = i_plot+1;
 %     M_figs{i_plot} = fig4;
+%     M_im{i_plot} = im;
+% %     thres_x = 0.4;% 0.1; for fish8 figure
+% %     [A,U_sorted] = sort(stimcorr,'ascend');
+% %     i_end = find(A<thres_x,1,'last');
+% %     IX_smallstim = U_sorted(1:i_end);
+% %     IX_plot = intersect(IX_smallstim,IX_passrad,'stable');    
+% %     disp(['# of units for small stim-corr thres (pass rad): ',num2str(length(IX_plot))]);
+% %     [cIX_out,gIX_out,IX] = SelectClusterRange(cIX_in,gIX_in,IX_plot);    
+% %     
+% %     I = LoadCurrentFishForAnatPlot(hfig,cIX_out,gIX_out,clrmap,[]);
+% %     fig4 = DrawCellsOnAnat(I);   
+% %     i_plot = i_plot+1;
+% %     M_figs{i_plot} = fig4;
+% end
+if ismember(4,plotIDs)
+
+    [~,IX] = sort(motorcorr,'descend');
+    y1 = mean(motorcorr(IX(1:5)));
+    x1 = mean(stimcorr(IX(1:5)))*1.1;
+    tang = y1/x1;
+    IX_pass = find(motorcorr./stimcorr > tang);
+    
+    disp(['# of units pass radius thres: ',num2str(length(IX_pass))]);
+    [cIX_out,gIX_out,IX] = SelectClusterRange(cIX_in,gIX_in,IX_pass);    
+    
+    % Anat plot of only clusters above angle cutoff
+    I = LoadCurrentFishForAnatPlot(hfig,cIX_out,gIX_out,clrmap,[]);
+    [fig3,im] = DrawCellsOnAnat(I);
+    i_plot = i_plot+1;
+    M_figs{i_plot} = fig3;
+    M_im{i_plot} = im;
 end
-
-
-
 end

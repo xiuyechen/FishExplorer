@@ -29,6 +29,6 @@ end
 
 % threshold
 score = score_raw;
-score(score_raw<thres_score) = 0;
+% score(score_raw<thres_score) = 0;
 
 end

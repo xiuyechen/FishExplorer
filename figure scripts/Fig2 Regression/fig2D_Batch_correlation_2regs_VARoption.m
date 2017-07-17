@@ -16,10 +16,9 @@ ResetDisplayParams(hfig);
 thres_reg_const = 0.5;
 % M_reg_thres = {0.5,0.5,0.5};
 
-isKeepTopPrct = 0; % init
+isKeepTopPrct = 0; % init, can override
 
-
-for setflag = 4
+for setflag = 5
     % reset
     ResetDisplayParams(hfig);
     
@@ -62,10 +61,15 @@ for setflag = 4
         case 5 % ABN
             M_regtypeflag = [0];
             M_stimrange = GetStimRange();%('2');
-            M_reg_name = {'ABN_reg0.5_defstimrange_test'};
+%             M_reg_name = {'ABN_top1%_defstimrange'};
+            M_reg_name = {'ABN_reg0.5_defstimrange'};
             M_clus_range = {[12,1]};
-            M_fishrange = {[1:12,14:18]};
+            range = GetFishRange('e');%[1:8,11,12,14:17]
+            M_fishrange = {range};%{[1:12,14:18]};
 
+%             isKeepTopPrct = 1;
+%             prct_const = 1;
+            
         case 6 % Fw
             M_regtypeflag = [0];
             M_stimrange = GetStimRange();%('2');
@@ -103,10 +107,11 @@ for setflag = 4
     n_reg = length(M_reg_name);
     M_fishrange_im = M_fishrange;
     
-    %% Load fish
-    range = 1:18;
-    IM_full = cell(n_reg,max(range));
-    %%
+    
+    range = 1:18; % init,M_fishrange below specifies actual range #oldcode
+    IM_full = cell(n_reg,18);
+    
+    %% 
     
 %     [M_fishrange_im,fishrange_load] = CheckIfLoadFish(M_fishrange,M_ClusterIDs,M_stimrange);
 % [cIX_load,gIX_load,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,hfig,M_ClusterIDs{i_set},M_stimrange{i_set});
@@ -287,8 +292,8 @@ for setflag = 4
         cellarray = IM_full(i_set,range_im);
         
         % adjust params for visualization
-        k_scale = 0.8;%1/1.5;%M_k_scale{i_set};
-        k_contrast = 1;%M_k_contrast{i_set};
+        k_scale = 0.7;%1/1.5;%M_k_scale{i_set};
+        k_contrast = 1.1;%M_k_contrast{i_set};
         
         [h_anat,im_avr] = AverageAnatPlot(cellarray,k_contrast,k_scale);
         
