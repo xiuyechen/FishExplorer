@@ -14,7 +14,7 @@ clear all;close all;clc
 % file_masterdir = GetMasterFileDir;
 file_masterdir = 'C:\Users\Xiu\Dropbox (Personal)';
 if ~exist(file_masterdir,'dir')
-    file_masterdir = 'C:\Users\fish\Dropbox';
+    file_masterdir = 'C:\Users\xiuye\Dropbox';
 end
 
 code_dir = fullfile(file_masterdir,'FishExplorer2');

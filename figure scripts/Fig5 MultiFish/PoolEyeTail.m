@@ -40,11 +40,22 @@ xlabel('fish ID')
 ylabel('corr(eye,tail)')
 
 %%
-figure('Position',[50,50,900,900]);hold on;axis off
-for i_fish = 1:10
-    subplot_tight(10,1,i_fish);hold on;
-    plot(1+Eye{i_fish}(1,:),'r');
-    plot(-1-Eye{i_fish}(2,:),'b');
-    xlim([0,8000])
-    axis off
+figure('Position',[50,50,300,900]);hold on;axis off
+eRange = [1:12,14:18];
+for i_count = 1:8 %17
+    i_fish = eRange(i_count);
+    
+    subplot_tight(length(eRange),1,i_count,[0.05,0.01]);hold on;
+    plot(1+Eye{i_fish}(1,1:crop),'color',[1,0.1,0]);
+    plot(-1-Eye{i_fish}(2,1:crop),'color',[0,0.5,1]);
+    crop = 1000;
+%     xlim([0,crop])    % xlim([0,9000])    
+    ylim([-max(Eye{i_fish}(2,1:crop))-1,max(Eye{i_fish}(1,1:crop))+1]);
+    axis off 
 end
+
+y = -max(Eye{i_fish}(2,1:crop));
+% plot scale bar
+ylim([-2*max(Eye{i_fish}(2,1:crop))-1,max(Eye{i_fish}(1,1:crop))+1]);
+plot([0,1.97*60],[y*2,y*2],'k','linewidth',1.5);
+text(xv(1)+5,y*3,'1 min')

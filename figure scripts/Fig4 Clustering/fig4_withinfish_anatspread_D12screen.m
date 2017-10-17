@@ -10,7 +10,7 @@ InitializeAppData(hfig);
 ResetDisplayParams(hfig);
 
 %% Load fish
-range_fish = 1:18;
+range_fish = 1:2;
 n_reg = 2;
 IM_full = cell(n_reg,max(range_fish));
 

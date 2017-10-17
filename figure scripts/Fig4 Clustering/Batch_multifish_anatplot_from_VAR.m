@@ -1,5 +1,5 @@
-clear all; close all; clc;
-
+clear all;clc;
+%  close all; 
 outputDir = GetOutputDataDir;
 
 %% Init load
@@ -11,7 +11,7 @@ ResetDisplayParams(hfig);
 isStimLockRanking = 0; % init
 isMotorRanking = 0; % init
 
-for caseflag = 6
+for caseflag = 7
     switch caseflag
         case 1 % seeds
             stimrange = [];
@@ -62,6 +62,14 @@ for caseflag = 6
             isMotorRanking = 0;
             
             P_stimscore = zeros(18,4);
+            
+        case 7 % sparse network
+            stimrange = 2;
+            M_clus_range = {[12,2]};
+            M_clus_name = {'sparse_nw'};
+            %             M_clus_name = {'HBO_OMR_stimlockrank'};
+            M_fishrange = {[1:8]};%{8:18};%{1:18};%
+            n_reg = length(M_clus_name);
             
 %                     case 6 % HBO stripes
 %             stimrange = 1;
@@ -114,8 +122,11 @@ for caseflag = 6
             if ismember(i_fish,range_set)
                 ClusterIDs = M_clus_range{i_set};%[12,1];% GetClusterIDs('all');
                 [cIX,gIX] = LoadCluster_Direct(i_fish,ClusterIDs(1),ClusterIDs(2));
-                
-%                 % override:
+                                
+                % override:
+                if caseflag==7
+                   gIX = ones(size(cIX)); 
+                end
 %                 if caseflag==6
 %                     [cIX1,gIX1] = LoadCluster_Direct(i_fish,10,2);
 %                     [cIX2,gIX2] = LoadCluster_Direct(i_fish,10,3);
