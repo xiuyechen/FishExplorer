@@ -1,6 +1,7 @@
-function  [fig_handle,tot_image,image_YX] = DrawCellsOnAnat(I,ax)
+function  [fig_handle,tot_image,image_XYYZ,image_YX] = DrawCellsOnAnat(I,ax)
 if exist('ax','var') && isobject(ax)   
        axes(ax);
+       fig_handle = gcf;
 else
     fig_handle = figure('Position',[600,50,458.5,608],'color',[1 1 1],...
         'Name',['Fish#' num2str(I.i_fish)]);
@@ -181,10 +182,12 @@ if isRefAnat && isPopout,
     tot_image(dimv_zx3(1)+11:end,1:dimv_yx3(2),:) = image_YX;%anat_YX(y_range,:,:);
     tot_image(dimv_zx3(1)+11:end,dimv_yx3(2)+11:end,:) = anat_yz2(y_range,z_range,:);
     tot_image(1:dimv_zx3(1),1:dimv_zx3(2),:) = flipud(anat_zx2(z_range,:,:));
+    image_XYYZ = tot_image(dimv_zx3(1)+11:end,1:end,:);
 else
     tot_image(dimv_zx(1)*k_zres_ratio+11:end,1:dimv_yx(2),:) = image_YX;
     tot_image(dimv_zx(1)*k_zres_ratio+11:end,dimv_yx(2)+11:end,:) = anat_yz2;
     tot_image(1:dimv_zx(1)*k_zres_ratio,1:dimv_zx(2),:) = flipud(anat_zx2);
+    image_XYYZ = tot_image(dimv_zx(1)*k_zres_ratio+11:end,1:end,:);
 end
 
 % OPTIONAL BRIGHTENING

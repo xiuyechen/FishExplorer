@@ -73,7 +73,7 @@ stimbar(:,x==14,1) = 1; % red - left blob
 stimbar(:,x==15,3) = 1; % blue - right blob
 
 %% code 16
-stimbar(:,x==16,1:2) = 1; % yellow spike
+stimbar(:,x==16,2:3) = 1; % cyan spikes for electric shock
 
 %% code 20-24
 topIX = 1:halfbarnum;

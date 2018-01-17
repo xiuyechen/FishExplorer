@@ -12,6 +12,8 @@ P_ratio_tAvr = zeros(18,5,2);
 P_ratio_tRes = zeros(18,5,2);
 P_tAvrcorr= zeros(18,5,2);
 P_tRescorr= zeros(18,5,2);
+% P_vAvr= zeros(18,5,2);
+% P_vRes= zeros(18,5,2);
 
 for i_fish = range_fish
     setappdata(hfig,'isMotorseed',0);
@@ -177,3 +179,9 @@ range_fish = [1:3,5:18];
 % %%
 % figure
 % bar(P_tAvrcorr(:,1:2,2)-P_tAvrcorr(:,[1,3],1))
+
+%% screen fish based on P_ratio
+% P_ratio(i_fish,i_lfr,1) = vAvr_bh/vTot_bh;
+figure;
+histogram(P_ratio(:,1,2));
+L_keep = find(P_ratio(:,1,2)>0.5);

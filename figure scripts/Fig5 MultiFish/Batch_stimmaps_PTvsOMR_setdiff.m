@@ -22,13 +22,20 @@ range_fish = 8:18;%18;%GetFishRange;% init; can overrride
 
 caseflag = 2;
 switch caseflag % NOTE: regressors hard-coded!
-    case 1 % main
+    case 1 
         isSetDiffnotIntersect = 1;
         is1RegInA = 0;
         M_isTrialRes = [0,1];
         M_reg_name{1} = 'motormap_tAvr_VS_tRes_motorseed2_setdiff';
         
-    case 2 % suppl to case 1
+    case 2 % for fig6a
+        isSetDiffnotIntersect = 0;
+        is1RegInA = 0;
+        M_isTrialRes = [0,0];
+        M_reg_name{1} = 'stimmaps_PT_VS_OMR_intunion';
+        M_reg_range = {[3,2],[9,8]};
+                
+    case 3 % for PT&looming?
         isSetDiffnotIntersect = 0;
         is1RegInA = 0;
         M_isTrialRes = [0,0];
@@ -89,6 +96,8 @@ M_compareMotorCellNumber = zeros(2,18);
 
 IM_full = cell(n_reg,18);
 IM_AB = cell(n_reg,18);
+
+M_hb_count = zeros(18,6);
 
 %%
 for i_fish = range_fish
@@ -192,6 +201,7 @@ for i_fish = range_fish
         IM_full{i_set,i_fish} = horzcat(im_full1,border,im_full2);
         
     else
+        %% intersection
         [cIX,ix] = intersect(M_cIX{1},M_cIX{2});
         gIX = M_gIX{1}(ix);
         %     [set2,ix2] = setdiff(CIX{2},CIX{1});
@@ -201,7 +211,20 @@ for i_fish = range_fish
         I = LoadCurrentFishForAnatPlot(hfig,cIX,gIX,clrmap);
         [h,im_full1] = DrawCellsOnAnat(I);
         close(h);
+                
+         %% count cells: hindbrain vs not
+        MASKs = getappdata(hfig,'MASKs');
+        CellXYZ_norm = getappdata(hfig,'CellXYZ_norm');
+        absIX = getappdata(hfig,'absIX');
         
+        %     Msk_IDs = [94,219,220];% midbrain 94; Rh1 219; Rh2 220; hindbrain 114; % manual input
+        cIX_mb = ScreenCellsWithMasks(94,cIX,gIX,MASKs,CellXYZ_norm,absIX);
+        cIX_hb = ScreenCellsWithMasks([219,220],cIX,gIX,MASKs,CellXYZ_norm,absIX);
+        
+        M_hb_count(i_fish,1) = length(cIX_mb);
+        M_hb_count(i_fish,2) = length(cIX_hb);
+        
+        %% union
         [C,ia,ib] = union(M_cIX{1},M_cIX{2});
         cIX = [M_cIX{1}(ia);M_cIX{2}(ib)];
         gIX = [M_gIX{1}(ia);M_gIX{2}(ib)];
@@ -209,19 +232,37 @@ for i_fish = range_fish
         I = LoadCurrentFishForAnatPlot(hfig,cIX,gIX,clrmap);
         [h,im_full2] = DrawCellsOnAnat(I);
         close(h);
+        
         %% save figure        
         border = ones(size(im_full1,1),20,3);
         IM_full{i_set,i_fish} = horzcat(im_full1,border,im_full2);
+
         
     end
     
     %% Section 2: plot the two original sets (same as fig3_motormap_trialRes_lrRes_tiffstack.m)
+    %% set 1
+    
     cIX = M_cIX{1};
     gIX = M_gIX{1};
     % make figure
     I = LoadCurrentFishForAnatPlot(hfig,cIX,gIX,clrmap);
     [h,im_full3] = DrawCellsOnAnat(I);
     close(h);
+    
+    %% count cells: hindbrain vs not
+    MASKs = getappdata(hfig,'MASKs');
+    CellXYZ_norm = getappdata(hfig,'CellXYZ_norm');
+    absIX = getappdata(hfig,'absIX');
+    
+    %     Msk_IDs = [94,219,220];% midbrain 94; Rh1 219; Rh2 220; hindbrain 114; % manual input
+    cIX_mb = ScreenCellsWithMasks(94,cIX,gIX,MASKs,CellXYZ_norm,absIX);
+    cIX_hb = ScreenCellsWithMasks([219,220],cIX,gIX,MASKs,CellXYZ_norm,absIX);
+    
+    M_hb_count(i_fish,3) = length(cIX_mb);
+    M_hb_count(i_fish,4) = length(cIX_hb);
+    
+    %% set 2
     
     cIX = M_cIX{2};
     gIX = M_gIX{2};
@@ -232,6 +273,18 @@ for i_fish = range_fish
     %% save figure
     border = ones(size(im_full3,1),20,3);
     IM_AB{i_set,i_fish} = horzcat(im_full3,border,im_full4);
+    
+    %% count cells: hindbrain vs not
+    MASKs = getappdata(hfig,'MASKs');
+    CellXYZ_norm = getappdata(hfig,'CellXYZ_norm');
+    absIX = getappdata(hfig,'absIX');
+    
+    %     Msk_IDs = [94,219,220];% midbrain 94; Rh1 219; Rh2 220; hindbrain 114; % manual input
+    cIX_mb = ScreenCellsWithMasks(94,cIX,gIX,MASKs,CellXYZ_norm,absIX);
+    cIX_hb = ScreenCellsWithMasks([219,220],cIX,gIX,MASKs,CellXYZ_norm,absIX);
+    
+    M_hb_count(i_fish,5) = length(cIX_mb);
+    M_hb_count(i_fish,6) = length(cIX_hb);
 
 end
 
@@ -328,3 +381,42 @@ end
 % range_fish excludes Fish 4
 % M_compareMotorCellNumber(:,4) = NaN;
 % figure;bar(M_compareMotorCellNumber')
+
+%% count cell numbers
+
+figure('Position',[100,400,150,160]);hold on;
+
+inc1 = 0.2;
+inc = 0.15;
+
+x = 1;
+Y = M_hb_count(8:end,1)./M_hb_count(8:end,2);
+scatter(x*ones(length(Y),1),Y,20,'MarkerEdgeColor',[0,0,0],'MarkerEdgeAlpha',0.5,'MarkerFaceColor',[0.8,0.8,0.8],'MarkerFaceAlpha',0.5);
+plot([x-inc1,x+inc1],[mean(Y),mean(Y)],'k');
+err = std(Y)/sqrt(length(Y));
+plot([x-inc,x+inc],[mean(Y)+err,mean(Y)+err],'color',[1,0.5,0.5]);
+plot([x-inc,x+inc],[mean(Y)-err,mean(Y)-err],'color',[1,0.5,0.5]);
+plot([x,x],[mean(Y)-err,mean(Y)+err],'color',[1,0.5,0.5]);
+
+x = 2;
+Y = M_hb_count(8:end,3)./M_hb_count(8:end,4);
+scatter(x*ones(length(Y),1),Y,20,'MarkerEdgeColor',[0,0,0],'MarkerEdgeAlpha',0.5,'MarkerFaceColor',[0.8,0.8,0.8],'MarkerFaceAlpha',0.5);
+plot([x-inc1,x+inc1],[mean(Y),mean(Y)],'k');
+err = std(Y)/sqrt(length(Y));
+plot([x-inc,x+inc],[mean(Y)+err,mean(Y)+err],'color',[1,0.5,0.5]);
+plot([x-inc,x+inc],[mean(Y)-err,mean(Y)-err],'color',[1,0.5,0.5]);
+plot([x,x],[mean(Y)-err,mean(Y)+err],'color',[1,0.5,0.5]);
+
+x = 3;
+Y = M_hb_count(8:end,5)./M_hb_count(8:end,6);
+scatter(x*ones(length(Y),1),Y,20,'MarkerEdgeColor',[0,0,0],'MarkerEdgeAlpha',0.5,'MarkerFaceColor',[0.8,0.8,0.8],'MarkerFaceAlpha',0.5);
+plot([x-inc1,x+inc1],[mean(Y),mean(Y)],'k');
+err = std(Y)/sqrt(length(Y));
+plot([x-inc,x+inc],[mean(Y)+err,mean(Y)+err],'color',[1,0.5,0.5]);
+plot([x-inc,x+inc],[mean(Y)-err,mean(Y)-err],'color',[1,0.5,0.5]);
+plot([x,x],[mean(Y)-err,mean(Y)+err],'color',[1,0.5,0.5]);
+
+xlim([0.5,3.5])
+% ylim([0,2])
+set(gca,'XTickLabels',{'PT','OMR','PT&OMR'},'XTickLabelRotation',45);
+ylabel('#cell ratio: mb/hb')

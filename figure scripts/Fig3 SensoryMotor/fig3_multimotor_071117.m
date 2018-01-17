@@ -70,7 +70,7 @@ for i_fish = range_fish
     end
         
     %% threshold
-     topN = 1000;
+    topN = 1000;
     [~,IX] = sort(motorcorr,'descend');
     y0 = motorcorr(IX(topN));
     x0 = min(stimcorr(IX(1:topN)));

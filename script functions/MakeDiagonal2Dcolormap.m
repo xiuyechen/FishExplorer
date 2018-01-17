@@ -5,6 +5,11 @@ function grid = MakeDiagonal2Dcolormap(huex,satmin,pw,res,plotdemo)
 % bottem left - upper right diagonal: grayscale
 % (bottom left: black; upper right: white)
 
+% default: x axis magenta, y axis green
+
+% to flip: transpose
+isflip = true;
+
 if ~exist('huex','var'),
     huex = 120/360; % 120/360 for green/magenta; e.g. 0/360 for red/cyan
 end
@@ -37,6 +42,13 @@ for i = 1:res
     end
 end
 
+if isflip
+    for i = 1:3
+        grid(:,:,i) = squeeze(grid(:,:,i))';
+    end
+end
+
+%% optional: plot demo
 if nargin>4
     if plotdemo
         figure;imagesc(grid)

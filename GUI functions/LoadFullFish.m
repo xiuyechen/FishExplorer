@@ -11,15 +11,15 @@ if ~exist('hdf5_dir','var') || ~exist('mat_dir','var'),
     data_masterdir = getappdata(hfig,'data_masterdir');
     data_dir = fullfile(data_masterdir,['subject_' num2str(i_fish)]);
     if exist('isFullData','var'),
-        if isFullData == -1,
+        if isFullData % true
+             hdf5_dir = fullfile(data_dir,'TimeSeries.h5');
+        else % % %isFullData == -1,
             hdf5_dir = fullfile(data_dir,'TimeSeries.h5');
             absIX = h5read(hdf5_dir,'/absIX');
             setappdata(hfig,'absIX',absIX);
             isLoadTS = 0; % don't load Time series                       
-        elseif isFullData, % true
-             hdf5_dir = fullfile(data_dir,'TimeSeries.h5');
-        else % false
-            hdf5_dir = fullfile(data_dir,'TimeSeries_half.h5');
+%         else % false
+%             hdf5_dir = fullfile(data_dir,'TimeSeries_half.h5');
         end
     else % default without isfulldata input is full-data
         hdf5_dir = fullfile(data_dir,'TimeSeries.h5');

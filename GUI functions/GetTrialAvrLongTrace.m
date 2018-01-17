@@ -1,4 +1,4 @@
-function [C_trialAvr,C_trialRes,C_score,C_d2var_perstim] = GetTrialAvrLongTrace(hfig,C)
+function [C_trialAvr,C_trialRes,C_score,C_d2var_perstim,C_p] = GetTrialAvrLongTrace(hfig,C)
 %%
 fishset = getappdata(hfig,'fishset');
 periods = getappdata(hfig,'periods');
@@ -20,6 +20,9 @@ if fishset == 1
 %     C_3D_tRes = zscore(C_3D_tRes_0,0,2);
     d2var = (nanstd(C_3D_tRes,0,3)).^2;
     C_score = nanmean(d2var,2); 
+    
+    C_p = C;
+    C_d2var_perstim = [];
 else
     stimset = getappdata(hfig,'stimset');
     stimrange = getappdata(hfig,'stimrange');
@@ -28,11 +31,13 @@ else
     C_trialAvr = [];
 %     C_d2std = [];
     C_d2var_perstim = [];
+    C_p = []; % 12/18/17 - XC
     for i = 1:length(stimrange)
         i_stim = stimrange(i);
-        if max(stimset(i_stim).nReps)>1 
+        if stimset(i_stim).nReps(1)>1 
             offset = length(horzcat(timelists{stimrange(1:i-1)}));% works for i=0 too
             tIX_ = 1+offset:length(timelists{stimrange(i)})+offset;
+
             period = periods(i_stim);
             C_this = C(:,tIX_);
             C_3D_0 = reshape(C_this,size(C,1),period,[]);
@@ -47,16 +52,18 @@ else
             d2var = (nanstd(C_3D_tRes,0,3)).^2;
             C_d2var_perstim = horzcat(C_d2var_perstim,nanmean(d2var,2)); %#ok<AGROW>
     
+            C_p = horzcat(C_p,C_this); % 12/18/17 - XC
+            
 %             C_3D = zscore(C_3D_0,0,2);
 % %             C_d2std = horzcat(C_d2std,nanstd(C_3D,0,3));
 %             d2var = (nanstd(C_3D,0,3)).^2;
 %             C_d2var_perstim = horzcat(C_d2var_perstim,nanmean(d2var,2));
 %             %             C_3D = zscore(C_3D_0,0,2);
 %             %             H_raw = horzcat(H_raw,nanmean(nanstd(C_3D,0,3),2));
-        else
-            offset = length(horzcat(timelists{stimrange(1:i-1)}));% works for i=0 too
-            tIX_ = 1+offset:length(timelists{stimrange(i)})+offset;
-            C_trialAvr = horzcat(C_trialAvr,zeros(size(C,1),length(tIX_))); %#ok<AGROW>
+        else % taking out 12/18/17 - XC
+%             offset = length(horzcat(timelists{stimrange(1:i-1)}));% works for i=0 too
+%             tIX_ = 1+offset:length(timelists{stimrange(i)})+offset;
+%             C_trialAvr = horzcat(C_trialAvr,zeros(size(C,1),length(tIX_))); %#ok<AGROW>
         end
     end
     
@@ -71,7 +78,8 @@ else
         C_score(i) = min(C_d2var_perstim(i,:));
     end
     
-    C_trialRes = C-C_trialAvr;
+    C_trialRes = C_p-C_trialAvr; % 12/18/17 - XC
+%     C_trialRes = C-C_trialAvr;
 end
 
 end
