@@ -21,7 +21,7 @@ ClusterIDs = [2,1];
 tscriptstart = tic;
 n_reg = 3;
 IM_full = cell(n_reg,18);
-
+%%
 for i_fish = range_fish
     disp(['i_fish = ',num2str(i_fish)]);
     
@@ -38,23 +38,34 @@ for i_fish = range_fish
 %         Data = C;
 %     end
 
-    i_lr = 2;
+    i_lr = 1;%2
     
-    Data_tAvr = GetTrialAvrLongTrace(hfig,Data);
-    [motor_tAvr,motor_tRes] = GetTrialAvrLongTrace(hfig,behavior);
-    stimcorr = DiagCorr(Data_tAvr',Data');
-    motorcorr = corr(motor_tRes(i_lr,:)',Data');
-
-    xlims = diag(corr(motor_tAvr',behavior'));
-    ylims = diag(corr(motor_tRes',behavior'));
+    if false % before 1/17/18
+        Data_tAvr = GetTrialAvrLongTrace(hfig,Data);
+        [motor_tAvr,motor_tRes] = GetTrialAvrLongTrace(hfig,behavior);
+        stimcorr = DiagCorr(Data_tAvr',Data');
+        motorcorr = corr(motor_tRes(i_lr,:)',Data');
+        
+        xlims = diag(corr(motor_tAvr',behavior'));
+        ylims = diag(corr(motor_tRes',behavior'));
+    else
+        [Data_tAvr,~,~,~,Data_p] = GetTrialAvrLongTrace(hfig,M_0);
+        [motor_tAvr,motor_tRes,~,~,behavior_p] = GetTrialAvrLongTrace(hfig,behavior);
+        b_stim = sqrt(abs(var(Data_tAvr')./var(Data_p'))); % b_stim
+        mtAvrcorr = corr(motor_tAvr(i_lr,:)',Data_p');
+        motorcorr = corr(motor_tRes(i_lr,:)',Data_p');
+        stimcorr = b_stim;
+        
+        xlims = diag(corr(motor_tAvr',behavior_p'));
+        ylims = diag(corr(motor_tRes',behavior_p'));
+    end        
     
     % make figures
     cIX_in = cIX_load;
     gIX_in = gIX;
     xbound = xlims(i_lr);
     ybound = ylims(i_lr);
-    
-    %%
+        
     %% make custom 2-D colormap
     grid = Make4color2Dcolormap;
     % grid = MakeDiagonal2Dcolormap;
@@ -122,10 +133,10 @@ for i_fish = range_fish
     scatter(stimcorr(IX_fail),motorcorr(IX_fail),1,clrmap(IX_fail,:));
     plot([x0*0.8,x1*1.2],[y0,y0],'k--');
     
-    xlim([0,1])
-    ylim([-0.5,1])
+%     xlim([0,1])
+%     ylim([-0.5,1])
     axis equal
-    set(gca,'XTick',0:0.5:1,'YTick',-0.5:0.5:1);
+%     set(gca,'XTick',0:0.5:1,'YTick',-0.5:0.5:1);
     %% bubble plot
     h = figure('Position',[500,500,300,250]); hold on
     scatter(stimcorr,motorcorr,U_size,clrmap,'filled')    
@@ -149,6 +160,52 @@ for i_fish = range_fish
 %     plot([-0.3,1],[ybound,ybound],'g:');
 %     plot([-0.3,1],[thres_plot,thres_plot],'r');
         
+%% new scatter plot 1/17/18
+nCells_total = size(M_0,1);
+prct_const = 2;
+topN = round(prct_const/100 * nCells_total);
+
+    [~,IX] = sort(motorcorr,'descend');
+    y0 = motorcorr(IX(topN));
+%     x0 = min(stimcorr(IX(1:topN)));
+%     x1 = max(stimcorr(IX(1:topN)));
+%     y1 = motorcorr(IX(1));
+    
+    IX_passY = find(motorcorr>=y0);
+    IX_failY = find(motorcorr<y0);
+    
+    
+    [~,IX] = sort(mtAvrcorr,'descend');
+    x0 = mtAvrcorr(IX(topN));
+    
+    IX_passX = find(mtAvrcorr>=x0);
+    IX_failX = find(mtAvrcorr<x0);
+    
+    IX_int = intersect(IX_passX,IX_passY);
+    IX_Xonly = setdiff(IX_passX,IX_int);
+    IX_Yonly = setdiff(IX_passY,IX_int);
+
+ h = figure('Position',[500,500,300,400]); hold on
+    scatter(mtAvrcorr,motorcorr,3,[0.5,0.5,0.5],'filled');
+    scatter(mtAvrcorr(IX_Yonly),motorcorr(IX_Yonly),3,[0.9,0.2,0.9],'filled');
+    scatter(mtAvrcorr(IX_Xonly),motorcorr(IX_Xonly),3,[0.3,0.8,0],'filled');
+    scatter(mtAvrcorr(IX_int),motorcorr(IX_int),3,[0,0.3,0.9],'filled');
+    
+%     plot([x0*0.8,x1*1.2],[y0,y0],'k--');
+    
+    xlabel('tAvr corr.');ylabel('tRes corr.');        
+%     xlim([0,1])
+%     ylim([-0.5,1])
+    axis equal
+    set(gca,'XTick',0:0.5:1,'YTick',-0.5:0.5:1);
+
+    %% map data to colormap, and cluster sizes
+    clrmap0 = MapXYto2Dcolormap(gIX_in,stimcorr,motorcorr,[x0,x1],[y0,y1],grid);
+    clrmap = clrmap0;
+    clrmap(IX_fail,:) = ones(length(IX_fail),3)*0.5;
+    
+
+
     %% anat, all cells included in A0.5       
     I = LoadCurrentFishForAnatPlot(hfig,cIX_in,gIX_in,clrmap,[]);
     [h,im] = DrawCellsOnAnat(I);

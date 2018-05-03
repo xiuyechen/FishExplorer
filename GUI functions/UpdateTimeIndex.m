@@ -40,7 +40,11 @@ setappdata(hfig,'tIX',tIX);
 setappdata(hfig,'M_0',M_0);
 if ~exist('isSkipcIX','var'),
     cIX = getappdata(hfig,'cIX');
-    M = M_0(cIX,:);
+    if ~isempty(M_0)
+        M = M_0(cIX,:);
+    else
+        M = [];
+    end
     setappdata(hfig,'M',M);
 else
     M = M_0;

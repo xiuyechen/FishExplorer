@@ -1,5 +1,8 @@
 function [C_trialAvr,C_trialRes,C_score,C_d2var_perstim,C_p] = GetTrialAvrLongTrace(hfig,C)
 %%
+
+isFulllength = 0; % isFulllength = true for analyses before 12/18/17 - XC
+    
 fishset = getappdata(hfig,'fishset');
 periods = getappdata(hfig,'periods');
 
@@ -61,9 +64,11 @@ else
 %             %             C_3D = zscore(C_3D_0,0,2);
 %             %             H_raw = horzcat(H_raw,nanmean(nanstd(C_3D,0,3),2));
         else % taking out 12/18/17 - XC
-%             offset = length(horzcat(timelists{stimrange(1:i-1)}));% works for i=0 too
-%             tIX_ = 1+offset:length(timelists{stimrange(i)})+offset;
-%             C_trialAvr = horzcat(C_trialAvr,zeros(size(C,1),length(tIX_))); %#ok<AGROW>
+            if isFulllength
+                offset = length(horzcat(timelists{stimrange(1:i-1)}));% works for i=0 too
+                tIX_ = 1+offset:length(timelists{stimrange(i)})+offset;
+                C_trialAvr = horzcat(C_trialAvr,zeros(size(C,1),length(tIX_))); %#ok<AGROW>
+            end
         end
     end
     
@@ -77,9 +82,12 @@ else
     for i = 1:size(C_d2var_perstim,1)
         C_score(i) = min(C_d2var_perstim(i,:));
     end
-    
-    C_trialRes = C_p-C_trialAvr; % 12/18/17 - XC
-%     C_trialRes = C-C_trialAvr;
+  
+    if isFulllength
+        C_trialRes = C-C_trialAvr;
+    else
+        C_trialRes = C_p-C_trialAvr; % 12/18/17 - XC
+    end
 end
 
 end

@@ -121,3 +121,62 @@ clr_phb = [0,1,1];
 scatter(X(c_phb),Y(c_phb),5,clr_phb);
 
 
+%% pooling for bar plots: dividing by anat (midbrain, aHb and pHb)
+for i_prct_count = 1:10
+    % i_prct_count = 8;
+    cIX1 = M_cIX{i_prct_count,1};
+    cIX2 = M_cIX{i_prct_count,2};
+    
+    [cIX_int,ix] = intersect(cIX1,cIX2);
+    
+    cIX = cIX_int;
+    gIX = ones(size(cIX));
+    
+    % count cells: hindbrain vs not
+    MASKs = getappdata(hfig,'MASKs');
+    CellXYZ_norm = getappdata(hfig,'CellXYZ_norm');
+    absIX = getappdata(hfig,'absIX');
+    
+    %     Msk_IDs = [94,219,220];% midbrain 94; Rh1 219; Rh2 220; hindbrain 114;
+    cIX_mb = ScreenCellsWithMasks(94,cIX,gIX,MASKs,CellXYZ_norm,absIX);
+    cIX_ahb = ScreenCellsWithMasks([219,220],cIX,gIX,MASKs,CellXYZ_norm,absIX);
+    cIX_phb = ScreenCellsWithMasks([221:225],cIX,gIX,MASKs,CellXYZ_norm,absIX);
+    
+    M_anat_count(i_prct_count,1) = length(cIX_mb);
+    M_anat_count(i_prct_count,2) = length(cIX_ahb);
+    M_anat_count(i_prct_count,3) = length(cIX_phb);
+end
+
+%% bubbly plot (for fun) (single fish)
+figure('Position',[100,400,150,160]);hold on;
+
+inc1 = 0.2;
+inc = 0.15;
+
+for x = 1:3
+    Y = M_anat_count(:,x);
+    
+    
+%     scatter(x*ones(length(Y),1),Y,20,'MarkerEdgeColor',[0,0,0],'MarkerEdgeAlpha',...
+scatter(x*ones(length(Y),1),Y,(1:size(Y,1))*3,'MarkerEdgeColor',[0,0,0],'MarkerEdgeAlpha',...
+        0.5,'MarkerFaceColor',[0.8,0.8,0.8],'MarkerFaceAlpha',0.5);
+    plot([x-inc1,x+inc1],[median(Y),median(Y)],'k');
+%     err = std(Y)/sqrt(length(Y));
+%     plot([x-inc,x+inc],[mean(Y)+err,mean(Y)+err],'color',[1,0.5,0.5]);
+%     plot([x-inc,x+inc],[mean(Y)-err,mean(Y)-err],'color',[1,0.5,0.5]);
+%     plot([x,x],[mean(Y)-err,mean(Y)+err],'color',[1,0.5,0.5]);
+end
+
+xlim([0.5,3.5])
+set(gca,'XTickLabels',{'midbrain','hindbrain Rh1,2','hindbrain Rh3+'},'XTickLabelRotation',45);
+
+%% plot again: sliding intersection threshold, divided by anat. for suppl fig (single fish)
+figure('Position',[100,400,350,160]);hold on;
+% figure;hold on
+for x = 1:3
+    Y = M_anat_count(:,x);
+    plot(Y);
+end
+legend({'midbrain','hindbrain Rh1,2','hindbrain Rh3+'},'location','eastoutside')
+xlabel('intersection threshold (%)')
+ylabel('number of cells')

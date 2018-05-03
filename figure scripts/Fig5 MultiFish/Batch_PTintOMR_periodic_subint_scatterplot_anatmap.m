@@ -30,28 +30,28 @@ outputDir = GetOutputDataDir;
 
 ClusterIDs = [2,1];%[11,2]; % init; can overrride
 prct_const = 3;% til 12/22/17; % init; can overrride
+i_perct = 3; % init; can overrride
 
-
-caseflag = 2;
+caseflag = 1;
 switch caseflag % NOTE: regressors hard-coded!
     case 1 % downstream of fig6a, PT vs OMR]
         load(fullfile(outputDir,'4D_SM_stimrangePTOMR_minmax_betas.mat'));
 %         load(fullfile(outputDir,'4D_SM_stimrangePTOMR_betas.mat'));% up till 1/20/18
-        M_reg_name{1} = 'PTintOMR_MO_period-thres';
+        M_reg_name{1} = 'PTintOMR_MO_period-3%subthres';
 %         M_reg_range = {[3,2],[9,8]};
         M_stimrange = {1,2};
         range_fish = 8:18;
-        prct_const = 5;
-%         stimrange = [1,2];
+        prct_const = 3;% used for period based regression if ifLoadfromfile=0
+        ifLoadfromfile = 1;
+        i_perct = 3;
+        stimrange = [1,2]; % new? not used
         
     case 2 % OMR vs looming
-        load(fullfile(outputDir,'4D_SM_stimrangeOMRlooming_minmax_betas.mat'));
-%         load(fullfile(outputDir,'4D_SM_stimrangeOMRloom_betas.mat'));
-        M_reg_name{1} = 'OMRintLoom_MO_period-5%thres';
+        load(fullfile(outputDir,'4D_SM_stimrangeOMRloom_betas.mat'));
+        M_reg_name{1} = 'OMRintLoom_MO_period-thres';
         M_stimrange = {2,5};
         range_fish = [9:15,17:18];
-        prct_const = 5;
-%         stimrange = [2,3];
+        prct_const = 8;
         
     case 3 % PT vs looming
         load(fullfile(outputDir,'4D_SM_stimrangePTloom_betas.mat'));
@@ -95,64 +95,58 @@ IM_1 = cell(2,18); % scatter plot left/right
 IM_2 = cell(1,18); % anat map left/right (w convergence cells)
 IM_3 = cell(1,18); % anat map left/right
 IM_int = cell(1,18); % for intersection
-
+IM_int_raw = cell(1,18); % for intersection
 % Intersect_cIX = cell(1,18);
 
 M_pool = cell(3,18);
 
 %%
-ifLoadfromfile = 1;
 if ifLoadfromfile
     
-    switch caseflag 
-        case 1
-            load(fullfile(outputDir,'PTintOMR_regbased_sweepthres.mat'),'Intersect_cIX');
-            %     load(fullfile(outputDir,'PTintOMR_sweepthres'),'Intersect_cIX');
-        case 2
-            load(fullfile(outputDir,'OMRintLm_regbased_sweepthres.mat'),'Intersect_cIX');
-    end
+    load(fullfile(outputDir,'PTintOMR_regbased_sweepthres.mat'),'Intersect_cIX');
+%     load(fullfile(outputDir,'PTintOMR_sweepthres'),'Intersect_cIX');
 end
+
 
 for i_fish = range_fish
     if ~ifLoadfromfile
-        %% get top cells from individual stimrange (to do intersection later)
-        M_cIX = cell(1,2);
-        M_gIX = cell(1,2);
-        for i_itr = 1:2
-            %%
-            [cIX_all,gIX_all,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs,M_stimrange{i_itr});
-            
-            
-            [Data_tAvr,~,~,~,Data_p] = GetTrialAvrLongTrace(hfig,M_0);
-            
-            [motor_tAvr,motor_tRes,~,~,behavior_p] = GetTrialAvrLongTrace(hfig,behavior);
-            
-            b_stim = sqrt(abs(var(Data_tAvr')./var(Data_p')));
-            % %         b1 = corr(motor_tRes(i_lr,:)',Data_p');
-            % %         b2 = corr(motor_tAvr(i_lr,:)',Data_p');
-            % %         b3 = sqrt(abs(var(Data_tAvr')./var(Data_p') - b2.^2)); % var(Data') is all 1
-            
-            % top %
-            A = b_stim;
-            numcell = size(M_0,1);
-            topN = round(prct_const/100*numcell); % top _% cutoff
-            [A_sorted,IX] = sort(A,'descend');
-            thresA = A_sorted(topN);
-            
-            IX_pass = find(A>thresA);
-            
-            M_cIX{i_itr} = cIX_all(IX_pass);
-            
-        end % i_itr ~ comparison
+    %% get top cells from individual stimrange (to do intersection later)
+    M_cIX = cell(1,2);
+    M_gIX = cell(1,2);
+    for i_itr = 1:2
+        %%
+        [cIX_all,gIX_all,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs,M_stimrange{i_itr});
         
-        [cIX_int,ix] = intersect(M_cIX{1},M_cIX{2});
-        gIX_int = ones(size(cIX_int));%M_gIX{1}(ix);
         
+        [Data_tAvr,~,~,~,Data_p] = GetTrialAvrLongTrace(hfig,M_0);
+
+        [motor_tAvr,motor_tRes,~,~,behavior_p] = GetTrialAvrLongTrace(hfig,behavior);
+        
+        b_stim = sqrt(abs(var(Data_tAvr')./var(Data_p')));
+% %         b1 = corr(motor_tRes(i_lr,:)',Data_p');
+% %         b2 = corr(motor_tAvr(i_lr,:)',Data_p');
+% %         b3 = sqrt(abs(var(Data_tAvr')./var(Data_p') - b2.^2)); % var(Data') is all 1
+        
+        % top %
+        A = b_stim;
+        numcell = size(M_0,1);
+        topN = round(prct_const/100*numcell); % top _% cutoff
+        [A_sorted,IX] = sort(A,'descend');
+        thresA = A_sorted(topN);
+        
+        IX_pass = find(A>thresA);
+
+        M_cIX{i_itr} = cIX_all(IX_pass);
+
+    end % i_itr ~ comparison
+    
+    [cIX_int,ix] = intersect(M_cIX{1},M_cIX{2});
+    gIX_int = ones(size(cIX_int));%M_gIX{1}(ix);
+    
     else        
-        stimrange = 1; % nominal, doesn't matter
         cIX_all = LoadSingleFishDefault(i_fish,hfig,ClusterIDs,stimrange,0);
-        cIX_int = Intersect_cIX{i_fish,prct_const};
-        gIX_int = ones(size(cIX_int));
+        cIX_int_raw = Intersect_cIX{i_fish,i_perct};
+        gIX_int_raw = ones(size(cIX_int_raw));
     end
     %% Section 1: make the setdiff/intersection plots
     
@@ -168,15 +162,6 @@ for i_fish = range_fish
 %     clrmap2 = Make1DColormap([clr2_;clr2],numC);
 %     clrmap = [clrmap1;clrmap2];
 
-    %% intersection: PT & OMR
-
-    % make figure
-    setappdata(hfig,'clrmap_name','hsv_old');
-    I = LoadCurrentFishForAnatPlot(hfig,cIX_int,gIX_int);%,clrmap);
-    [h,~,im] = DrawCellsOnAnat(I);
-    close(h);
-    IM_int{i_fish} = im;
-    
     % save cells
 %     Intersect_cIX{i_fish} = cIX_int;
 %     PTintOMR{i_fish} = cIX_int;
@@ -186,38 +171,24 @@ for i_fish = range_fish
     PassY_2 = cell(1,2);
     for i_lr = 1:2
         %% scatter plot with 4D components
-        % loaded betas for this fish for the combo data (including both stim)
-        
+        % loaded betas for this fish for the combo data (including both stim)        
         betas = Betas{i_lr,i_fish};
-        b1 = betas(:,1);
-        b2 = betas(:,2);
-        b3 = betas(:,3);
-        %%
         % set up plot dimensions
-        caseflag = 2;
-        switch caseflag
-            case 1
-                X = b1;
-                Y = b2;
-                Xname = 'motor only (b1)';
-                Yname = 'SMT (b2)';
-            case 2
-                X = b1;%b3;%b1;
-                Y = betas(:,5);
-%                 Y = sqrt(b2.^2+b3.^2);%b2;
-                Xname = 'motor only (b1)';
-                Yname = 'periodic';
-        end
+        X = betas(:,1);%b3;%b1;
+        Y = betas(:,5);
+        %                 Y = sqrt(b2.^2+b3.^2);%b2;
+        Xname = 'motor only (b1)';
+        Yname = 'periodic';
         
-        numcell = length(b1);
+        numcell = length(X);
         
         A = X;
-        topN = length(cIX_int);%length(M_cIX{2});%%round(0.01*numcell); % top 5% cutoff
+        topN = length(cIX_int_raw);%length(M_cIX{2});%%round(0.01*numcell); % top 5% cutoff
         [~,IX] = sort(A,'descend');
         thresA = A(IX(topN));
         
         B = Y;
-        topN = length(cIX_int);%length(M_cIX{2});%round(0.01*numcell); % top 5% cutoff
+        topN = length(cIX_int_raw);%length(M_cIX{2});%round(0.01*numcell); % top 5% cutoff
         [~,IX] = sort(B,'descend');
         thresB = B(IX(topN));%min(Y(cIX_int));%
 
@@ -236,16 +207,22 @@ for i_fish = range_fish
         
         PassX_2{i_lr} = IX_passX;
         PassY_2{i_lr} = IX_passY;
+        
+        cIX_int = setdiff(intersect(cIX_int_raw,IX_passY),IX_passX);
+        
         %% make colormap
     
-        clr1 = [0.3,0.8,0.2];
-        clr2 = [0.1,0.3,1];%[0.3,0.8,1];
+        clr1 = [0.3,0.7,0.2];
+        clr2 = [0.1,0.3,0.9];%[0.3,0.8,1];
         clr_fail = [0.5,0.5,0.5];
-        clr_int = [1,0.1,0];
+        clr_int_raw = [1,0.2,0.2];%[1,0.1,0];
+        clr_int = [0.7,0.2,0.2];
         clrmap = ones(numcell,3);%MapXYto2Dcolormap(gIX_in,X,Y,[x0,x1],[y0,y1],grid);
         clrmap(IX_passX,:) = clr1.*ones(length(IX_passX),3);
         clrmap(IX_passY,:) = clr2.*ones(length(IX_passY),3);
         clrmap(IX_fail,:) = clr_fail.*ones(length(IX_fail),3);
+        clrmap(cIX_int_raw,:) = clr_int_raw.*ones(length(cIX_int_raw),3);
+        clrmap(cIX_int,:) = clr_int.*ones(length(cIX_int),3);
         
         %% bubble plot
         h = figure('Position',[500,100,300,250]); hold on
@@ -255,8 +232,9 @@ for i_fish = range_fish
         plot([thresA,thresA],[y0,y1],'k--');
         %         plot([x0,x1],[y0,y0],'k--');
         
-        scatter(X(IX_passX),Y(IX_passX),2,clr1);%,'filled');
-        scatter(X(IX_passY),Y(IX_passY),2,clr2);%,'filled');
+        scatter(X(IX_passX),Y(IX_passX),1,clr1);%,'filled');
+        scatter(X(IX_passY),Y(IX_passY),1,clr2);%,'filled');
+        scatter(X(cIX_int_raw),Y(cIX_int_raw),1,clr_int_raw);%[1,0.5,0.5]);%,'filled');
         
         xlabel(Xname);ylabel(Yname);
         axis equal
@@ -264,28 +242,33 @@ for i_fish = range_fish
         xlim([-0.4,0.8]);
         ylim([0,1]);
         
-        scatter(X(cIX_int),Y(cIX_int),2,clr_int);%[1,0.5,0.5]);%,'filled');
+        scatter(X(cIX_int),Y(cIX_int),1,clr_int);%[1,0.5,0.5]);%,'filled');
+        
         
         % highlight anterior hindbrain (Rh1&2) cells (Rh1 219; Rh2 220;)
 %         MASKs = getappdata(hfig,'MASKs');
 %         CellXYZ_norm = getappdata(hfig,'CellXYZ_norm');
 %         absIX = getappdata(hfig,'absIX');
-%         [c_hb,g_hb] = ScreenCellsWithMasks([219,220],cIX_int,gIX_int,MASKs,CellXYZ_norm,absIX);
-%         scatter(X(c_hb),Y(c_hb),1,clr_int);
+%         [c_hb,g_hb] = ScreenCellsWithMasks([219,220],cIX_int_raw,gIX_int_raw,MASKs,CellXYZ_norm,absIX);
+%         scatter(X(c_hb),Y(c_hb),1,'k');%clr_int);
         
         %% save bubble plot
         IM_1{i_lr,i_fish} = print('-RGBImage');
         close(h)
         
-        %% make histogram
-        M_pool{1,i_fish} = X;
-        M_pool{2,i_fish} = Y;
-        M_pool{3,i_fish} = cIX_int;
+        %% intersection anat map
+        setappdata(hfig,'clrmap_name','hsv_old');
+        gIX_int = ones(size(cIX_int));
+        I = LoadCurrentFishForAnatPlot(hfig,cIX_int,gIX_int,clr_int);
+        [h,~,im] = DrawCellsOnAnat(I);
+        close(h);
+        IM_int{i_fish} = im;
         
-%         xbins = 0:0.05:1;
-%         [N(i_fish,:),edges,bin] = histcounts(M_Count{i_fish},xbins);
-        
-        
+        I = LoadCurrentFishForAnatPlot(hfig,cIX_int_raw,gIX_int_raw,clr_int_raw);%,clrmap);
+        [h,~,im] = DrawCellsOnAnat(I);
+        close(h);
+        IM_int_raw{i_fish} = im;
+
 
     end
     
@@ -340,9 +323,12 @@ for i_fish = range_fish
         close(h)
         IM_3{i_fish} = im;
 
+        Intersect_cIX_thres{i_fish,i_perct} = cIX_int;
     
 end
 
+%%
+save(fullfile(outputDir,'PTintOMR_regbased_sweepthres.mat'),'Intersect_cIX_thres','-append');
 
 %% draw color bars - to save???
 % figure
@@ -373,6 +359,10 @@ for i_set = 1:n_reg
     
     tiffdir = fullfile(outputDir,[M_reg_name{i_set},'_int_allfish.tiff']);
     IM = IM_int(range_im);
+    SaveImToTiffStack(IM,tiffdir);
+    
+    tiffdir = fullfile(outputDir,[M_reg_name{i_set},'_int_raw_allfish.tiff']);
+    IM = IM_int_raw(range_im);
     SaveImToTiffStack(IM,tiffdir);
 end
 
@@ -433,6 +423,18 @@ for i_set = 1:n_reg
     [h_anat,im_avr] = AverageAnatPlot(cellarray,k_contrast,k_scale);
     
     tiffdir = fullfile(outputDir,[M_reg_name{i_set},'_int_avr.tiff']);
+    imwrite(im_avr, tiffdir, 'compression','none','writemode','overwrite');
+        
+    % int_raw
+    cellarray = IM_int_raw(range_im);
+    
+    % adjust params for visualization
+    k_scale = 0.8;%1/1.5;%M_k_scale{i_set};
+    k_contrast = 1.2;%M_k_contrast{i_set};
+    
+    [h_anat,im_avr] = AverageAnatPlot(cellarray,k_contrast,k_scale);
+    
+    tiffdir = fullfile(outputDir,[M_reg_name{i_set},'_int_raw_avr.tiff']);
     imwrite(im_avr, tiffdir, 'compression','none','writemode','overwrite');
 end
 

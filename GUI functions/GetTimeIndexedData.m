@@ -35,34 +35,47 @@ tIX = getappdata(hfig,'tIX');
 % absIX = getappdata(hfig,'absIX');
 
 %% set data
-if isStimAvr,
-    if exist('isAllCells','var'),
-        M = cellRespAvr(:,tIX);
+isFullData = getappdata(hfig,'isFullData');
+if isFullData
+    
+    if isStimAvr,
+        if exist('isAllCells','var'),
+            M = cellRespAvr(:,tIX);
+        else
+            M = cellRespAvr(cIX,tIX);
+        end
+        behavior = BehaviorAvr(:,tIX);
+        stim = stimAvr(:,tIX);
     else
-        M = cellRespAvr(cIX,tIX);
+        if exist('isAllCells','var'),
+            M = cellResp(:,tIX);
+        else
+            M = cellResp(cIX,tIX);
+        end
+        behavior = Behavior_full(:,tIX);
+        stim = stim_full(:,tIX);
     end
-    behavior = BehaviorAvr(:,tIX);
-    stim = stimAvr(:,tIX);
+    
+    
+    if isTrialRes
+        [~,M] = GetTrialAvrLongTrace(hfig,M);
+        [~,behavior] = GetTrialAvrLongTrace(hfig,behavior);
+        %     cellRespAvr = getappdata(hfig,'CellRespAvrZ');
+    end
+    
+    if isClusRes
+        gIX = getappdata(hfig,'gIX');
+        [~,M] = FindClustermeans(gIX,M);
+    end
 else
-    if exist('isAllCells','var'),
-        M = cellResp(:,tIX);
+    M = [];
+    if isStimAvr,
+        behavior = BehaviorAvr(:,tIX);
+        stim = stimAvr(:,tIX);
     else
-        M = cellResp(cIX,tIX);
+        behavior = Behavior_full(:,tIX);
+        stim = stim_full(:,tIX);
     end
-    behavior = Behavior_full(:,tIX);
-    stim = stim_full(:,tIX);
-end
-
-
-if isTrialRes
-    [~,M] = GetTrialAvrLongTrace(hfig,M);
-    [~,behavior] = GetTrialAvrLongTrace(hfig,behavior);
-%     cellRespAvr = getappdata(hfig,'CellRespAvrZ');
-end
-
-if isClusRes
-    gIX = getappdata(hfig,'gIX');
-    [~,M] = FindClustermeans(gIX,M);
 end
 
 setappdata(hfig,'behavior',behavior);

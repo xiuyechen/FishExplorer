@@ -42,7 +42,7 @@ switch caseflag % NOTE: regressors hard-coded!
         M_stimrange = {1,2};
         range_fish = 8:18;
         prct_const = 5;
-%         stimrange = [1,2];
+        stimrange = [1,2];
         
     case 2 % OMR vs looming
         load(fullfile(outputDir,'4D_SM_stimrangeOMRlooming_minmax_betas.mat'));
@@ -51,7 +51,7 @@ switch caseflag % NOTE: regressors hard-coded!
         M_stimrange = {2,5};
         range_fish = [9:15,17:18];
         prct_const = 5;
-%         stimrange = [2,3];
+        stimrange = [2,3];
         
     case 3 % PT vs looming
         load(fullfile(outputDir,'4D_SM_stimrangePTloom_betas.mat'));
@@ -149,7 +149,6 @@ for i_fish = range_fish
         gIX_int = ones(size(cIX_int));%M_gIX{1}(ix);
         
     else        
-        stimrange = 1; % nominal, doesn't matter
         cIX_all = LoadSingleFishDefault(i_fish,hfig,ClusterIDs,stimrange,0);
         cIX_int = Intersect_cIX{i_fish,prct_const};
         gIX_int = ones(size(cIX_int));

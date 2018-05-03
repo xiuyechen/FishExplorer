@@ -64,5 +64,7 @@ for i = 1:numU
             H(i) = corr(regressor',C(i,:)');
     end
 end
-[gIX,rankscore] = SortGroupIXbyScore(H,gIX,numU,'descend');
+[gIX,rankscore] = SortGroupIXbyScore(abs(H),gIX,numU,'descend');
+% [gIX,rankscore] = SortGroupIXbyScore(H,gIX,numU,'descend'); % up till
+% 1/17/18
 end

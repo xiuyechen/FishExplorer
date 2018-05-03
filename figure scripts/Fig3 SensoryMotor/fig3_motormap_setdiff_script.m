@@ -16,7 +16,7 @@ ClusterIDs = [11,2]; % init; can overrride
 prct_const = 2; % init; can overrride
 range_fish = GetFishRange;% init; can overrride
 
-caseflag = 6;
+caseflag = 4;
 switch caseflag % NOTE: regressors hard-coded!
     case 1 % main
         isSetDiffnotIntersect = 1;
@@ -37,12 +37,18 @@ switch caseflag % NOTE: regressors hard-coded!
         M_reg_name{1} = 'motormap_lrAND_VS_lrtRes_motorseed2_setdiff';
 %         M_reg_name{1} = 'motormap_lrtAvr_VS_lrtRes_motorseed2_setdiff';
               
-    case 4 % good for forward seed
+%     case 4 % good for forward seed
+%         isSetDiffnotIntersect = 1;
+%         is1RegInA = 1;
+%         M_isTrialRes = [0,0];
+%         M_reg_name{1} = 'motormap_lrAvr_VS_lrRes_motorseed2_setdiff';  
+        
+    case 4 % may replace case 4 above, for revised draft
         isSetDiffnotIntersect = 1;
-        is1RegInA = 1;
-        M_isTrialRes = [0,0];
-        M_reg_name{1} = 'motormap_lrAvr_VS_lrRes_motorseed2_setdiff';  
-
+        is1RegInA = 1; 
+        M_isTrialRes = [1,1];
+        M_reg_name{1} = 'motormap_lrAvr_VS_lrRes_motorseed2-tRes_setdiff';
+        
     case 5 % good for AHC/HBO flip? setdiff prob not worth it
         isSetDiffnotIntersect = 1;
         is1RegInA = 0; 
@@ -116,10 +122,10 @@ for i_fish = range_fish
                     Reg = C-repmat(mean(C),2,1); % lr_res, with tRes
                 end
                 
-            case 4
+            case 4 % for L/R
                 if i_itr == 1
                     C = FindClustermeans(gIX_seed,M);
-                    Reg = C(1,:).*C(2,:);%mean(C); % LR average
+                    Reg = mean(C); % LR average
                 else
                     C = FindClustermeans(gIX_seed,M);
                     Reg = C-repmat(mean(C),2,1); % lr_res

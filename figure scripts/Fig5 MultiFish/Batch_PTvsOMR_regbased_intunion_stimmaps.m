@@ -17,7 +17,7 @@ outputDir = GetOutputDataDir;
 
         
 ClusterIDs = [11,2]; % init; can overrride
-prct_const = 2; % init; can overrride
+prct_const = 3; % init; can overrride
 range_fish = 8:18;%18;%GetFishRange;% init; can overrride
 
 caseflag = 2;
@@ -34,6 +34,7 @@ switch caseflag % NOTE: regressors hard-coded!
         M_isTrialRes = [0,0];
         M_reg_name{1} = 'stimmaps_PT_VS_OMR_intunion';
         M_reg_range = {[3,2],[9,8]};
+%         prct_const = 2; % used for original fig6a up til 1/19/20
                 
     case 3 % for PT&looming?
         isSetDiffnotIntersect = 0;

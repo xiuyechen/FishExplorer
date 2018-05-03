@@ -11,7 +11,7 @@ ResetDisplayParams(hfig);
 isStimLockRanking = 0; % init
 isMotorRanking = 0; % init
 
-for caseflag = 7
+for caseflag = 5
     switch caseflag
         case 1 % seeds
             stimrange = [];
@@ -50,6 +50,7 @@ for caseflag = 7
             M_fishrange = {[1:3,5:18]};
             n_reg = length(M_clus_name);
             isStimLockRanking = 0;
+            isMotorRanking = 1;
             
         case 6 % HBO stripes
             stimrange = 2;

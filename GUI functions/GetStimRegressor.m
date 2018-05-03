@@ -197,13 +197,40 @@ else%if fishset == 2,
     end
     names = [singleNames, comboNames];
     
+    %% adding PT/OMR incongruent set (1/17/18)
+    incongruentNames = {'P_l,O_r','P_r,O_l'};
+    H = {[2,11],[1,12]};
+    numIC = length(H);
+    incongruent_on = zeros(2, tlen);
+    for i = 1:numIC
+        for j = 1:length(H{i});
+            temp = (stim==H{i}(j));
+            ix = find(temp);
+            if ~isempty(ix),
+                incongruent_on(i,ix) = 1;
+            end
+        end
+    end
+    names = [singleNames, comboNames, incongruentNames];
 end
 
 %% pool all into cell array
+if fishset == 1
 regressor_0={
     stimPS_on;
     stimCB_on;
     };
+else
+    regressor_0={
+    stimPS_on;
+    stimCB_on;
+    incongruent_on;
+    };
+end
+% regressor_0={
+%     stimPS_on;
+%     stimCB_on;
+%     };
 
 nRegType = length(regressor_0);
 % % name_array = {'stimPS_on','stimPS_start','stimPS_stop','stimTS','stimCB_on',...

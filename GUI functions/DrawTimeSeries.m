@@ -83,15 +83,15 @@ end
 M = getappdata(hfig,'M');
 
 nFrames = size(M,2);
-
-if isPopout, % ...for isCentroid, skipping before getting Centroid causes trouble...
-%     down-sample
-    ds_cap = 1000;
-    nCells = length(cIX);
-    skip = max(1,round(nCells/ds_cap));
-    M = M(1:skip:end,:); % down-sized
-    gIX = gIX(1:skip:end,:); % down-sized
-end
+% 
+% if isPopout
+% %     down-sample
+%     ds_cap = 1000;
+%     nCells = length(cIX);
+%     skip = max(1,round(nCells/ds_cap));
+%     M = M(1:skip:end,:); % down-sized
+%     gIX = gIX(1:skip:end,:); % down-sized
+% end
 
 axis off;
 pos = get(h_ax,'Position'); % [left, bottom, width, height]    
@@ -184,6 +184,10 @@ if isPlotLines,
             % draw mean
             plot(xv,ymean,'-','Linewidth',1,'color',clrmap(k,:))
             axis tight;axis off
+            
+            if false %isPlotClusN
+                text (xv(end)+1,0,['n=',num2str(size(Ys,1))]);
+            end
         end
         
         %% plot scale bar

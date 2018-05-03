@@ -4,8 +4,10 @@ setappdata(hfig,'i_fish',i_fish);
 
 %% load fish data
 if ~exist('isFullData','var')
-    isFullData = true; % isFullData=false to turn off
+    isFullData = true; % isFullData=false to turn off    
 end
+setappdata(hfig,'isFullData',isFullData);
+
 LoadFullFish(hfig,i_fish,isFullData); 
 
 %% load the auto-clustering indices
@@ -25,17 +27,15 @@ if ~exist('stimrange','var') || isempty(stimrange)
 end
 setappdata(hfig,'stimrange',stimrange); % need to UpdateTimeIndex if changed
 
-if isFullData
-    UpdateTimeIndex(hfig);
-    
-    M = getappdata(hfig,'M');
-    if nargout>3,
-        stim = getappdata(hfig,'stim');
-        behavior = getappdata(hfig,'behavior');
-        % z-score behavior!
-        behavior = zscore(behavior,0,2);
-        M_0 = getappdata(hfig,'M_0');
-    end
+UpdateTimeIndex(hfig);
+
+M = getappdata(hfig,'M');
+if nargout>3,
+    stim = getappdata(hfig,'stim');
+    behavior = getappdata(hfig,'behavior');
+    % z-score behavior!
+    behavior = zscore(behavior,0,2);
+    M_0 = getappdata(hfig,'M_0');
 end
 
 end

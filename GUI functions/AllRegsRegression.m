@@ -1,4 +1,4 @@
-function [cIX,gIX,numK,IX_regtype,corr_max] = AllRegsRegression(hfig,isRegIndividualCells,isRegCurrentCells)
+function [cIX,gIX,numK,IX_regtype,corr_max,names] = AllRegsRegression(hfig,isRegIndividualCells,isRegCurrentCells)
 % i.e. code for 'best regressor regression' where each cell is assigned to
 % the cluster corresponding to the regressor it is most similar to
 if ~exist('isRegIndividualCells','var'),
@@ -28,7 +28,7 @@ numK = getappdata(hfig,'numK');
 i_fish = getappdata(hfig,'i_fish');
 
 % get stim/motor regressors
-[~,~,regressor_s] = GetStimRegressor(stim,fishset,i_fish);
+[~,names,regressor_s] = GetStimRegressor(stim,fishset,i_fish);
 [~,~,regressor_m] = GetMotorRegressor(behavior,i_fish);
 Reg = vertcat(regressor_s,regressor_m);
 

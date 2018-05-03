@@ -110,7 +110,7 @@ i_fish = 8;
             M_cIX{i_prct_count,i_itr} = cIX_all(IX_pass);
             
             if i_prct_count==1
-                M_cIX_diff{i_prct_count,i_itr} = cIX_all(IX_pass);
+                M_cIX_diff{i_prct_count,i_itr} = cIX_all(IX_pass); % exception, manual
             else
                 M_cIX_diff{i_prct_count,i_itr} = setdiff(cIX_all(IX_pass),M_cIX_diff{i_prct_count-1,i_itr});
             end
