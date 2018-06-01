@@ -197,7 +197,7 @@ end
 tot_image(tot_image(:)>1) = 1;
 tot_image(tot_image(:)<0) = 0;
 
-image(tot_image);
+image(image_XYYZ); % image(tot_image);
 axis image;axis off
 
 set(gcf,'Color','w');

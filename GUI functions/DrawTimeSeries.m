@@ -220,8 +220,30 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
     if isCentroid,
         M_ = FindClustermeans(gIX,M);
         gIX_ = unique(gIX);
-    else
-        M_ = M;
+    else        
+        if ~isPopout, % down-sample
+            displaymax_cell = 8000;
+            displaymax_frames = 5000;
+            if length(cIX) > displaymax_cell,
+                skip_cell = round(length(cIX)/displaymax_cell);
+
+                cIX = cIX(1:skip_cell:end,:);
+                gIX = gIX(1:skip_cell:end,:);
+                M_ = M(1:skip_cell:end,:);
+            else
+                M_ = M;
+            end
+            
+            if size(M_,2) > displaymax_frames,
+                skip_frames = round(length(cIX)/displaymax_frames);
+                M_ = M_(:,1:skip_frames:end);
+                stim = stim(:,1:skip_frames:end);
+                behavior = behavior(:,1:skip_frames:end);
+            end
+        else % don't down-sample
+            M_ = M;
+        end
+
         gIX_ = gIX;
     end
     

@@ -275,7 +275,7 @@ for setflag = 5
             
             %% load
             range_load = 1:17;
-            for i_fish = range_load;
+            for i_fish = range_load
                 im = double(imread(tiffdir,i_fish))./255;
                 IM_full{i_set,i_fish} = im;
 %                 IM_full{i_set,i_fish} = im(317:1236,1:621,:);

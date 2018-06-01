@@ -28,7 +28,7 @@ ClusterIDs = [2,1];
 % tscriptstart = tic;
 Betas = cell(2,18);
 
-caseflag = 7;
+caseflag = 11;
 switch caseflag
     case 1
         stimrange = [];
@@ -63,13 +63,30 @@ switch caseflag
         stimrange = [2,5];
         range_fish = [9:15,17:18];
         filename = '4D_SM_stimrangeOMRlooming_minmax_betas';
+        
+    case 8 % PT
+        stimrange = 1;
+        range_fish = 6:18;%GetStimRange('P');
+        filename = '4D_SM_stimrangePT_betas';
+    case 9  % OMR
+        stimrange = 2;
+        range_fish = 8:18;
+        filename = '4D_SM_stimrangeOMR_betas';
+    case 10 % Looming
+        stimrange = 5;
+        range_fish = [9:15,17:18];
+        filename = '4D_SM_stimrangelooming_betas';
+    case 11 % DF
+        stimrange = 3;
+        range_fish = [12:15,17:18];
+        filename = '4D_SM_stimrangeDF_betas';
 end
         
 %%
 for i_fish = range_fish
     disp(['i_fish = ',num2str(i_fish)]);
     
-    if caseflag<6
+    if caseflag~=6 & caseflag~=7
         %% load data for chosen stim range
         [cIX_load,gIX_load,M,stim,behavior,M_0] = LoadSingleFishDefault...
             (i_fish,hfig,ClusterIDs,stimrange);

@@ -191,12 +191,6 @@ hloadfish = uicontrol('Parent',tab{i_tab},'Style','popupmenu','String',temp,...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@popup_loadfullfishmenu_Callback);
 
-i=i+n;
-n=2; % only centroids (~mean) of clusters shown on left-side plot, the rest is unchanged
-uicontrol('Parent',tab{i_tab},'Style','checkbox','String','Load 100% data',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',1,...
-    'Callback',@checkbox_isFullData_Callback);
-
 % i=i+n;
 % n=2; %
 % uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','or choose files',...
@@ -384,7 +378,7 @@ uicontrol('Parent',tab{i_tab},'Style','text','String','Choose colormap:',...
 i=i+n;
 n=2; %
 hloadfish = uicontrol('Parent',tab{i_tab},'Style','popupmenu',...
-    'String',{'hsv(new)','jet','random clrs','hsv(old)'},...
+    'String',{'hsv(new)','jet','greedy hsv','hsv(old)'},...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@popup_chooseclrmap_Callback);
 
@@ -398,6 +392,13 @@ n=1;
 uicontrol('Parent',tab{i_tab},'Style','edit',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@edit_manualsetnumK_Callback);
+
+i=i+n;
+n=1;
+uicontrol('Parent',tab{i_tab},'Style','edit',...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
+    'Callback',@edit_topXstimlock_Callback);
+
 
 %% UI row 3: Anatomy
 i_row = 3;
@@ -567,7 +568,7 @@ uicontrol('Parent',tab{i_tab},'Style','checkbox','String','(current cells)',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',1,...
     'Callback',@checkbox_isRegCurrentCells_Callback);
 
-%% UI row 3: t-tests, and stim-locking
+%% UI row 3: t-tests
 i_row = 3;
 i = 1;n = 0;
 
@@ -599,21 +600,6 @@ n=2;
 uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','t-test',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
     'Callback',@pushbutton_ttest_Callback);
-
-i=i+n;
-n=2;
-uicontrol('Parent',tab{i_tab},'Style','text','String','Stim-lock ranking %:',...
-    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
-
-i=i+n;
-n=1;
-uicontrol('Parent',tab{i_tab},'Style','edit','String','(blank)',...
-    'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
-    'Callback',@edit_stimlockprctile_Callback); % e.g. '1-3,5', but can't use 'end'
-i=i+n;
-n=2;
-uicontrol('Parent',tab{i_tab},'Style','text','String','%',...
-    'Position',[grid(i) yrow(i_row)-dTextHt bwidth*n rheight],'HorizontalAlignment','right');
 
 % i=i+n;
 % n=2;
@@ -1086,7 +1072,6 @@ assignin('base', 'numK', getappdata(hfig,'numK'));
 assignin('base', 'absIX', getappdata(hfig,'absIX'));
 assignin('base', 'i_fish', getappdata(hfig,'i_fish'));
 assignin('base', 'CellXYZ', getappdata(hfig,'CellXYZ'));
-assignin('base', 'CellXYZ_norm', getappdata(hfig,'CellXYZ_norm'));
 end
 
 function pushbutton_loadVARfromworkspace_Callback(hObject,~)
@@ -1215,20 +1200,6 @@ function popup_loadfullfishmenu_Callback(hObject,~)
 i_fish = get(hObject,'Value')-1;
 hfig = getParentFigure(hObject);
 isFullData = getappdata(hfig,'isFullData');
-if i_fish>0,
-    WatchOn(hfig); drawnow;
-    LoadFullFish(hfig,i_fish,isFullData);
-    UpdateFishData(hfig,i_fish);
-    WatchOff(hfig);
-end
-end
-
-function checkbox_isFullData_Callback(hObject,~)
-hfig = getParentFigure(hObject);
-isFullData = get(hObject,'Value');
-setappdata(hfig,'isFullData',isFullData);
-i_fish = getappdata(hfig,'i_fish');
-
 if i_fish>0,
     WatchOn(hfig); drawnow;
     LoadFullFish(hfig,i_fish,isFullData);
@@ -1893,6 +1864,56 @@ if ~isempty(str),
         UpdateIndices(hfig,cIX,gIX,numK);
         RefreshFigure(hfig);
     end    
+end
+end
+
+function edit_topXstimlock_Callback(hObject,~)
+str = get(hObject,'String');
+if ~isempty(str),
+    temp = textscan(str,'%f');
+    topPrct = temp{:};
+    hfig = getParentFigure(hObject);
+    cIX_load = getappdata(hfig,'cIX');
+    M = getappdata(hfig,'M');
+    
+    [~,~,M_score] = GetTrialAvrLongTrace(hfig,M);
+    
+    [score_sort, IX_sort] = sort(M_score);
+    
+    %% set colormap
+%     if isHotmapNotSingleColor
+        numC = 64;
+        clrmap = flipud(hot(numC));
+%     else
+%         clr1 = [1,0,0];
+%         clr1_ = [0,0,0];
+%         numC = 64;
+%         clrmap = Make1DColormap([clr1_;clr1],numC);
+%     end
+    
+    %% top %
+    thres_cut = prctile(M_score,topPrct);
+    thres_min = prctile(M_score,0.1);
+    ix_end = find(score_sort<thres_cut,1,'last');
+    
+    IX = IX_sort(1:ix_end);
+    cIX = cIX_load(IX);
+    Xrange = [thres_min,thres_cut];
+    
+    gIX = MapXto1Dcolormap(M_score(IX),Xrange,numC);
+    UpdateIndices(hfig,cIX,gIX);
+    RefreshFigure(hfig);
+
+%     % rank and keep top X percentile
+%     nIn = length(gIX);
+%     nOut = round(nIn*thres);
+%     [IX,rankscore] = RankByStimLock(hfig,(1:nIn));
+%     if nOut<200
+%         gIX = (1:nOut)';
+%     else
+%         gIX = ones(nOut,1);
+%     end
+%     cIX = cIX(IX(1:nOut));
 end
 end
 
@@ -2623,46 +2644,6 @@ RefreshFigure(hfig);
 
 end
 
-function edit_stimlockprctile_Callback(hObject,~)
-str = get(hObject,'String');
-if ~isempty(str),
-    temp = textscan(str,'%f');
-    topPrct = temp{:};
-    hfig = getParentFigure(hObject);
-    M = getappdata(hfig,'M');
-    cIX_load = getappdata(hfig,'cIX');
-    
-    [~,~,M_score] = GetTrialAvrLongTrace(hfig,M);
-    
-    [score_sort, IX_sort] = sort(M_score);
-
-%     % make colormap
-%      if isHotmapNotSingleColor
-%         numC = 64;
-%         clrmap = flipud(hot(numC));
-%     else
-%         clr1 = [1,0,0];
-%         clr1_ = [0,0,0];
-%         numC = 64;
-%         clrmap = Make1DColormap([clr1_;clr1],numC);
-%      end
-    
-    %% top %
-    thres_cut = prctile(M_score,topPrct);
-    thres_min = prctile(M_score,0.1);
-    ix_end = find(score_sort<thres_cut,1,'last');
-    
-    IX = IX_sort(1:ix_end);
-    cIX = cIX_load(IX);
-    Xrange = [thres_min,thres_cut];
-    numC = 64;
-    
-    gIX = MapXto1Dcolormap(M_score(IX),Xrange,numC);
-    
-    UpdateIndices(hfig,cIX,gIX);
-    RefreshFigure(hfig);
-end
-end
 %% ----- tab four ----- (Clustering etc.)
 
 %% row 1: k-means
@@ -3783,7 +3764,7 @@ if size(C,1)>1,
             %             subplot(1,3,2);
             dendrogram(tree,numU,'orientation','right','reorder',leafOrder);
             set(gca,'YDir','reverse');
-%             set(gca,'XTick',[]);
+            set(gca,'XTick',[]);
             
             %             subplot(1,3,3);
             %             C2 = C(leafOrder,:);
@@ -3986,9 +3967,7 @@ end
 axes(h2);
 % if length(unique(gIX))<500,
 I = LoadCurrentFishForAnatPlot(hfig);
-[~,tot_image] = DrawCellsOnAnat(I,h2);
-image(tot_image);
-axis image;axis off
+DrawCellsOnAnat(I,h2);
 %     DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
 % end
 WatchOff(hfig);

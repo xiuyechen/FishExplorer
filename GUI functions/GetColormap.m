@@ -8,8 +8,14 @@ if strcmp(clrmap_name,'hsv_new'),
 elseif strcmp(clrmap_name,'jet'),
     cmap = flipud(jet(numK));   
 elseif strcmp(clrmap_name,'greedy_hsv'),
-    cmap64 = greedy_hsv;
-    cmap = InterpColormap(cmap64,numK);
+%     cmap64 = greedy_hsv;
+%     cmap = InterpColormap(cmap64,numK);
+% choose random colors!
+%  cmap64 = greedy_hsv;
+rng(1);
+H = horzcat(rand(numK,1),rand(numK,1),0.5+0.5*rand(numK,1));
+cmap = hsv2rgb(H);
+    
 elseif strcmp(clrmap_name,'hsv_old'),
     cmap = hsv(round(numK*1.1));
 %     cmap64 = hsv_old;

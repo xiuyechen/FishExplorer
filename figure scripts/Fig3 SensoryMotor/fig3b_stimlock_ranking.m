@@ -11,7 +11,7 @@ InitializeAppData(hfig);
 ResetDisplayParams(hfig);
 
 %% Load fish
-range = 1:18;
+range = 12;%1:18;
 M_reg_name = {'top10_allfish','bottom10_allfish'};
 n_reg = length(M_reg_name);
 

@@ -43,6 +43,9 @@ else
 
             period = periods(i_stim);
             C_this = C(:,tIX_);
+            
+            C_this = zscore(C_this,0,2); % 05/11/18
+            
             C_3D_0 = reshape(C_this,size(C,1),period,[]);
             C_period = mean(C_3D_0,3);%median(C_3D_0,3);
             nPeriods = length(tIX_)/period;
@@ -51,8 +54,7 @@ else
             C_trialRes_this = C_this-C_trialAvr_this;
             
             C_3D_tRes = reshape(C_trialRes_this,size(C,1),period,[]);
-%             C_3D_tRes = zscore(C_3D_tRes_0,0,2);
-            d2var = (nanstd(C_3D_tRes,0,3)).^2;
+            d2var = (nanstd(C_3D_tRes,0,3)).^2; % d2var = (mad(C_3D_tRes,0,3)).^2;
             C_d2var_perstim = horzcat(C_d2var_perstim,nanmean(d2var,2)); %#ok<AGROW>
     
             C_p = horzcat(C_p,C_this); % 12/18/17 - XC
@@ -75,7 +77,7 @@ else
     % condense C_d2var_perstim for multiple stimsets down to 1 score
     if isempty(C_d2var_perstim)
         errordlg('chosen stimulus range not suitable for stim-lock analysis');
-        C_score = 1:numU;
+%         C_score = 1:numU;
         return;
     end
     C_score = zeros(size(C_d2var_perstim,1),1);

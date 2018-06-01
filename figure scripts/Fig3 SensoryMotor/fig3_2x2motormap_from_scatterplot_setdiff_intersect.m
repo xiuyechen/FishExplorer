@@ -10,7 +10,7 @@ outputDir = GetOutputDataDir;
 
 ClusterIDs = [2,1]; % init; can overrride
 prct_const = 2; % init; can overrride
-range_fish = GetFishRange;% init; can overrride
+
 
 
 %% init
@@ -31,8 +31,29 @@ IM_maps = cell(5,18);
 % IM_X = cell(n_reg,18);
 % IM_Y = cell(n_reg,18);
 
-load(fullfile(outputDir,'4D_SM_betas.mat'));
-
+caseID = 5;
+switch caseID
+    case 1
+        load(fullfile(outputDir,'4D_SM_betas.mat'));
+        M_reg_name = {'2x2motormaps'};
+        range_fish = GetFishRange;% init; can overrride
+    case 2
+        load(fullfile(outputDir,'4D_SM_stimrangePT_betas.mat'));
+        M_reg_name = {'2x2motormaps_PT'};
+        range_fish = 6:18;
+    case 3        
+        load(fullfile(outputDir,'4D_SM_stimrangeOMR_betas.mat'));
+        M_reg_name = {'2x2motormaps_OMR'};
+        range_fish = 8:18;
+    case 4
+        load(fullfile(outputDir,'4D_SM_stimrangelooming_betas.mat'));
+        M_reg_name = {'2x2motormaps_looming'};
+        range_fish = [9:15,17:18];
+    case 5
+        load(fullfile(outputDir,'4D_SM_stimrangeDF_betas.mat'));
+        M_reg_name = {'2x2motormaps_DF'};
+        range_fish = [12:15,17:18];
+end
 %% run fish
 for i_fish = range_fish
     
@@ -133,7 +154,7 @@ end
 
 %% save as tiff stack
 M_lr = {'-L','-R'};
-M_reg_name = {'2x2motormaps'};
+
 M_comp_names = {'passX','passY','passXonly','passYonly','passXY'};
 n_reg = 1;
 for i_set = 1:n_reg

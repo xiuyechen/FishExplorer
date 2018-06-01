@@ -20,10 +20,17 @@ if ~exist('tiffdir','var')
 end
 
 % load params
-
-CellXYZ = getappdata(hfig,'CellXYZ');
 absIX = getappdata(hfig,'absIX');
-anat_stack = getappdata(hfig,'anat_stack');
+isRefAnat = getappdata(hfig,'isRefAnat');
+if ~isRefAnat
+    CellXYZ = getappdata(hfig,'CellXYZ');    
+    anat_stack = getappdata(hfig,'anat_stack');
+    radius_xy = 7;
+else
+    CellXYZ = getappdata(hfig,'CellXYZ_norm');
+    anat_stack = getappdata(hfig,'anat_stack_norm');
+    radius_xy = 4;
+end
 
 % initialize image stack
 anat_stack2 = zeros([size(anat_stack),3]);
@@ -31,7 +38,6 @@ nPlanes = size(anat_stack,3);
 dimv_yxz = size(anat_stack);
 
 % make cell-shaped circular mask
-radius_xy = 7;
 circlemaskIX = MakeCircularMask(radius_xy,dimv_yxz(1:2));
 
 % make color-map
