@@ -1,2 +1,0 @@
-
-Batch_computeCVfromVAR.m;
