@@ -1091,20 +1091,19 @@ end
 
 function pushbutton_loadVARfromworkspace_Callback(hObject,~)
 % (code copied from UpdateFishData)
-% disp('import VAR from workspace');
-% hfig = getParentFigure(hObject);
-% 
-% clusgroupID = 1;
-% setappdata(hfig,'clusgroupID',clusgroupID);
-% setappdata(hfig,'clusgroupID_view',clusgroupID);
-% UpdateClusGroupGUI(hfig,clusgroupID);
-% 
-% setappdata(hfig,'clusID',1);
-% UpdateClustersGUI(hfig);
-% LoadNewClusters(hfig);
-
+% used if global VAR updated in workspace, to update in GUI
+disp('import VAR from workspace');
 hfig = getParentFigure(hObject);
-% [cIX,gIX] = BubblePlot(hfig);
+
+clusgroupID = 1;
+setappdata(hfig,'clusgroupID',clusgroupID);
+setappdata(hfig,'clusgroupID_view',clusgroupID);
+UpdateClusGroupGUI(hfig,clusgroupID);
+
+setappdata(hfig,'clusID',1);
+UpdateClustersGUI(hfig);
+LoadNewClusters(hfig);
+
 UpdateIndices(hfig,cIX,gIX);
 RefreshFigure(hfig);
 end
