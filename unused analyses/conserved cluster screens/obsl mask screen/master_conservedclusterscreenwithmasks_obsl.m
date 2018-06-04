@@ -23,24 +23,3 @@ PairwiseMaskScreen(hfig);
 % TtestTrial_loopall
 
 %% 6. save full-size fMask corresponding to best node into annotated collection
-
-
-%%%%%%%% Scheme incorporating fast dist-test(min(r1,r2)/r12) %%%%%%%%
-
-%% 1. Pairwise Dist-Test for all clusters from all fish -> candidate clusters
-% ~100 clusters each for 18 fish
-PairwiseClusterScreen(hfig);
-
-%% 2. make (and store) maps for all candidate clusters
-MakefMasksForAllFish(hfig);
-
-%% 3. Pairwise Anat-Test for all candidate clusters
-PairwiseMaskScreen(hfig);
-
-%% 4. Pool pairwise comparison into graph to identify top nodes (~100??)
-ScreenGraphNodes;
-
-%% 5. Screen and label subsets with regs (~50regs * ~10clus * ~10fish)
-% Batch_poolautoclusters_reg_intoFC;
-
-%% 6. save full-size fMask corresponding to best node into annotated collection

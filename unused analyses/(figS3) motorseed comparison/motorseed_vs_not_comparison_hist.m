@@ -1,4 +1,10 @@
 % motorseed comparison
+% Perform regression of motor traces (seed or raw) with all cells. 
+% Histograms of regression coefficients (red: motorseed; gray: raw traces)
+% show that for each of all fish, regression with motor seeds yields higher
+% coefficients for the population.
+% not surprising, but shows that (even if a bit circular), the motorseeds
+% have a better chance of capturing motor related neurons. 
 
 
 %%
