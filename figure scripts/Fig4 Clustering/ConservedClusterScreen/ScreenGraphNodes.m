@@ -95,7 +95,7 @@ for i_fish = range_fish,
     end
     
     % save cluster
-    name = 'D12screen_6/18fish';
+    name = 'D12screen_5/18fish';
     clusgroupID = 10;
     clusIDoverride = 1;
     SaveCluster_Direct(cIX,gIX,absIX,i_fish,name,clusgroupID,clusIDoverride);
