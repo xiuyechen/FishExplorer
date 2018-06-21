@@ -21,7 +21,7 @@ if min([D1_avr,D2_avr])<100 ... % unit in pixels
         ... % then check for cluster overlap
         && mean(D12_srt(1:round(end/8)))<thres_overlap ...
         ... % then check that the cluster sizes are not >10x different
-        && length(D1)/length(D2)>1/10 && length(D1)/length(D2)<10,
+        && length(D1)/length(D2)>1/10 && length(D1)/length(D2)<10
     score_raw = min([D1_avr,D2_avr])/D12_avr;
 else
     score_raw = 0;
@@ -29,6 +29,6 @@ end
 
 % threshold
 score = score_raw;
-% score(score_raw<thres_score) = 0;
+score(score_raw<thres_score) = -score_raw;
 
 end

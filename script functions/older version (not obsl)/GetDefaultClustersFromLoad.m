@@ -1,6 +1,6 @@
 function [cIX,gIX,M_xyz_norm,M_xyz,cIX_abs,absIX] = GetDefaultClustersFromLoad(hfig,i_fish,option)
 
-LoadFullFish(hfig,i_fish,-1);
+LoadFullFish(hfig,i_fish,0);
 absIX = getappdata(hfig,'absIX');
 CellXYZ_norm = getappdata(hfig,'CellXYZ_norm');
 CellXYZ = getappdata(hfig,'CellXYZ');

@@ -48,6 +48,8 @@ C_trialAvr = repmat(C_period,1,nPeriods);
 C_trialRes = C-C_trialAvr;
 
 %% tRes/tAvr demo trace plot
+xv = (1:600)/fpsec;
+
 % find vertical stim time-references
 x_stim = stim_crop';
 x_stim(x_stim~=11) = 9;
@@ -55,7 +57,6 @@ xlines = xv(find(diff([0;x_stim])~=0));
 
 
 figure('Position',[50,200,300,200]); hold on
-xv = (1:600)/fpsec;
 
 % plot vertical reference shadings
 for i = 2:2:length(xlines)

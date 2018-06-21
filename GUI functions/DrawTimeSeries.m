@@ -28,7 +28,7 @@ isPlotBehavior = getappdata(hfig,'isPlotBehavior');
 isPlotRegWithTS = getappdata(hfig,'isPlotRegWithTS');
 clrmap = []; 
 numK = getappdata(hfig,'numK');
-isAxTight = [];
+isAxTight = 1;
 
 % override with (optional) inputs
 if exist('opts','var')
@@ -76,11 +76,16 @@ regressor = GetRegressor(hfig);
 i_fish = getappdata(hfig,'i_fish');
 
 isPlotRegSameRow = 0;
-if ~exist('isPlotRegWithTS','var'),
+if ~exist('isPlotRegWithTS','var')
     isPlotRegWithTS = 0;
 end    
 
 M = getappdata(hfig,'M');
+
+if 0 % manual adjustment!
+    M = circshift(M,30+45,2); % 15 for looming
+    stim = circshift(stim,30+45,2);
+end
 
 nFrames = size(M,2);
 % 
@@ -100,8 +105,8 @@ pos = get(h_ax,'Position'); % [left, bottom, width, height]
 numK = max(max(gIX),numK);
 
 %% Main plotting
-if isPlotLines,
-    if 1, % (just to collapse isPlotLines = true)               
+if isPlotLines
+    if 1 % (just to collapse isPlotLines = true)               
         %% settings
         len = pos(3);
 %         fpsec = getappdata(hfig,'fpsec');%1.97;
@@ -109,12 +114,12 @@ if isPlotLines,
         % set position grid
         nClus = length(unique(gIX));
         
-        if isPlotBehavior,
+        if isPlotBehavior
             nExtraRows = 3; % number of extra rows
         else
             nExtraRows = 2;
         end
-        if isPlotRegWithTS && ~isPlotRegSameRow,
+        if isPlotRegWithTS && ~isPlotRegSameRow
             nLines = nClus + 1;
             if ~isAxTight
                 nRows = max(8,nLines)+nExtraRows+1;
@@ -154,8 +159,8 @@ if isPlotLines,
         U = unique(gIX);
         
         j_pos = 0;
-        if isPlotRegWithTS,
-            if ~isPlotRegSameRow,
+        if isPlotRegWithTS
+            if ~isPlotRegSameRow
                 j_pos = 1;
             end
             
@@ -167,7 +172,7 @@ if isPlotLines,
             axis tight;axis off
         end
         
-        for j = 1:nClus,
+        for j = 1:nClus
             k = U(j);
             Ys = M(gIX==k,:);            
             ymean = mean(Ys,1);
@@ -185,17 +190,17 @@ if isPlotLines,
             plot(xv,ymean,'-','Linewidth',1,'color',clrmap(k,:))
             axis tight;axis off
             
-            if false %isPlotClusN
-                text (xv(end)+1,0,['n=',num2str(size(Ys,1))]);
-            end
+%             if false %isPlotClusN
+%                 text(xv(end)+1,0,['n=',num2str(size(Ys,1))]);
+%             end
         end
         
         %% plot scale bar
         axes('Position',[pos(1),pos(2)+pos(4)-lineH*(nLines+2),len,lineH]); hold on;
-        if nFrames<600, % <~10 min, plot 1min scale bar
+        if nFrames<600 % <~10 min, plot 1min scale bar
             plot([1,10*fpsec],[0.75,0.75],'k-');
             text(pos(1),0.5,'10 sec','HorizontalAlignment','left')
-        elseif nFrames<2400, % <~10 min, plot 1min scale bar
+        elseif nFrames<2400 % <~10 min, plot 1min scale bar
             plot([1,60*fpsec],[0.75,0.75],'k-');
             text(pos(1)+60*fpsec/2,0.5,'1 min','HorizontalAlignment','center')
         else % >~10 min, plot 5 min scale bar
@@ -206,7 +211,7 @@ if isPlotLines,
         axis off
                 
         %% draw behavior bar
-        if isPlotBehavior,
+        if isPlotBehavior
             h = axes('Position',[pos(1),pos(2)+pos(4)-lineH*(nLines+3),len,0.7/nRows]);    
             DrawBehaviorBar(h,behavior,i_fish);
             
@@ -217,14 +222,14 @@ if isPlotLines,
     end
     
 else % ~isPlotLines, i.e. plot all traces as grayscale map
-    if isCentroid,
+    if isCentroid
         M_ = FindClustermeans(gIX,M);
         gIX_ = unique(gIX);
     else        
-        if ~isPopout, % down-sample
+        if ~isPopout % down-sample
             displaymax_cell = 8000;
             displaymax_frames = 5000;
-            if length(cIX) > displaymax_cell,
+            if length(cIX) > displaymax_cell
                 skip_cell = round(length(cIX)/displaymax_cell);
 
                 cIX = cIX(1:skip_cell:end,:);
@@ -234,8 +239,8 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
                 M_ = M;
             end
             
-            if size(M_,2) > displaymax_frames,
-                skip_frames = round(length(cIX)/displaymax_frames);
+            if size(M_,2) > displaymax_frames
+                skip_frames = round(size(M_,2)/displaymax_frames);
                 M_ = M_(:,1:skip_frames:end);
                 stim = stim(:,1:skip_frames:end);
                 behavior = behavior(:,1:skip_frames:end);
@@ -249,7 +254,7 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
     
     %% set size of stimulus-bar relative to whole plot
     % each stim bar (if applicable) takes up 1 unit, and behavior bar takes up 2.
-    if ~isPopout,
+    if ~isPopout
         barratio = 0.025;
     else
         barratio = 0.05;
@@ -283,9 +288,9 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
     ix_div = [find(diff(idx));length(idx)];
     
     bars = ones(nLines,bwidth);
-    if numK>1,
+    if numK>1
         bars(1:ix_div(1),:) = idx(ix_div(1));
-        for i = 2:length(ix_div),
+        for i = 2:length(ix_div)
             % paint color
             bars(ix_div(i-1)+1:ix_div(i),:) = idx(ix_div(i));
         end
@@ -301,8 +306,8 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
        
     % plot 'im'
     hold off;
-    if isPopout,
-        if ~isPlotBehavior,
+    if isPopout
+        if ~isPlotBehavior
             set(h_ax,'Position',[pos(1),pos(2),pos(3),pos(4)*(1-barratio)]);
         else
             set(h_ax,'Position',[pos(1),pos(2)+pos(4)*barratio*2,pos(3),pos(4)*(1-barratio*3)]);
@@ -313,7 +318,7 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
     end
     
     % (if too few rows, pad to 30 rows with white background)
-    if s1<30,
+    if s1<30
         temp = im;
         im = ones(30,s2,s3);
         im(1:s1,:,:) = temp;
@@ -325,15 +330,15 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
     
     % plot cluster division lines
     plot([0.5,s2+0.5],[0.5,0.5],'k','Linewidth',0.5);
-    if numK>1,
-        for i = 1:length(ix_div),% = numK-1,
+    if numK>1
+        for i = 1:length(ix_div)% = numK-1,
             y = ix_div(i)+0.5;
             plot([0.5,s2+0.5],[y,y],'k','Linewidth',0.5);
         end
     end
     
     % label axes
-    if ~exist('nCells','var'),
+    if ~exist('nCells','var')
         nCells = nLines;
     end
     ylabel(['Number of cells: ' num2str(nCells)]);
@@ -343,19 +348,19 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
     % write in text labels (numbers corresponding to vertical colorbar)
     x = s2*1.003;
     y_last = 0;
-    for i = 1:length(ix_div),
+    for i = 1:length(ix_div)
         % avoid label crowding
         margin = 0.015*s1;
         y0 = ix_div(i)+0.5;
         y = max(y_last+margin,y0);
-        if i<length(ix_div),
+        if i<length(ix_div)
             ynext = ix_div(i+1);
         else
             ynext = y0+margin*2;
         end
         % draw if not squeezed too much away
-        if y < y0+margin*2 && y < 0.5*(y0+ynext), %nLines+stimheight-margin,
-            if exist('iswrite','var') && iswrite,
+        if y < y0+margin*2 && y < 0.5*(y0+ynext) %nLines+stimheight-margin,
+            if exist('iswrite','var') && iswrite
                 try
                     text(x,y,[num2str(idx(ix_div(i))) ': ' num2str(rankscore(i))],'HorizontalAlignment','Left','VerticalAlignment','Bottom',...
                         'FontUnits','normalized','FontSize',0.015,'Tag','label');
@@ -390,7 +395,7 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
     plot([length(stim),length(stim)],[0,size(stimbar,1)],'k','Linewidth',0.5);
     
     % bottom axis
-    if ~isPopout, % plot stimbar in the bottom too
+    if ~isPopout % plot stimbar in the bottom too
         axes('Position',[pos(1),pos(2)+pos(4)*barratio*2,pos(3),pos(4)*barratio]);
         image(stimbar);axis off;hold on;
         plot([1,length(stim)],[size(stimbar,1),size(stimbar,1)],'k','Linewidth',0.5); % plot bottom border
@@ -399,13 +404,13 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
     end
     
     %% Draw behavior
-    if isPlotBehavior,
+    if isPlotBehavior
         h = axes('Position',[pos(1),pos(2),pos(3),pos(4)*barratio*2]);        
         DrawBehaviorBar(h,behavior,i_fish,barlength);        
         axes('Position',[0.015,pos(2),0.03,pos(4)*barratio*2]);
         DrawArrowsIcon(isPopout);
     else
-        h = h_ax;
+        axes(h_ax);
     end
 
 %     % label horizontal axis: approximate time length
@@ -417,7 +422,7 @@ else % ~isPlotLines, i.e. plot all traces as grayscale map
 %     end
     
     %% Draw fish icon:
-    if ~isPopout,
+    if ~isPopout
         axes('Position',[0.015, pos(2)+pos(4)*barratio*2, 0.03, pos(4)*barratio]);
     else
         axes('Position',[0.015,pos(2)+pos(4)*(1-barratio),0.03,pos(4)*barratio]);
@@ -446,7 +451,7 @@ RGB = reshape(cmap(ix,:),[size(ix) 3]); % Make RGB image from scaled.
 end
 
 function DrawFishIcon
-if exist('fishpic.jpg','file')==2,
+if exist('fishpic.jpg','file')==2
     pic = imread('fishpic.jpg');
     fishpic = imresize(pic,0.5);
     
@@ -455,14 +460,14 @@ end
 end
 
 function DrawArrowsIcon(isPopout)
-if ~isPopout,
-    if exist('arrows.jpg','file')==2,
+if ~isPopout
+    if exist('arrows.jpg','file')==2
         pic = imread('arrows.jpg');
         arrowpic = imresize(pic,0.2);
         image(arrowpic); axis off; axis image; axis tight
     end
 else
-    if exist('arrows_wide.jpg','file')==2,
+    if exist('arrows_wide.jpg','file')==2
         pic = imread('arrows_wide.jpg');
         arrowpic = imresize(pic,0.2);
         image(arrowpic); axis off; axis image; axis tight
@@ -477,18 +482,18 @@ m = reshape([regressors(1:numReg).im],length(behavior),[])';
 m = AutoScaleImage0to1(m);
 
 % additional line-by-line normalization! (optional)
-for i = 1:numReg,
+for i = 1:numReg
     temp = m(i,:);
     m(i,:) = (temp-min(temp))/(max(temp)-min(temp));
 end
 
-if exist('barlength','var'),
+if exist('barlength','var')
     temp = ones(size(m,1),barlength);
     temp(:,1:length(m)) = m;
 else
     temp = m;
 end
-if numReg == 2,
+if numReg == 2
     imagesc(temp);colormap gray
     set(h,'YTick',[],'XTick',[]);
     set(h, 'box', 'off')
@@ -499,7 +504,7 @@ if numReg == 2,
     y = 1.5;
     plot([0.5,length(behavior)+0.5],[y,y],'w','Linewidth',0.5);
     
-elseif 1, % plot all 5 lines
+else % plot all 5 lines
     imagesc(temp(1:5,:));colormap gray
     set(h,'YTick',[],'XTick',[]);
     set(h, 'box', 'off')
@@ -507,7 +512,7 @@ elseif 1, % plot all 5 lines
     hold on;axis ij;
     
     % plot division lines
-    for i = 0:3,
+    for i = 0:3
         y = i+0.5;
         plot([0.5,length(behavior)+0.5],[y,y],'w','Linewidth',0.5);
     end
@@ -519,18 +524,18 @@ elseif 1, % plot all 5 lines
 %         text(x,y,names{i},'Fontsize',7);
 %     end
     
-else % only plot top 3 lines
-    m = vertcat(temp(1,:),temp(2,:),temp(3,:));    
-    imagesc(m);colormap gray
-    set(h,'YTick',[],'XTick',[]);
-    set(h, 'box', 'off')
-    axis off
-    hold on;axis ij;
-    
-    % plot division lines
-    for i = 0:2,
-        y = i+0.5;
-        plot([0.5,length(behavior)+0.5],[y,y],'w','Linewidth',0.5);
-    end    
+% else % only plot top 3 lines
+%     m = vertcat(temp(1,:),temp(2,:),temp(3,:));    
+%     imagesc(m);colormap gray
+%     set(h,'YTick',[],'XTick',[]);
+%     set(h, 'box', 'off')
+%     axis off
+%     hold on;axis ij;
+%     
+%     % plot division lines
+%     for i = 0:2
+%         y = i+0.5;
+%         plot([0.5,length(behavior)+0.5],[y,y],'w','Linewidth',0.5);
+%     end    
 end
 end

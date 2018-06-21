@@ -97,7 +97,9 @@ for i_stim = 2:6
     y = P_pval2(:,:,i_stim);
     h = histogram(y(:),[0:0.05:1]);
     h.FaceColor = [0.5,0.5,0.5];
-    xlim([0,1]);ylim([0,30])
+    set(gca,'xscale','log');
+%     xlim([0,1]);
+    ylim([0,30])
     plot([0.05,0.05],[0,30],'r--')
     title(M_stimname{i_stim})
     length(find(y(:)>1))

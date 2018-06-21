@@ -17,8 +17,9 @@ thres_reg_const = 0.5;
 % M_reg_thres = {0.5,0.5,0.5};
 
 isKeepTopPrct = 0; % init, can override
+isMotorseed = 0; % init, can override
 
-for setflag = 5
+for setflag = 9
     % reset
     ResetDisplayParams(hfig);
     
@@ -34,7 +35,7 @@ for setflag = 5
         case 2 % OMR
             %             stimrange = 2;
             M_stimrange = GetStimRange('O');
-            M_regtypeflag = [1,1,2]; % 1 for stim and 0 for motor
+            M_regtypeflag = [1,1,2]; % 1 for stim and 2 for motor
             M_reg_name = {'OMR_FwBw','OMR_LR','OMR_SwimLR'};
             M_reg_range =  {[7,6],[9,8],[1,3]};
             M_fishrange = {[8:18],[8:18],[8:18]};
@@ -42,7 +43,7 @@ for setflag = 5
         case 3 % Looming
             %             stimrange = 5;
             M_stimrange = GetStimRange('L');
-            M_regtypeflag = [1,2]; % 1 for stim and 0 for motor
+            M_regtypeflag = [1,2]; % 1 for stim and 2 for motor
             M_reg_name = {'Loom_LR','Loom_SwimLR'};
             M_reg_range =  {[11,12],[1,3]};
             M_fishrange = {[9:15,17:18],[9:15,17:18]};
@@ -50,7 +51,7 @@ for setflag = 5
         case 4 % Dark Flash (black-white)
             %             stimrange = 3;
             M_stimrange = GetStimRange('D');
-            M_regtypeflag = [1,2]; % 1 for stim and 0 for motor
+            M_regtypeflag = [1,2]; % 1 for stim and 2 for motor
             M_reg_name = {'DF_BW','DF_SwimLR'};
             M_reg_range =  {[1,4],[1,3]};
             M_fishrange = {[1:5,12:15,17:18],[12:15,17:18]}; % up till 7/10
@@ -102,6 +103,17 @@ for setflag = 5
             isKeepTopPrct = 1;
             prct_const = 1;
             setappdata(hfig,'isTrialRes',1);
+            
+        case 9 % spontaneous
+            M_stimrange = GetStimRange('S'); % spontaneous
+            M_regtypeflag = [2]; % 1 for stim and 2 for motor
+            M_reg_name = {'spt_SwimLR_notmotorseed_top2%'};
+            M_reg_range =  {[1,3]}; % {[1,2]} for ismotorseed = 1
+            M_fishrange = {[8:15,17:18]};
+            
+            isMotorseed = 0; % 1
+            isKeepTopPrct = 1;
+            prct_const = 2;
     end
 
     n_reg = length(M_reg_name);
@@ -151,7 +163,7 @@ for setflag = 5
                 Reg = regressors(reg_range,:);
                             
             elseif M_regtypeflag(i_set)==2
-                isMotorseed = 0;
+%                 isMotorseed = 0;
                 setappdata(hfig,'isMotorseed',isMotorseed);
                 [~,~,behavior] = UpdateTimeIndex(hfig);                
                 [~,names,regressors] = GetMotorRegressor(behavior,i_fish);           

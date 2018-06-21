@@ -75,7 +75,7 @@
 
 
 % k_consrv_ratio = 1/3;% or just set int number of fish......
-k_consrv = 5; % at least in 5 more fish within this set
+k_consrv = 6; % at least in 5/6 more fish within this set
 
 
 range_fish = 1:18;
@@ -95,9 +95,9 @@ for i_fish = range_fish,
     end
     
     % save cluster
-    name = 'D12screen_5/18fish';
+    name = 'D12screen_6/18fish';
     clusgroupID = 10;
-    clusIDoverride = 1;
+    clusIDoverride = 2; % 1
     SaveCluster_Direct(cIX,gIX,absIX,i_fish,name,clusgroupID,clusIDoverride);
 end
 %%

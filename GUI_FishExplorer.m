@@ -1135,8 +1135,8 @@ isPlotRegWithTS = getappdata(hfig,'isPlotRegWithTS');
 isPlotAnatomyOnly = getappdata(hfig,'isPlotAnatomyOnly');
 isLeftPlotOnly = 0; % manual...
 
-if ~isPlotAnatomyOnly,
-    figure('Position',[50,50,800,600],... % [50,50,1600,800],
+if ~isPlotAnatomyOnly
+    figure('Position',[50,50,1200,600],... % [50,50,1600,800],
         'color',[1 1 1],...
         'Name',['Fish#' num2str(i_fish)]);
     h1 = axes('Position',[0.05, 0.03, 0.4, 0.94]); % left ~subplot
@@ -3554,6 +3554,7 @@ setappdata(hfig,'Msk_IDlist',Msk_IDs);
 names_numbered = DisplayMaskNames(Msk_IDs,MASKs); % display in debug
 global hmasklistbox;
 set(hmasklistbox,'String',names_numbered);
+set(hmasklistbox,'Value',1:length(Msk_IDs));
 RefreshAnat(hfig);
 end
 
@@ -3573,15 +3574,21 @@ MASKs = getappdata(hfig,'MASKs');
 nMasks = size(MASKs.MaskDatabase,2);
 % get/format range
 str = get(hObject,'String');
-if ~isempty(str),
+global hmasklistbox;
+if ~isempty(str)
     str = strrep(str,'end',num2str(nMasks));
     range = ParseRange(str);
     Msk_IDs = range;
     setappdata(hfig,'Msk_IDs',range);
+    setappdata(hfig,'Msk_IDlist',Msk_IDs);
     setappdata(hfig,'isRefAnat',1);
     RefreshAnat(hfig);
         
-    DisplayMaskNames(Msk_IDs,MASKs); % display in debug
+    % display
+    names_numbered = DisplayMaskNames(Msk_IDs,MASKs); % display in debug
+    
+    set(hmasklistbox,'String',names_numbered);
+    set(hmasklistbox,'Value',1:length(Msk_IDs));
 end
 end
 
@@ -4020,7 +4027,11 @@ figure(hfig);
 h2 = axes('Position',[0.63, 0.04, 0.35, 0.83]);
 % right subplot
 axes(h2);
-DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
+I = LoadCurrentFishForAnatPlot(hfig);
+[~,tot_image] = DrawCellsOnAnat(I,h2);
+image(tot_image);
+axis image;axis off
+% DrawCellsOnAnatProj(hfig,isRefAnat,isPopout);
 WatchOff(hfig);
 end
 

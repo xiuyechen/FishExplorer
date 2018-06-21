@@ -1,8 +1,15 @@
 
 tic
 
+
+%% Init load
+hfig = figure;
+InitializeAppData(hfig);
+ResetDisplayParams(hfig);
+
 range_fish = 1:18;%[12:15,17,18];
 numFish = length(range_fish);
+
 %% Batch pre-load
 numReg = 1;
 i_reg = 1;
@@ -18,6 +25,9 @@ end
 %% screen ALL pairs (non-directional) between ALL fish
 % init
 TF_fishrange = cell(1,numFish);
+ID_fishrange = cell(1,numFish);
+Scores_fishrange = cell(1,numFish);
+ClusSize_fishrange = cell(1,numFish);
 % Pairs_AllClusAllFish = []; % each row: {[fish#1, clusID1]}, {[fish#2, clusID2]}
 
 % cycle through each fish as reference fish  
@@ -31,6 +41,9 @@ for i_refnum = 1:numFish,
     U_ref = unique(gIX_ref);
     numClus_ref = length(U_ref);
     TF_reffish = zeros(numClus_ref,numFish-1);
+    ClusSize_reffish = zeros(numClus_ref,1);
+    ID_reffish = cell(numClus_ref,numFish-1);
+    Scores_reffish = cell(numClus_ref,numFish-1);
     
     % cycle through clusters in reference fish
     for i_clus_ref = 1:numClus_ref,
@@ -40,6 +53,7 @@ for i_refnum = 1:numFish,
         clusID_ref = U_ref(i_clus_ref);
         IX = find(gIX_ref == clusID_ref);
         XYZ_ref = M_xyz_norm_ref(IX,:);
+        ClusSize_reffish(i_clus_ref) = length(IX);
         
         % cycle through test fish for given ref fish
         for i_testnum = 1:numFish,%(i_refnum+1):numFish,% only do ordered pairwise test (other half redundant)
@@ -56,7 +70,7 @@ for i_refnum = 1:numFish,
             numClus_test = length(U_test);
             scores_test = zeros(numClus_test,1);
             
-            % cycle through clusters in test fish
+            %% cycle through clusters in test fish
             for i_clus_test = 1:numClus_test,
                 clusID_test = U_test(i_clus_test);
                 IX = find(gIX_test == clusID_test);
@@ -66,9 +80,11 @@ for i_refnum = 1:numFish,
                 scores_test(i_clus_test,1) = ClusterDistanceTestD12(XYZ_ref,XYZ_test);
             end
             
-            % save qualifying pairs for this test fish
-            IX_pass = find(scores_test);
+            %% save qualifying pairs for this test fish
+            IX_pass = find(scores_test>0);
             TF_reffish(i_clus_ref,i_testnum) = length(IX_pass);
+            ID_reffish{i_clus_ref,i_testnum} = IX_pass;
+            Scores_reffish{i_clus_ref,i_testnum} = scores_test;
 %             if ~isempty(IX_pass),
 %                 clusID_test_pass = U_test(IX_pass);
 %                 for i = 1:length(clusID_test_pass),
@@ -79,8 +95,11 @@ for i_refnum = 1:numFish,
         end
     end
     TF_fishrange{i_refnum} = TF_reffish;
+    ClusSize_fishrange{i_refnum} = ClusSize_reffish;
+    ID_fishrange{i_refnum} = ID_reffish;
+    Scores_fishrange{i_refnum} = Scores_reffish;
 end
 
-data_dir = GetCurrentDataDir();
-save(fullfile(data_dir,'D12screen_allfish.mat'),'TF_fishrange');%,'Pairs_AllClusAllFish');
+data_dir = GetOutputDataDir();
+save(fullfile(data_dir,'D12screen_allfish_062018.mat'),'TF_fishrange','ClusSize_fishrange','ID_fishrange','Scores_fishrange');%,'Pairs_AllClusAllFish');
 toc
