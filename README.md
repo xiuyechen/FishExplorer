@@ -1,3 +1,8 @@
+# FishExplorer :microscope:
+
+## BETA
+
+
 To start:
 
 Update GUI data dir in "GetCurrentDataDir.m"
@@ -13,6 +18,8 @@ To see some example selections of cells, go to tab "Saved Clusters", and browse 
 
 In tab "Operations", use the "Back" and "Forward" button to access the previous views. "Choose cluster range" takes inputs like "1-3,5" or "2:end". Cluster range are indicated by the numbers next to the color bar. 
 
-Please let me know if you have any questions!
+This GUI and associated scripts are developed for the project described in the paper "Brainwide organization of neuronal activity and convergent sensorimotor transformations in larval zebrafish".   [preprint](https://www.biorxiv.org/content/early/2018/03/27/289413) on biorxiv.
 
-- Xiuye Chen (xiuyechen@gmail.com)
+![demo1](https://github.com/xiuyechen/FishExplorer/blob/master/demo/demo1.gif "Demo Text 1")
+
+This Readme is, obviously, still under construction :shipit:
