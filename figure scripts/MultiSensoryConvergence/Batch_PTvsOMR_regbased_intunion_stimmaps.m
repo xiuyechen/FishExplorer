@@ -34,9 +34,10 @@ switch caseflag % NOTE: regressors hard-coded!
         M_isTrialRes = [0,0];
         M_reg_name{1} = 'stimmaps_PT_VS_OMR_intunion';
         M_reg_range = {[3,2],[9,8]};
+        M_stimrange = {1,2};
 %         prct_const = 2; % used for original fig6a up til 1/19/20
                 
-    case 3 % for PT&looming?
+    case 3 % for PT&DF
         isSetDiffnotIntersect = 0;
         is1RegInA = 0;
         M_isTrialRes = [0,0];
@@ -110,7 +111,7 @@ for i_fish = range_fish
     for i_itr = 1:2
         setappdata(hfig,'isTrialRes',M_isTrialRes(i_itr));
 
-        [cIX_seed,gIX_seed,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs);
+        [cIX_seed,gIX_seed,M,stim,behavior,M_0] = LoadSingleFishDefault(i_fish,hfig,ClusterIDs,M_stimrange{i_itr});
 
 %         Reg = FindClustermeans(gIX_seed,M);
                         fishset = getappdata(hfig,'fishset');
@@ -125,7 +126,7 @@ for i_fish = range_fish
         % keep best regression only
         [Corr_rows,corr_max] = ConvertCorrToBestRegRows(Corr);
         
-        % top 2 %
+        % top _%
         nCells_total = size(M_0,1);
         [CIX,RegThres] = ChooseTopPercentOfFish(nCells_total,prct_const,Corr_rows);
         

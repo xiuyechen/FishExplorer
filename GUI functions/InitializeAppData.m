@@ -105,6 +105,7 @@ setappdata(hfig,'isAutoclusWithAllCells',1);
 % clustering
 setappdata(hfig,'isWkmeans',1); % in autoclustering, with/without kmeans
 setappdata(hfig,'hierinplace',1); % hier. partitioning, no reordering
+setappdata(hfig,'isCorrplotWeighted',0); 
 
 % Atlas
 setappdata(hfig,'isFindMaskNorm',1);

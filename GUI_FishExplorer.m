@@ -786,6 +786,12 @@ uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Corr. plot',...
     'Callback',{@pushbutton_corrplot_Callback});
 
 i=i+n;
+n=3; % by default it starts with a k-mean of 20 of the current cells. Could skip that if already clustered.
+uicontrol('Parent',tab{i_tab},'Style','checkbox','String','(weighted)',...
+    'Position',[grid(i) yrow(i_row) bwidth*n rheight],'Value',0,...
+    'Callback',@checkbox_corrplotweighted_Callback);
+
+i=i+n;
 n=2; % find clusters that may be artifacts (small std in any dimension)
 uicontrol('Parent',tab{i_tab},'Style','pushbutton','String','Artifacts',...
     'Position',[grid(i) yrow(i_row) bwidth*n rheight],...
@@ -3178,11 +3184,29 @@ end
 
 function pushbutton_corrplot_Callback(hObject,~)
 hfig = getParentFigure(hObject);
-C = FindCentroid(hfig);
-coeffs = corr(C');%corr(C(1,:)',C(2,:)')
 figure('Position',[100,0,500,500]);
-isPlotText = (size(C,1)<30);
-CorrPlot(coeffs,isPlotText);
+isCorrplotWeighted = getappdata(hfig,'isCorrplotWeighted');
+if isCorrplotWeighted
+    M = getappdata(hfig,'M');
+    gIX = getappdata(hfig,'gIX');
+    [gIX2,ix] = sort(gIX,'ascend');
+    M2 = M(ix,:);
+    C = FindCentroid_Direct(gIX2,M2);
+    coeffs = corr(C');
+    
+    CorrPlotWeighted(coeffs,gIX2);
+else
+    C = FindCentroid(hfig);
+    coeffs = corr(C');
+    isPlotText = (size(C,1)<30);
+    CorrPlot(coeffs,isPlotText);
+end
+end
+
+function checkbox_corrplotweighted_Callback(hObject,~)
+isCorrplotWeighted = get(hObject,'Value');
+hfig = getParentFigure(hObject);
+setappdata(hfig,'isCorrplotWeighted',isCorrplotWeighted);
 end
 
 function pushbutton_findartifacts_Callback(hObject,~)

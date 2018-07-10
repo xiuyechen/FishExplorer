@@ -101,25 +101,29 @@ for i = 1:numPS,
 end
 
 %% Combos
-if fishset == 1,    
-    %% PT combos   
-    % left on: 2 3
-    % right on:  1 3
-    % left off: 0 1
-    % right off:  0 2
-    H = {[2 3],[1 3],[0 1],[0 2]};
-    comboNames = {'L on','R on','L off','R off'};
-    numCB1 = length(H);
-    stimCB_on = zeros(numCB1, tlen);
-    for i = 1:numCB1,
-        for j = 1:length(H{i});
-            ix = H{i}(j)+1;
-            ix2 = find(stimPS_on(ix,:));
-            if ~isempty(ix2),
-                stimCB_on(i,ix2) = 1;
-            end
+% PT combos
+% left on: 2 3
+% right on:  1 3
+% left off: 0 1
+% right off:  0 2
+% H = {[2 3],[1 3],[0 1],[0 2]};
+H = {[2 3],[0 2],[0 1],[1 3]};
+comboNames = {'L on','R off','L off','R on'}; % half-field 
+% comboNames = {'L on','R on','L off','R off'};% half-field % note: reordered below
+numCB1 = length(H);
+stimCB_on = zeros(numCB1, tlen);
+for i = 1:numCB1,
+    for j = 1:length(H{i})
+        ix = H{i}(j)+1;
+        ix2 = find(stimPS_on(ix,:));
+        if ~isempty(ix2),
+            stimCB_on(i,ix2) = 1;
         end
     end
+end
+
+if fishset == 1,    
+
     names = [singleNames, comboNames];
     
 %     stimCB_start = zeros(numCB1, tlen);
@@ -172,8 +176,9 @@ else%if fishset == 2,
         end
     end
     
-    H = [];
-    comboNames = [];
+    % add to the PT combos
+%     H = [];
+%     comboNames = [];
     for i = 2:length(leftstates),
         tempL = nchoosek(leftstates,i);
         tempR = nchoosek(rightstates,i);

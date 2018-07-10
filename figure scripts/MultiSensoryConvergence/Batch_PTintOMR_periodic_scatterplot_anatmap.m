@@ -250,7 +250,8 @@ for i_fish = range_fish
         %% bubble plot
         h = figure('Position',[500,100,300,250]); hold on
         U_size = ones(size(X));
-        scatter(X,Y,U_size,clrmap,'filled')
+%         scatter(X,Y,U_size,clrmap,'filled')
+scatter(X(1:5:end),Y(1:5:end),U_size(1:5:end),clrmap(1:5:end),'filled')
         plot([x0,x1],[thresB,thresB],'k--');
         plot([thresA,thresA],[y0,y1],'k--');
         %         plot([x0,x1],[y0,y0],'k--');

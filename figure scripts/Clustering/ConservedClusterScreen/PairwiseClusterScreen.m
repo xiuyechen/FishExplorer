@@ -40,10 +40,10 @@ for i_refnum = 1:numFish,
     % init
     U_ref = unique(gIX_ref);
     numClus_ref = length(U_ref);
-    TF_reffish = zeros(numClus_ref,numFish-1);
+    TF_reffish = zeros(numClus_ref,numFish); % was numFish-1...
     ClusSize_reffish = zeros(numClus_ref,1);
-    ID_reffish = cell(numClus_ref,numFish-1);
-    Scores_reffish = cell(numClus_ref,numFish-1);
+    ID_reffish = cell(numClus_ref,numFish);
+    Scores_reffish = cell(numClus_ref,numFish);
     
     % cycle through clusters in reference fish
     for i_clus_ref = 1:numClus_ref,

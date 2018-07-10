@@ -1,5 +1,6 @@
 function cmap = CorrPlot(coeffs,isPlotText,ylabels)
 im = coeffs;
+im(isnan(im)) = 0;
 
 % red-white-blue colormap
 cmap = zeros(64,3);
@@ -19,7 +20,9 @@ if exist('isPlotText','var'),
     if isPlotText,
         for i = 1:size(im,1),
             for j = 1:size(im,2),
-                text(i-0.3, j, num2str(round(im(j,i)*100)/100));%, 'Units', 'data') % flipped i/j necessary
+                if im(j,i)~=0
+                    text(i-0.3, j, num2str(round(im(j,i)*100)/100));%, 'Units', 'data') % flipped i/j necessary
+                end
             end
         end
     end
