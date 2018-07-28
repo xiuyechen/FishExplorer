@@ -2668,6 +2668,7 @@ if ~isempty(str),
     RefreshFigure(hfig);
 end
 end
+
 %% ----- tab four ----- (Clustering etc.)
 
 %% row 1: k-means

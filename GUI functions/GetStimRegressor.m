@@ -2,6 +2,7 @@
 % all photoStates:
 % 0 = all black; 1 = black/white; 2 = white/black; 3 = all white; 4 = all gray;
 % 5 = gray/black; 6 = white/gray; 7 = black/gray; 8 = gray/white.
+% 9 = OMR baseline (bright field)
 % 10 = forward grating (very slow, more for calibration)
 % 11 = rightward grating
 % 12 = leftward grating

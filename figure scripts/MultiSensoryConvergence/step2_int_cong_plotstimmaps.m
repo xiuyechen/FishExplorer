@@ -201,11 +201,13 @@ labels1 = {'phT','OMR','loom'};
 labels2 = {'OMR','loom','DF'};
 
 M_data = {Ratio_intersect,Ratio_cong,Ratio_incong};
+M_Scores = cell(1,3);
 for i_plot = 1:3
     Ratio = M_data{i_plot};
     Scores = nanmean(Ratio,3);
     Scores(isnan(Scores))=0;
     Scores = Scores(1:3,2:4);
+    M_Scores{i_plot} = Scores;
     
     figure('Position',[100,400,250,180]);
     CorrPlot(Scores,1,labels1);
