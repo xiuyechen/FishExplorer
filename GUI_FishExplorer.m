@@ -4,9 +4,9 @@
 
 To start, run the included script "LoadGUI.m".
 
-Input calcium data: 1 trace per cell/ROI, ~50,000 cells per fish
+Input calcium data: 1 trace per cell/ROI, ~50-100k cells per fish
 load collection of cells from multiple fish, or load full data of single fish individually
-main outputs: GUI plots, clusters saved into "VAR_current.mat", export variables to MATLAB workspace
+main outputs: GUI plots, clusters saved into "VAR_new.mat", export variables to MATLAB workspace
 
 Tip: to see the structure of this code, use '(Right click -> )Code Folding\Fold all'
 (or hotkey) to collapse all cells.
@@ -14,7 +14,7 @@ UI controls are organized by tabs and then by rows, instructions and
 comments are where they are constructed ('User Interface:' -> function hfig... ->)
 General internal functions are at the end, some specialized .m functions are outside.
 
-Written in Matlab R2016a (with ___ toolboxes) running on Windows 7.
+Written in Matlab R2016a running on Windows 7.
 
 - Xiuye Chen (xiuyechen@gmail.com), Engert Lab, 2016
 %}
