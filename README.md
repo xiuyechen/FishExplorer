@@ -1,25 +1,47 @@
 # FishExplorer :microscope:
 
-## BETA
+
+## Summary ## 
+
+This GUI and associated scripts accompany the paper "Brain-wide Organization of Neuronal Activity and Convergent Sensorimotor Transformations in Larval Zebrafish" (Neuron, 2018, also see [preprint](https://www.biorxiv.org/content/early/2018/03/27/289413) on biorxiv). The GUI is developed to interactively explore and visualize functional imaging data. The data can be curated in the GUI quickly in terms of selecting a subset of cells or time-points. Different analyses can be performed in quick succession on the exact data subset that is visualized. This platform vastly simplifies bookkeeping and visualizations, and was developed for prototyping many custom analyses that operate on single-animal data. The associated scripts extend the same analysis framework to analyses across groups of animals.
 
 
-To start:
+All data curated in the GUI can also be easily edited in the MATLAB workspace (see demo\demo_workspace_interactive.m) or in script form (see demo\demo_script.m); import back to the GUI for further exploration and visualization. 
+ 
 
-Update GUI data dir in "GetCurrentDataDir.m"
-("GetFishDirectories.m" and "GetNestedDataDir.m" are for pre-processing)
+## Download the data ##
 
-Run "LoadGUI.m" to open GUI.
+The data for 1 example fish is [here](https://www.dropbox.com/sh/ae2r46eic4nyjuj/AACRt-AyZVN_UoGjrPP6Oppra?dl=0) (3 GB).
 
-Load data from a fish by selecting in the dropdown menu "Load fish #" under "General" tab.
+The data for all 18 fish is [here](https://www.dropbox.com/sh/c5kozhgj59w3veq/AAD2onrnmPdq-NORZ6Fcee6Xa?dl=0) (56 GB).
 
-Main code is in "GUI_FishExplorer.m".
 
-To see some example selections of cells, go to tab "Saved Clusters", and browse drop-down menus "Cluster" and "ClusterGroup" (which is groups of "Clusters").
+## Quick start ##
 
-In tab "Operations", use the "Back" and "Forward" button to access the previous views. "Choose cluster range" takes inputs like "1-3,5" or "2:end". Cluster range are indicated by the numbers next to the color bar. 
+- Download the data. 
+- To point the code to the data folder, download the code, and find the sub-folder "dir setup".
+Update directory in "GetCurrentDataDir.m" to the folder where the downloaded data is now stored. Update directory in "GetOutputDataDir.m" to the same directory as well (you can change this later as long as outputDir contains "VAR_new.mat"). 
+("GetFishDirectories.m" and "GetNestedDataDir.m" are for pre-processing steps, not used here.)
 
-This GUI and associated scripts are developed for the project described in the paper "Brainwide organization of neuronal activity and convergent sensorimotor transformations in larval zebrafish".   [preprint](https://www.biorxiv.org/content/early/2018/03/27/289413) on biorxiv.
+- Run "LoadGUI.m" to open GUI. (take note to add full code dir to MATLAB search path)
 
-![demo1](https://github.com/xiuyechen/FishExplorer/blob/master/demo/demo1.gif "Demo Text 1")
+- Load data from a fish by selecting the fish ID number in the dropdown menu "Load fish #" under "General" tab.
 
-This Readme is, obviously, still under construction :shipit:
+- Main code is in "GUI_FishExplorer.m". Follow tips at the top of the code to navigate.
+
+- To see some example selections of cells, go to tab "Saved Clusters", and browse drop-down menus "Cluster" and "ClusterGroup" (which is groups of "Clusters").
+
+- In tab "Operations", use the "Back" and "Forward" button to access the previous views. "Choose cluster range" takes inputs like "1-3,5" or "2:end". Cluster range are indicated by the numbers next to the color bar. 
+
+(For more details on this gif, see FishExplorer\demo\FuncGUI_with_ZBrain_demo.pdf)
+![demo_gif](https://raw.githubusercontent.com/xiuyechen/FishExplorer/master/demo/demo1.gif "Demo Text 1")
+
+
+## Related project ##
+
+A newer version of this GUI (with more limited functionality) can be found [here](https://github.com/xiuyechen/Explor2p), developed to conveniently take the output of a popular preprocessing package, [Suite2p](https://github.com/cortex-lab/Suite2P), as input data.
+
+
+## Contact ##
+
+For questions, contact me at xiuye.chen (at) g m a i l. :shipit:
