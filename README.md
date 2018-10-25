@@ -1,13 +1,13 @@
 # FishExplorer :microscope:
 
 
-## Summary ## 
+## Summary ##
 
-This GUI and associated scripts accompany the paper "Brain-wide Organization of Neuronal Activity and Convergent Sensorimotor Transformations in Larval Zebrafish" (Neuron, 2018, also see [preprint](https://www.biorxiv.org/content/early/2018/03/27/289413) on biorxiv). The GUI is developed to interactively explore and visualize functional imaging data. The data can be curated in the GUI quickly in terms of selecting a subset of cells or time-points. Different analyses can be performed in quick succession on the exact data subset that is visualized. This platform vastly simplifies bookkeeping and visualizations, and was developed for prototyping many custom analyses that operate on single-animal data. The associated scripts extend the same analysis framework to analyses across groups of animals.
+This GUI and associated scripts accompany the paper "Brain-wide Organization of Neuronal Activity and Convergent Sensorimotor Transformations in Larval Zebrafish" ([Neuron 2018](https://doi.org/10.1016/j.neuron.2018.09.042), also see [preprint](https://www.biorxiv.org/content/early/2018/03/27/289413) on biorxiv). The GUI is developed to interactively explore and visualize functional imaging data. The data can be curated in the GUI quickly in terms of selecting a subset of cells or time-points. Different analyses can be performed in quick succession on the exact data subset that is visualized. This platform vastly simplifies bookkeeping and visualizations, and was developed for prototyping many custom analyses that operate on single-animal data. The associated scripts extend the same analysis framework to analyses across groups of animals.
 
 
-All data curated in the GUI can also be easily edited in the MATLAB workspace (see demo\demo_workspace_interactive.m) or in script form (see demo\demo_script.m); import back to the GUI for further exploration and visualization. 
- 
+All data curated in the GUI can also be easily edited in the MATLAB workspace (see demo\demo_workspace_interactive.m) or in script form (see demo\demo_script.m); import back to the GUI for further exploration and visualization.
+
 
 ## Download the data ##
 
@@ -18,9 +18,9 @@ The data for all 18 fish is [here](https://www.dropbox.com/sh/c5kozhgj59w3veq/AA
 
 ## Quick start ##
 
-- Download the data. 
+- Download the data.
 - To point the code to the data folder, download the code, and find the sub-folder "dir setup".
-Update directory in "GetCurrentDataDir.m" to the folder where the downloaded data is now stored. Update directory in "GetOutputDataDir.m" to the same directory as well (you can change this later as long as outputDir contains "VAR_new.mat"). 
+Update directory in "GetCurrentDataDir.m" to the folder where the downloaded data is now stored. Update directory in "GetOutputDataDir.m" to the same directory as well (you can change this later as long as outputDir contains "VAR_new.mat").
 ("GetFishDirectories.m" and "GetNestedDataDir.m" are for pre-processing steps, not used here.)
 
 - Run "LoadGUI.m" to open GUI. (take note to add full code dir to MATLAB search path)
@@ -31,7 +31,7 @@ Update directory in "GetCurrentDataDir.m" to the folder where the downloaded dat
 
 - To see some example selections of cells, go to tab "Saved Clusters", and browse drop-down menus "Cluster" and "ClusterGroup" (which is groups of "Clusters").
 
-- In tab "Operations", use the "Back" and "Forward" button to access the previous views. "Choose cluster range" takes inputs like "1-3,5" or "2:end". Cluster range are indicated by the numbers next to the color bar. 
+- In tab "Operations", use the "Back" and "Forward" button to access the previous views. "Choose cluster range" takes inputs like "1-3,5" or "2:end". Cluster range are indicated by the numbers next to the color bar.
 
 (For more details on this gif, see FishExplorer\demo\FuncGUI_with_ZBrain_demo.pdf)
 ![demo_gif](https://raw.githubusercontent.com/xiuyechen/FishExplorer/master/demo/demo1.gif "Demo Text 1")
