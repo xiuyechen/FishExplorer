@@ -39,7 +39,7 @@ Update directory in "GetCurrentDataDir.m" to the folder where the downloaded dat
 
 ## Related project ##
 
-A newer version of this GUI (with more limited functionality) can be found [here](https://github.com/xiuyechen/Explor2p), developed to conveniently take the output of a popular preprocessing package, [Suite2p](https://github.com/cortex-lab/Suite2P), as input data.
+A newer version of this GUI (with more limited functionality) can be found [here](https://github.com/xiuyechen/Explore2p), developed to conveniently take the output of a popular preprocessing package, [Suite2p](https://github.com/cortex-lab/Suite2P), as input data.
 
 
 ## Contact ##
