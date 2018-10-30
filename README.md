@@ -15,6 +15,8 @@ The data for 1 example fish is [here](https://www.dropbox.com/sh/ae2r46eic4nyjuj
 
 The data for all 18 fish is [here](https://www.dropbox.com/sh/c5kozhgj59w3veq/AAD2onrnmPdq-NORZ6Fcee6Xa?dl=0) (56 GB).
 
+Please cite this data as
+Chen, X., Mu, Y., Hu, Y., Sompolinsky, H., Engert, F., Ahrens, M.B., Chen, X., Mu, Y., Hu, Y., Kuan, A.T., et al. (2018). Brain-wide Organization of Neuronal Activity and Convergent Sensorimotor Transformations in Larval Article Brain-wide Organization of Neuronal Activity and Convergent Sensorimotor Transformations in Larval Zebrafish. 1–15. DOI:https://doi.org/10.1016/j.neuron.2018.09.042
 
 ## Quick start ##
 
