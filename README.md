@@ -15,6 +15,7 @@ The data for 1 example fish is [here](https://www.dropbox.com/sh/ae2r46eic4nyjuj
 
 The data for all 18 fish is [here](https://www.dropbox.com/sh/c5kozhgj59w3veq/AAD2onrnmPdq-NORZ6Fcee6Xa?dl=0) (56 GB).
 
+Please cite this data when appropriate as:
 
 ## Quick start ##
 
