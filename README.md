@@ -17,16 +17,17 @@ The data were collected by Yu Mu (muy (at) janelia.hhmi.org) in the [Ahrens lab]
 
 ## Download the data ##
 
-The data for 1 example fish is [here](https://www.dropbox.com/sh/ae2r46eic4nyjuj/AACRt-AyZVN_UoGjrPP6Oppra?dl=0) (3 GB).
-
-The data for all 18 fish is [here](https://www.dropbox.com/sh/c5kozhgj59w3veq/AAD2onrnmPdq-NORZ6Fcee6Xa?dl=0) (56 GB).
-
-Use of the data under the [Creative Commons license](http://creativecommons.org/licenses/by-nc-sa/4.0/ "license") should be accompanied by a citation to the source paper,
+The data is provided openly for academic, non-commercial use under a Creative Commons license (that can be downloaded [here](http://creativecommons.org/licenses/by-nc-sa/4.0/ "license")). Use of the data should be accompanied by a citation to the source paper,
 
 >Brain-wide Organization of Neuronal Activity and Convergent Sensorimotor Transformations in Larval Zebrafish.  
 Xiuye Chen\*, Yu Mu\*, Yu Hu\*, Aaron T. Kuan\*, Maxim Nikitchenko, Owen Randlett, Alex B. Chen, Jeffery P. Gavornik, Haim Sompolinsky, Florian Engert, and Misha B. Ahrens (*: equal contributions)  
 Neuron, 2018  
 DOI: https://doi.org/10.1016/j.neuron.2018.09.042
+
+The data for 1 example fish is [here](https://www.dropbox.com/sh/ae2r46eic4nyjuj/AACRt-AyZVN_UoGjrPP6Oppra?dl=0) (3 GB).
+
+The data for all 18 fish is [here](https://www.dropbox.com/sh/c5kozhgj59w3veq/AAD2onrnmPdq-NORZ6Fcee6Xa?dl=0) (56 GB).
+
 
 Questions about the data or code should be directed to xiuye.chen (at) gmail and ahrensm (at) janelia.hhmi.org.
 
