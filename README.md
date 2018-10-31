@@ -8,6 +8,12 @@ This GUI and associated scripts accompany the paper "Brain-wide Organization of 
 
 All data curated in the GUI can also be easily edited in the MATLAB workspace (see demo\demo_workspace_interactive.m) or in script form (see demo\demo_script.m); import back to the GUI for further exploration and visualization.
 
+## Details of the data ##
+
+The data consists of recordings of whole-brain recordings from larval zebrafish, fictively behaving in a virtual environment, imaged using a light-sheet microscope. The hardware system is detailed in Vladimirov, Mu, Kawashima, Bennett, Yang, Looger, Keller, Freeman and Ahrens, Nature Methods, 2014 (https://www.nature.com/articles/nmeth.3040).
+
+
+The data were collected by Yu Mu (muy (at) janelia.hhmi.org) in the [Ahrens lab](https://www.janelia.org/lab/ahrens-lab).
 
 ## Download the data ##
 
@@ -15,9 +21,17 @@ The data for 1 example fish is [here](https://www.dropbox.com/sh/ae2r46eic4nyjuj
 
 The data for all 18 fish is [here](https://www.dropbox.com/sh/c5kozhgj59w3veq/AAD2onrnmPdq-NORZ6Fcee6Xa?dl=0) (56 GB).
 
-Please cite this data when appropriate as:
+Use of the data under the [Creative Commons license](https://raw.githubusercontent.com/xiuyechen/FishExplorer/master/README_LICENSE.rtf "license") should be accompanied by a citation to the source paper,
 
-Chen, X., Mu, Y., Hu, Y., Kuan, A. T., et al. (2018). Brain-wide Organization of Neuronal Activity and Convergent Sensorimotor Transformations in Larval Zebrafish. Neuron, DOI:https://doi.org/10.1016/j.neuron.2018.09.042
+>Brain-wide Organization of Neuronal Activity and Convergent Sensorimotor Transformations in Larval Zebrafish.  
+Xiuye Chen\*, Yu Mu\*, Yu Hu\*, Aaron T. Kuan\*, Maxim Nikitchenko, Owen Randlett, Alex B. Chen, Jeffery P. Gavornik, Haim Sompolinsky, Florian Engert, and Misha B. Ahrens (*: equal contributions)  
+Neuron, 2018  
+DOI: https://doi.org/10.1016/j.neuron.2018.09.042
+
+Questions about the data or code should be directed to xiuye.chen (at) gmail and ahrensm (at) janelia.hhmi.org.
+
+
+While the code here is provided "as is" without guarantee, we are always happy to communicate about the data and any findings based on it, please get in touch.
 
 ## Quick start ##
 
@@ -28,7 +42,7 @@ Update directory in "GetCurrentDataDir.m" to the folder where the downloaded dat
 
 - Run "LoadGUI.m" to open GUI. (take note to add full code dir to MATLAB search path)
 
-- Load data from a fish by selecting the fish ID number in the dropdown menu "Load fish #" under "General" tab.
+- Load data from a fish by selecting the fish ID number in the dropdown menu "Load fish #" under "General" tab. (If you downloaded data for only 1 example fish, load fish 6.)
 
 - Main code is in "GUI_FishExplorer.m". Follow tips at the top of the code to navigate.
 
@@ -45,6 +59,6 @@ Update directory in "GetCurrentDataDir.m" to the folder where the downloaded dat
 A newer version of this GUI (with more limited functionality) can be found [here](https://github.com/xiuyechen/Explore2p), developed to conveniently take the output of a popular preprocessing package, [Suite2p](https://github.com/cortex-lab/Suite2P), as input data.
 
 
-## Contact ##
+## Contact  :shipit: ##
 
-For questions, contact me at xiuye.chen (at) g m a i l. :shipit:
+Questions about the data or code should be directed to xiuye.chen (at) gmail and ahrensm (at) janelia.hhmi.org.
