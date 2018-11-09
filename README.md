@@ -28,6 +28,7 @@ The data for 1 example fish is [here](https://www.dropbox.com/sh/ae2r46eic4nyjuj
 
 The data for all 18 fish is [here](https://www.dropbox.com/sh/c5kozhgj59w3veq/AAD2onrnmPdq-NORZ6Fcee6Xa?dl=0) (56 GB).
 
+The same data is also available on FigShare: https://doi.org/10.25378/janelia.7272617
 
 Questions about the data or code should be directed to xiuye.chen (at) gmail and ahrensm (at) janelia.hhmi.org.
 
