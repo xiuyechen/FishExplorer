@@ -24,11 +24,8 @@ Xiuye Chen\*, Yu Mu\*, Yu Hu\*, Aaron T. Kuan\*, Maxim Nikitchenko, Owen Randlet
 Neuron, 2018  
 DOI: https://doi.org/10.1016/j.neuron.2018.09.042
 
-The data for 1 example fish is [here](https://www.dropbox.com/sh/ae2r46eic4nyjuj/AACRt-AyZVN_UoGjrPP6Oppra?dl=0) (3 GB).
 
-The data for all 18 fish is [here](https://www.dropbox.com/sh/c5kozhgj59w3veq/AAD2onrnmPdq-NORZ6Fcee6Xa?dl=0) (56 GB).
-
-The same data is also available on FigShare: https://doi.org/10.25378/janelia.7272617
+The data is available for download on FigShare: [https://doi.org/10.25378/janelia.7272617](https://doi.org/10.25378/janelia.7272617)
 
 Questions about the data or code should be directed to xiuye.chen (at) gmail and ahrensm (at) janelia.hhmi.org.
 
