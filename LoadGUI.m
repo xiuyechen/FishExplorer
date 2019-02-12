@@ -11,13 +11,15 @@ clear all;close all;clc
 % code_dir = currentpath;
 
 %% setup dir
-% file_masterdir = GetMasterFileDir;
 file_masterdir = 'C:\Users\Xiu\Dropbox (Personal)';
 if ~exist(file_masterdir,'dir')
     file_masterdir = 'C:\Users\xiuye\Dropbox';
 end
-
 code_dir = fullfile(file_masterdir,'FishExplorer2');
+
+% SET CUSTOM PATH example: 
+% code_dir = 'C:\Users\xiuye\Dropbox\FishExplorer-master';
+
 addpath(genpath(code_dir));
 
 cd(code_dir)
